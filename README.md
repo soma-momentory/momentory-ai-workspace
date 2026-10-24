@@ -6,7 +6,7 @@ The workspace source lives at `C:\SWM\ai-dev-workspace`. Momentory is a register
 
 ## Start on Windows
 
-Requires Node 22.13+, Git, and authenticated official `claude` and `codex` CLIs. Run `npm run setup` once to create ignored `.env` with two distinct random tokens, and verify paths in `projects.json`. Then run:
+Requires Node 22.13+, Git, and authenticated official `claude` and `codex` CLIs. Run `npm run setup` once to create ignored `.env` with two distinct random tokens, run `npm run isolation:setup` to install sandbox profiles, and verify paths in `projects.json`. Then run:
 
 ```powershell
 cd C:\SWM\ai-dev-workspace
@@ -17,7 +17,7 @@ Open `http://127.0.0.1:4178` and log in with `WORKSPACE_TOKEN`. The launcher sup
 
 ## Start on macOS
 
-Install Node 22.13+, Git, and authenticated official CLIs. Clone this repository and each target project. Set each repository path in `projects.json` or use `WORKSPACE_REPO_<PROJECT>_<REPO>` environment variables. Run `npm run setup`, then `npm run local`. macOS parity has not yet been tested on a Mac.
+Install Node 22.13+, Git, and authenticated official CLIs. Clone this repository and each target project. Set each repository path in `projects.json` or use `WORKSPACE_REPO_<PROJECT>_<REPO>` environment variables. Run `npm run setup`, `npm run isolation:setup`, then `npm run local`. macOS parity has not yet been tested on a Mac.
 
 ## Projects and tasks
 
@@ -27,4 +27,4 @@ The worker starts from committed Git HEAD. Uncommitted source changes are delibe
 
 ## Tests
 
-`npm test` runs offline core, HTTP, security, and 390px browser tests. `npm run test:local-integration` runs a real Codex edit on an isolated sample checkout. `npm run test:collaboration-integration` runs actual Claude/Codex parallel tasks, a human task, approval, and an inherited follow-up. `npm run test:momentory-integration` runs a real task against a Momentory FE worktree and its validation commands. `npm run test:design-capture` requires the Expo Lab web server at port 8085. `npm run test:explore-integration` calls both subscribed CLIs for independent proposals and evaluations. `npm run test:recovery-integration`, `npm run test:worker-kill` (Windows), and `npm run test:pause-integration` exercise lease, crash, and pause paths. These integration commands may consume account quota.
+`npm test` runs offline core, HTTP, security, and 390px browser tests. `npm run test:local-integration` runs a real Codex edit on an isolated sample checkout. `npm run test:collaboration-integration` runs actual Claude/Codex parallel tasks, a human task, approval, and an inherited follow-up. `npm run test:momentory-integration` runs a real task against a Momentory FE worktree and its validation commands. `npm run test:design-capture` starts or reuses the Expo Lab on localhost port 8085. `npm run test:momentory-explore` asks both subscribed CLIs for editable Studio drafts, screenshots and evaluations. `npm run test:explore-integration` tests generic text proposals. `npm run test:provider-boundary` and `npm run test:sandbox-check` exercise the supported process boundaries. `npm run test:recovery-integration`, `npm run test:worker-kill` (Windows), and `npm run test:pause-integration` exercise lease, crash, and pause paths. These integration commands may consume account quota.

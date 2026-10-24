@@ -20,6 +20,7 @@ export function providerArgs(provider, {readOnly=false,sessionId=null}={}) {
   if(sessionId && !/^[A-Za-z0-9_-]{8,120}$/.test(sessionId)) throw new Error('Invalid provider session ID');
   if (provider==='claude') return [
     '-p','--output-format','stream-json','--verbose','--max-turns','12',
+    '--restricted','--strict-mcp-config','--permission-prompts','none',
     '--permission-mode',readOnly?'plan':'acceptEdits',
     '--tools',readOnly?'Read,Glob,Grep':'Read,Edit,Write,Glob,Grep',
     '--disallowedTools','Bash(git commit*)','Bash(git push*)','Bash(git reset*)','Bash(git clean*)','Bash(git checkout*)','Bash(npm install*)','Bash(npx eas*)',

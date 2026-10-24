@@ -7,7 +7,8 @@ import { runProvider, stopTree, redact, childEnv } from './provider.mjs';
 import { git } from './git.mjs';
 import { project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
-import { designApplyArgs } from './design.mjs';
+import { designApplyArgs, validateExport } from './design.mjs';
+import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 
 const forbidden = 'Do not commit, push, merge, deploy, delete user files, read secrets, modify .env files, or change files outside this worktree. Keep changes scoped to the goal.';
 export function reviewVerdict(text) { return /^\s*\W*(PASS|FIX_REQUIRED)\b/i.exec(text)?.[1]?.toUpperCase() || null; }
@@ -17,9 +18,14 @@ export function parseDesignCandidates(text) {
 }
 const context = (task) => `${project(task.project_id).name} development task. Goal: ${task.goal}\nProject: ${task.project_id}\nRepository: ${task.repo}\nCompletion criteria: ${task.completion_criteria || 'Verify the requested goal and report evidence.'}\nMode: ${task.mode}\n${forbidden}\nReturn a concise summary of what you changed and remaining risks.`;
 
-function runCommand(cwd,command,args,timeoutMs,signal) {
+function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
   return new Promise(resolve=>{
-    const child=spawn(command,args,{cwd,windowsHide:true,shell:process.platform==='win32'&&command!==process.execPath,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env:childEnv()});
+    if(isolate) verifyCodexProfile('check');
+    const executable=isolate?(process.platform==='win32'?'codex.cmd':'codex'):command;
+    const commandArgs=isolate?['sandbox','-p',codexProfileName('check'),'--permission-profile','workspace-check','--',command,...args]:args;
+    const env=childEnv();
+    if(isolate) env.NODE_OPTIONS=`--require=${JSON.stringify(path.join(path.resolve(import.meta.dirname,'..'),'scripts','sandbox-temp.cjs'))}`;
+    const child=spawn(executable,commandArgs,{cwd,windowsHide:true,shell:process.platform==='win32'&&executable!==process.execPath,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env});
     let output='',timedOut=false;
     for(const stream of [child.stdout,child.stderr]) stream.on('data',chunk=>{output=(output+chunk.toString('utf8')).slice(-12000);});
     const timer=setTimeout(()=>{timedOut=true;stopTree(child);},timeoutMs);
@@ -32,10 +38,10 @@ function runCommand(cwd,command,args,timeoutMs,signal) {
 export async function verifyTask(task,cwd,signal) {
   const checks=[];
   const configured=repository(task.project_id,task.repo).checks;
-  const commands=configured.map(parts=>[process.platform==='win32'&&parts[0]==='./gradlew'?'gradlew.bat':parts[0],parts.slice(1)]);
+  const commands=configured.map(parts=>[process.platform==='win32'&&parts[0]==='./gradlew'?'gradlew.bat':process.platform==='win32'&&parts[0]==='npm'?'npm.cmd':parts[0],parts.slice(1)]);
   for(const [command,args] of commands) {
     if(signal?.aborted) break;
-    const result=await runCommand(cwd,command,args,repository(task.project_id,task.repo).checkTimeoutMs||300000,signal);
+    const result=await runCommand(cwd,command,args,repository(task.project_id,task.repo).checkTimeoutMs||300000,signal,{isolate:true});
     checks.push({command:[command,...args].join(' '),...result});
   }
   return {ok:checks.length===commands.length && checks.every(x=>x.ok),checks};
@@ -91,12 +97,30 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   if(task.mode==='EXPLORE') {
     const historyStore=new Store();let history;try{history=historyStore.designHistory(task.project_id);}finally{historyStore.close();}
     const files=(project(task.project_id).design.contextFiles||[]).flatMap(file=>{const target=path.resolve(location.dir,file);if(!target.startsWith(path.resolve(location.dir)+path.sep)||!fs.existsSync(target))return [];return [`${file}: ${fs.readFileSync(target,'utf8').slice(0,5000)}`];}).join('\n').slice(0,15000);
-    const prompt=`${context(task)}\nProduce two genuinely distinct design approaches. Keep the same content and device constraints. First explain information hierarchy and layout. Then apply this project's design rules: ${JSON.stringify(project(task.project_id).design)}. Project design context: ${files}. Prior human design decisions: ${JSON.stringify(history)}. Avoid repeating explicitly rejected patterns. Do not edit code. Include tradeoffs and evaluation against readability, access, brand, responsive behavior and implementation fit. Return JSON with {candidates:[{name,layout,brand,tradeoffs,evaluation}]}.`;
+    const studio=project(task.project_id).design.adapter==='momentory-expo-lab';
+    const approved=studio?JSON.parse(fs.readFileSync(path.join(location.dir,project(task.project_id).design.outputPath),'utf8')):null;
+    const studioInstruction=studio?` For each candidate also provide screen (one of home-main, rest-hub, archive, my-main, report) and studioPatch: an object containing only changed keys from this approved, editable design schema: ${JSON.stringify(approved)}. Use the exact key names and valid value types. The patch must make a visible difference in typography, alignment, spacing, asset, or composition within these supported properties. Never generate executable code. Unsupported layout changes must be described as requiring implementation and must not be presented as rendered.`:'';
+    const prompt=`${context(task)}\nProduce two genuinely distinct design approaches. Keep the same content and device constraints. First explain information hierarchy and layout. Then apply this project's design rules: ${JSON.stringify(project(task.project_id).design)}. Project design context: ${files}. Prior human design decisions: ${JSON.stringify(history)}. Avoid repeating explicitly rejected patterns. Do not edit code. Include tradeoffs and evaluation against readability, access, brand, responsive behavior and implementation fit.${studioInstruction} Return JSON with {candidates:[{name,layout,brand,tradeoffs,evaluation${studio?',screen,studioPatch':''}}]}.`;
     const [claude,codex]=await Promise.all([run('claude',prompt,true),run('codex',prompt,true)]);
-    const records=[];
+    const records=[],seenDrafts=new Set();
     for(const [name,result] of [['claude',claude],['codex',codex]]) if(result.ok) {
       const proposals=parseDesignCandidates(result.result);
-      for(const proposal of proposals.length?proposals:[{name:`${name} proposal`,text:result.result}]) {const created=await candidate(name,proposal);records.push({id:created.id,provider:name,proposal});}
+      for(const proposal of proposals.length?proposals:[{name:`${name} proposal`,text:result.result}]) {
+        if(studio && proposal.studioPatch && typeof proposal.studioPatch==='object' && !Array.isArray(proposal.studioPatch)) {
+          const screen=['home-main','rest-hub','archive','my-main','report'].includes(proposal.screen)?proposal.screen:'home-main';
+          const patch=proposal.studioPatch;
+          if(Object.keys(patch).length && Object.keys(patch).every(key=>Object.hasOwn(approved,key))) {
+            try {
+              const exported=await validateExport({version:1,name:String(proposal.name).slice(0,60),design:{...approved,...patch}},task.project_id);
+              const fingerprint=JSON.stringify(exported.design);
+              if(fingerprint===JSON.stringify(approved)||seenDrafts.has(fingerprint)) throw new Error('Draft has no distinct editable changes');
+              seenDrafts.add(fingerprint);proposal.exported=exported;proposal.screen=screen;
+            }
+            catch(error) {emit('design_schema_rejected',{provider:name,name:proposal.name,reason:String(error)});}
+          }
+        }
+        const created=await candidate(name,proposal);records.push({id:created.id,provider:name,proposal});
+      }
     }
     let evaluations=null;
     if(claude.ok&&codex.ok&&records.length) {
@@ -107,7 +131,7 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
       for(const record of records)await evaluate(record.id,evaluations);
     }
     const ok=claude.ok&&codex.ok&&!!evaluations?.claude.ok&&!!evaluations?.codex.ok;
-    return {status:ok?'AWAITING_DESIGN_SELECTION':'FAILED',result:{claude,codex,evaluations,candidateIds:records.map(x=>x.id)},verification:{ok:false,reason:'Visual candidates and screenshots require Design Lab rendering; text proposals alone are not visual verification.'},usage:{claude:claude.usage,codex:codex.usage}};
+    return {status:ok?'AWAITING_DESIGN_SELECTION':'FAILED',result:{claude,codex,evaluations,candidateIds:records.map(x=>x.id)},verification:{ok:false,reason:'Candidate rendering and selection are verified separately. Unsupported structural layout proposals require implementation review.'},usage:{claude:claude.usage,codex:codex.usage}};
   }
   let execution=await run(provider,context(task),false,task.session_id);
   await save({session_id:execution.sessionId});

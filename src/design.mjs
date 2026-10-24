@@ -2,21 +2,51 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { spawn } from 'node:child_process';
 import { root } from './config.mjs';
 import { repository, project } from './projects.mjs';
+import {childEnv,stopTree} from './provider.mjs';
 
 const screenRoots={'home-main':'studio-home-hero','rest-hub':'studio-rest-root','archive':'studio-archive-root','my-main':'studio-my-root','report':'studio-report-root'};
 const labRepo=projectId=>repository(projectId,project(projectId).design.repo).path;
+let ownedLab=null,labStartup=null,labReady=false;
+async function labResponds(url) {try {const response=await fetch(url,{signal:AbortSignal.timeout(1500)});return response.ok;}catch{return false;}}
+async function ensureLab(url,projectId) {
+  if(await labResponds(url))return;
+  if(labReady) {stopTree(ownedLab);ownedLab=null;labStartup=null;labReady=false;}
+  if(!labStartup) labStartup=(async()=>{
+    const fe=labRepo(projectId),cli=path.join(fe,'node_modules','.bin',process.platform==='win32'?'expo.cmd':'expo');
+    if(!fs.existsSync(cli))throw new Error('Expo Lab CLI unavailable; install Momentory FE dependencies');
+    const labDir=path.join(fe,'expo-lab');
+    ownedLab=spawn(cli,['start','--web','--port',new URL(url).port,'--host','localhost'],{cwd:labDir,windowsHide:true,shell:process.platform==='win32',detached:process.platform!=='win32',stdio:'ignore',env:{...childEnv(),EXPO_NO_TELEMETRY:'1'}});
+    ownedLab.unref();
+    let spawnError=null;ownedLab.on('error',error=>{spawnError=error;});
+    for(let attempt=0;attempt<120;attempt++) {
+      if(await labResponds(url)){labReady=true;return;}
+      if(spawnError||ownedLab.exitCode!==null)throw new Error(`Expo Lab failed to start: ${spawnError||ownedLab.exitCode}`);
+      await new Promise(resolve=>setTimeout(resolve,500));
+    }
+    stopTree(ownedLab);throw new Error('Expo Lab did not become ready within 60 seconds');
+  })().catch(error=>{labStartup=null;labReady=false;throw error;});
+  await labStartup;
+}
+process.once('beforeExit',()=>{const lab=ownedLab;ownedLab=null;if(lab?.pid)stopTree(lab);});
+process.on('exit',()=>{if(ownedLab?.pid)try{ownedLab.kill();}catch{}});
 export function designApplyArgs(projectId,exportFile) {if(project(projectId).design.adapter!=='momentory-expo-lab')throw new Error('Unsupported design adapter');return [path.join('expo-lab','scripts','apply-design.mjs'),exportFile,'--write'];}
 export async function validateExport(exported,projectId='momentory') {
   if(exported?.version!==1 || typeof exported.name!=='string' || exported.name.length>60) throw new Error('Invalid Studio export');
   const fe=labRepo(projectId);
   const approved=JSON.parse(fs.readFileSync(path.join(fe,project(projectId).design.outputPath),'utf8'));
   const module=await import(pathToFileURL(path.join(fe,'expo-lab','scripts','apply-design.mjs')).href);
-  return {version:1,name:exported.name,design:module.validateDesign(exported.design,approved)};
+  const design=module.validateDesign(exported.design,approved);
+  if(Object.keys(approved).every(key=>approved[key]===design[key])) throw new Error('Studio export has no changes');
+  return {version:1,name:exported.name,design};
 }
 export async function captureDesign(candidateId,exported,screen='home-main',projectId='momentory') {
   if(!screenRoots[screen]) throw new Error('Unsupported screen');
+  const lab=process.env.WORKSPACE_LAB_URL || project(projectId).design.labUrl;
+  if(!/^http:\/\/(?:127\.0\.0\.1|localhost):\d+$/.test(lab)) throw new Error('Design Lab URL must be loopback');
+  await ensureLab(lab,projectId);
   const feRequire=createRequire(path.join(labRepo(projectId),'package.json'));
   const {chromium}=feRequire('playwright');
   const browser=await chromium.launch({headless:true});
@@ -24,8 +54,6 @@ export async function captureDesign(candidateId,exported,screen='home-main',proj
   try {
     const page=await browser.newPage({viewport:{width:1440,height:1200},deviceScaleFactor:1});
     await page.addInitScript(({design,name})=>window.localStorage.setItem('momentory-design-studio-v1',JSON.stringify({active:name,drafts:{[name]:design}})),{design:exported.design,name:exported.name});
-    const lab=process.env.WORKSPACE_LAB_URL || project(projectId).design.labUrl;
-    if(!/^http:\/\/127\.0\.0\.1:\d+$/.test(lab)) throw new Error('Design Lab URL must be loopback');
     await page.goto(`${lab}/#studio/${screen}`,{waitUntil:'networkidle',timeout:30000});
     await page.getByTestId('studio-preview-A').waitFor({state:'visible'});
     await page.getByRole('button',{name:'기능 테스트 모드'}).click();

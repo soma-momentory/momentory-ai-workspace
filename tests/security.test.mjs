@@ -13,6 +13,10 @@ test('provider subprocesses never inherit workspace authentication tokens',()=>{
 });
 test('provider session IDs cannot inject shell metacharacters',()=>{
   assert.throws(()=>providerArgs('codex',{sessionId:'abc12345 & echo bad'}),/Invalid provider session ID/);
+  const claude=providerArgs('claude');
+  assert.ok(claude.includes('--restricted'));
+  assert.ok(claude.includes('--strict-mcp-config'));
+  assert.ok(claude.includes('--permission-prompts'));
 });
 test('reviewable diffs mask common credential assignments',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-redaction-'));

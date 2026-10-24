@@ -1,0 +1,24 @@
+default_permissions = "workspace-locked-readonly"
+
+[windows]
+sandbox = "mxc"
+
+[permissions.workspace-locked-readonly.filesystem]
+":root" = "read"
+":minimal" = "read"
+"~" = "deny"
+"__WORKSPACE_DATA__" = "deny"
+"__WORKSPACE_ENV__" = "deny"
+glob_scan_max_depth = 8
+
+[permissions.workspace-locked-readonly.filesystem.":workspace_roots"]
+"." = "read"
+".aws" = "deny"
+".env" = "deny"
+"**/.env*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/credentials.json" = "deny"
+
+[permissions.workspace-locked-readonly.network]
+enabled = false

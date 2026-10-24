@@ -7,6 +7,7 @@ import {repository} from '../src/projects.mjs';
 import {validateExport,captureDesign} from '../src/design.mjs';
 const approved=JSON.parse(fs.readFileSync(path.join(repository('momentory','fe').path,'src','design','studioApproved.json'),'utf8'));
 const exported=await validateExport({version:1,name:'Workspace Capture Test',design:{...approved,'home.hero.borderRadius':24}});
+await assert.rejects(validateExport({version:1,name:'Unchanged',design:approved}),/no changes/);
 const id=randomUUID(),screenshots=await captureDesign(id,exported,'home-main');
 assert.deepEqual(Object.keys(screenshots.matrix),['375','390','402','430']);
 assert.ok(Object.values(screenshots.matrix).every(item=>item.overflowPx<=2));

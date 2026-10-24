@@ -85,8 +85,17 @@ async function handle(req,res) {
       return send(res,200,{task:store.patch(task.id,fields,'checkpoint',fields)});
     }
     if(pathname==='/api/worker/candidate') {
-      const id=store.addCandidate(task.id,input.provider,input.proposal);
-      return send(res,200,{id});
+      let proposal=input.proposal;
+      if(proposal?.exported) {
+        if(project(task.project_id).design.adapter!=='momentory-expo-lab'||task.repo!==project(task.project_id).design.repo) return send(res,400,{error:'Studio adapter unavailable'});
+        proposal={...proposal,exported:await validateExport(proposal.exported,task.project_id)};
+      }
+      const id=store.addCandidate(task.id,input.provider,proposal);
+      if(proposal?.exported) {
+        try {store.setCandidateScreenshot(id,await captureDesign(id,proposal.exported,proposal.screen||'home-main',task.project_id));}
+        catch(error) {store.event(task.id,'design_capture_failed',{id,error:String(error)});}
+      }
+      return send(res,200,{id,rendered:!!store.candidate(id)?.screenshot});
     }
     if(pathname==='/api/worker/evaluation') return store.setCandidateEvaluation(input.candidateId,task.id,input.evaluation)?send(res,200,{ok:true}):send(res,404,{error:'Candidate not found'});
     if(pathname==='/api/worker/complete') {
