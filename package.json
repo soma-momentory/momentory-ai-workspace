@@ -18,6 +18,9 @@
     "test:design-pipeline": "node tests/design.pipeline.integration.mjs",
     "test:design-resume": "node tests/design.resume.integration.mjs",
     "test:explore-integration": "node tests/explore.integration.mjs",
+    "test:recovery-integration": "node tests/recovery.integration.mjs",
+    "test:worker-kill": "node tests/worker-kill.integration.mjs",
+    "test:resume-killed": "node tests/resume-killed.integration.mjs",
     "test": "node --test tests/*.test.mjs"
   }
 }

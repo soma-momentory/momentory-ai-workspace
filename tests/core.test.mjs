@@ -36,12 +36,12 @@ test('persistent queue claims once, recovers lease, limits attempts and records 
   try {
     const task=db.createTask({goal:'Improve the home screen layout',repo:'fe',maxAttempts:2},{mode:'SPECIALIST',provider:'claude',reason:'test'});
     assert.equal(db.claim('unscoped',['fe']),null);
-    assert.equal(db.claim('a',['momentory:fe']).id,task.id);
+    const firstClaim=db.claim('a',['momentory:fe']);assert.equal(firstClaim.id,task.id);assert.ok(firstClaim.lease_nonce);
     assert.equal(db.claim('b',['momentory:fe']),null);
     db.db.prepare('UPDATE tasks SET lease_until=0 WHERE id=?').run(task.id);
     assert.equal(db.recoverExpired(),1);
     assert.equal(db.getTask(task.id).status,'QUEUED');
-    assert.equal(db.claim('b',['momentory:fe']).attempts,2);
+    const secondClaim=db.claim('b',['momentory:fe']);assert.equal(secondClaim.attempts,2);assert.notEqual(secondClaim.lease_nonce,firstClaim.lease_nonce);
     db.patch(task.id,{worktree:path.join(dir,'worktree'),worktree_host:'b',base_head:'abc'},'checkpoint');
     db.db.prepare('UPDATE tasks SET lease_until=0 WHERE id=?').run(task.id);
     db.recoverExpired();assert.equal(db.getTask(task.id).status,'STALE');

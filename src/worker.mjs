@@ -40,44 +40,44 @@ async function api(endpoint,body) {
     }
   }
 }
-let active=null,controller=null,stopping=false;
+let active=null,activeNonce=null,controller=null,stopping=false;
 process.on('SIGINT',()=>{stopping=true;controller?.abort();});
 process.on('SIGTERM',()=>{stopping=true;controller?.abort();});
 process.on('message',message=>{if(message==='stop'){stopping=true;controller?.abort();}});
 async function loop() {
   while(!stopping) {
     try {
-      const response=await api('/api/worker/heartbeat',{id,name,kind,capabilities,activeTask:active});
+      const response=await api('/api/worker/heartbeat',{id,name,kind,capabilities,activeTask:active,leaseNonce:activeNonce});
       if(response.control==='cancel' || response.control==='pause') controller?.abort();
       if(!active) {
         const claim=await api('/api/worker/claim',{id,capabilities,provider:slot});
         if(claim.task) {
-          const task=claim.task;active=task.id;controller=new AbortController();
+          const task=claim.task;active=task.id;activeNonce=task.lease_nonce;controller=new AbortController();
           let lastHeartbeat=Date.now();
           const heartbeat=setInterval(async()=>{
             try {
-              const state=await api('/api/worker/heartbeat',{id,name,kind,capabilities,activeTask:task.id});
+              const state=await api('/api/worker/heartbeat',{id,name,kind,capabilities,activeTask:task.id,leaseNonce:task.lease_nonce});
               lastHeartbeat=Date.now();
               if(state.control==='cancel'||state.control==='pause') controller.abort();
             } catch(error) {console.error(error.message);if(Date.now()-lastHeartbeat>25000||String(error).includes('HTTP 409'))controller.abort();}
           },5000);
           const pendingEvents=new Set();
-          const emit=(event,payload)=>{const pending=api('/api/worker/event',{id,taskId:task.id,event,payload}).catch(error=>console.error(error.message)).finally(()=>pendingEvents.delete(pending));pendingEvents.add(pending);};
-          const save=fields=>api('/api/worker/patch',{id,taskId:task.id,fields});
-          const candidate=(provider,proposal)=>api('/api/worker/candidate',{id,taskId:task.id,provider,proposal});
-          const evaluate=(candidateId,evaluation)=>api('/api/worker/evaluation',{id,taskId:task.id,candidateId,evaluation});
+          const emit=(event,payload)=>{const pending=api('/api/worker/event',{id,taskId:task.id,leaseNonce:task.lease_nonce,event,payload}).catch(error=>console.error(error.message)).finally(()=>pendingEvents.delete(pending));pendingEvents.add(pending);};
+          const save=fields=>api('/api/worker/patch',{id,taskId:task.id,leaseNonce:task.lease_nonce,fields});
+          const candidate=(provider,proposal)=>api('/api/worker/candidate',{id,taskId:task.id,leaseNonce:task.lease_nonce,provider,proposal});
+          const evaluate=(candidateId,evaluation)=>api('/api/worker/evaluation',{id,taskId:task.id,leaseNonce:task.lease_nonce,candidateId,evaluation});
           try {
             const result=await executeTask(task,{emit,save,candidate,evaluate,signal:controller.signal});
             await Promise.allSettled([...pendingEvents]);
             const checkpoint=path.join(dataDir,`${task.id}.result.json`);
             fs.writeFileSync(`${checkpoint}.tmp`,JSON.stringify(result));fs.renameSync(`${checkpoint}.tmp`,checkpoint);
-            try {await api('/api/worker/complete',{id,taskId:task.id,...result});}
-            catch(error) {await api('/api/worker/orphan-result',{id,taskId:task.id,...result}).catch(()=>{});throw error;}
+            try {await api('/api/worker/complete',{id,taskId:task.id,leaseNonce:task.lease_nonce,...result});}
+            catch(error) {await api('/api/worker/orphan-result',{id,taskId:task.id,leaseNonce:task.lease_nonce,...result}).catch(()=>{});throw error;}
           } catch(error) {
             const stranded=fs.existsSync(path.join(root,'worktrees',task.project_id,task.id));
-            try {await api('/api/worker/complete',{id,taskId:task.id,status:controller.signal.aborted?'CANCELLED':stranded?'UNVERIFIED':'FAILED',result:{error:String(error),stranded},verification:{ok:false,reason:String(error)}});}
+            try {await api('/api/worker/complete',{id,taskId:task.id,leaseNonce:task.lease_nonce,status:controller.signal.aborted?'CANCELLED':stranded?'UNVERIFIED':'FAILED',result:{error:String(error),stranded},verification:{ok:false,reason:String(error)}});}
             catch(completeError){console.error(`Completion unavailable for ${task.id}: ${completeError.message}`);}
-          } finally {clearInterval(heartbeat);active=null;controller=null;}
+          } finally {clearInterval(heartbeat);active=null;activeNonce=null;controller=null;}
         }
       }
     } catch(error) {console.error(error.message);}

@@ -31,8 +31,9 @@ test('HTTP auth, mobile task API, duplicate claim, completion and approval',asyn
     const claimed=(await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe']},true)).body.task;
     assert.equal(claimed.id,task.id);
     assert.equal((await request('/api/worker/claim','POST',{id:'other',capabilities:['momentory:fe']},true)).body.task,null);
-    assert.equal((await request('/api/worker/complete','POST',{id:'other',taskId:task.id,status:'AWAITING_APPROVAL'},true)).status,409);
-    const complete=await request('/api/worker/complete','POST',{id:'test-worker',taskId:task.id,status:'AWAITING_APPROVAL',result:{diff:{changedFiles:['src/a.ts']}},verification:{ok:true}},true);
+    assert.equal((await request('/api/worker/complete','POST',{id:'other',taskId:task.id,leaseNonce:claimed.lease_nonce,status:'AWAITING_APPROVAL'},true)).status,409);
+    assert.equal((await request('/api/worker/complete','POST',{id:'test-worker',taskId:task.id,leaseNonce:'stale-generation',status:'AWAITING_APPROVAL'},true)).status,409);
+    const complete=await request('/api/worker/complete','POST',{id:'test-worker',taskId:task.id,leaseNonce:claimed.lease_nonce,status:'AWAITING_APPROVAL',result:{diff:{changedFiles:['src/a.ts']}},verification:{ok:true}},true);
     assert.equal(complete.status,200);
     const detail=await request(`/api/tasks/${task.id}`);assert.equal(detail.body.decisions.length,1);
     const accepted=await request(`/api/decisions/${detail.body.decisions[0].id}`,'POST',{status:'APPROVED'});

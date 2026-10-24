@@ -21,7 +21,7 @@ export class Store {
         provider TEXT, priority INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL,
         reason TEXT NOT NULL, depends_on TEXT NOT NULL DEFAULT '[]',
         attempts INTEGER NOT NULL DEFAULT 0, max_attempts INTEGER NOT NULL DEFAULT 2,
-        lease_owner TEXT, lease_until INTEGER, pause_requested INTEGER NOT NULL DEFAULT 0,
+        lease_owner TEXT, lease_until INTEGER, lease_nonce TEXT, pause_requested INTEGER NOT NULL DEFAULT 0,
         cancel_requested INTEGER NOT NULL DEFAULT 0, session_id TEXT, worktree TEXT,
         branch TEXT, base_head TEXT, worktree_host TEXT, design_candidate_id TEXT, result TEXT, verification TEXT, usage TEXT,
         created_at TEXT NOT NULL, updated_at TEXT NOT NULL
@@ -46,7 +46,7 @@ export class Store {
         status TEXT NOT NULL DEFAULT 'PROPOSED', created_at TEXT NOT NULL
       );
     `);
-    for(const [column,type] of [['base_head','TEXT'],['worktree_host','TEXT'],['design_candidate_id','TEXT'],['project_id',"TEXT NOT NULL DEFAULT 'momentory'"],['type',"TEXT NOT NULL DEFAULT 'AI_TASK'"],['owner',"TEXT NOT NULL DEFAULT 'ai'"],['completion_criteria',"TEXT NOT NULL DEFAULT ''"]]) {
+    for(const [column,type] of [['base_head','TEXT'],['worktree_host','TEXT'],['design_candidate_id','TEXT'],['lease_nonce','TEXT'],['project_id',"TEXT NOT NULL DEFAULT 'momentory'"],['type',"TEXT NOT NULL DEFAULT 'AI_TASK'"],['owner',"TEXT NOT NULL DEFAULT 'ai'"],['completion_criteria',"TEXT NOT NULL DEFAULT ''"]]) {
       const columns=this.db.prepare('PRAGMA table_info(tasks)').all().map(x=>x.name);
       if(!columns.includes(column)) this.db.exec(`ALTER TABLE tasks ADD COLUMN ${column} ${type}`);
     }
@@ -97,21 +97,21 @@ export class Store {
         if (row.type === 'HUMAN_TASK' || !capabilities.includes(`${row.project_id}:${row.repo}`) || (provider && row.provider !== provider) || (row.worktree_host && row.worktree_host!==workerId)) continue;
         const deps = parse(row.depends_on) ?? [];
         if (deps.some(id => !['APPROVED','SELECTED','DONE'].includes(this.db.prepare('SELECT status FROM tasks WHERE id=?').get(id)?.status))) continue;
-        this.db.prepare("UPDATE tasks SET status='RUNNING',lease_owner=?,lease_until=?,attempts=attempts+1,updated_at=? WHERE id=?")
-          .run(workerId,Date.now()+leaseMs,now(),row.id);
+        this.db.prepare("UPDATE tasks SET status='RUNNING',lease_owner=?,lease_until=?,lease_nonce=?,attempts=attempts+1,updated_at=? WHERE id=?")
+          .run(workerId,Date.now()+leaseMs,randomUUID(),now(),row.id);
         this.event(row.id,'claimed',{workerId});
         return this.getTask(row.id);
       }
       return null;
     });
   }
-  heartbeat(workerId, name, kind, capabilities, activeTask, leaseMs = 30000) {
+  heartbeat(workerId, name, kind, capabilities, activeTask, activeNonce=null, leaseMs = 30000) {
     const ms = Date.now();
     this.tx(() => {
       this.db.prepare(`INSERT INTO workers(id,name,kind,capabilities,last_seen,active_task) VALUES(?,?,?,?,?,?)
         ON CONFLICT(id) DO UPDATE SET name=excluded.name,kind=excluded.kind,capabilities=excluded.capabilities,last_seen=excluded.last_seen,active_task=excluded.active_task`)
         .run(workerId,name,kind,json(capabilities),ms,activeTask ?? null);
-      if (activeTask) this.db.prepare("UPDATE tasks SET lease_until=? WHERE id=? AND lease_owner=? AND status='RUNNING'").run(ms+leaseMs,activeTask,workerId);
+      if (activeTask) this.db.prepare("UPDATE tasks SET lease_until=? WHERE id=? AND lease_owner=? AND lease_nonce=? AND status='RUNNING'").run(ms+leaseMs,activeTask,workerId,activeNonce);
     });
   }
   recoverExpired() {

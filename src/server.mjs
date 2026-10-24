@@ -40,7 +40,7 @@ function checkHost(req) {
   return allowed.includes(req.headers.host);
 }
 const urlFor=req=>new URL(req.url,`http://${req.headers.host||'localhost'}`);
-const owned=(taskId,workerId)=>{const task=store.getTask(taskId);return task?.status==='RUNNING' && task.lease_owner===workerId ? task : null;};
+const owned=(taskId,workerId,nonce)=>{const task=store.getTask(taskId);return task?.status==='RUNNING' && task.lease_owner===workerId && task.lease_nonce===nonce && typeof nonce==='string' ? task : null;};
 const loginFailures=new Map();
 const riskyGoal=goal=>/\b(?:deploy|production|prod|push|merge|delete|drop database|reset --hard|credential|secret|payment|billing)\b|운영\s*배포|강제\s*푸시|메인\s*병합|대량\s*삭제|자격\s*증명/.test(goal.toLowerCase());
 function hasDependencyCycle(taskId,dependencies){const visit=(id,seen)=>id===taskId||(!seen.has(id)&&store.getTask(id)?.dependsOn.some(next=>visit(next,new Set([...seen,id]))));return dependencies.some(id=>visit(id,new Set()));}
@@ -65,19 +65,19 @@ async function handle(req,res) {
     const input=await body(req);
     if(pathname==='/api/worker/heartbeat') {
       if(typeof input.id!=='string' || !Array.isArray(input.capabilities)) return send(res,400,{error:'Invalid worker'});
-      const active=input.activeTask?owned(input.activeTask,input.id):null;
+      const active=input.activeTask?owned(input.activeTask,input.id,input.leaseNonce):null;
       if(input.activeTask && !active) return send(res,409,{error:'Task lease lost'});
-      store.heartbeat(input.id,String(input.name||input.id).slice(0,80),'local',input.capabilities,active?.id);
+      store.heartbeat(input.id,String(input.name||input.id).slice(0,80),'local',input.capabilities,active?.id,active?.lease_nonce);
       return send(res,200,{ok:true,control:active?.cancel_requested?'cancel':active?.pause_requested?'pause':null});
     }
     if(pathname==='/api/worker/claim') return send(res,200,{task:store.claim(input.id,Array.isArray(input.capabilities)?input.capabilities:[],30000,['claude','codex'].includes(input.provider)?input.provider:null)});
     if(pathname==='/api/worker/orphan-result') {
       const orphan=store.getTask(input.taskId);
-      if(!orphan || orphan.worktree_host!==input.id) return send(res,403,{error:'Worker mismatch'});
+      if(!orphan || orphan.worktree_host!==input.id || orphan.lease_nonce!==input.leaseNonce) return send(res,403,{error:'Worker mismatch'});
       store.event(orphan.id,'orphan_result',{workerId:input.id,result:input.result,verification:input.verification,status:input.status});
       return send(res,200,{ok:true});
     }
-    const task=owned(input.taskId,input.id); if(!task) return send(res,409,{error:'Lease owner mismatch'});
+    const task=owned(input.taskId,input.id,input.leaseNonce); if(!task) return send(res,409,{error:'Lease owner mismatch'});
     if(pathname==='/api/worker/event') {store.event(task.id,String(input.event).slice(0,80),input.payload||{});return send(res,200,{ok:true});}
     if(pathname==='/api/worker/patch') {
       const fields={};for(const key of ['session_id','worktree','branch','base_head']) if(input.fields?.[key]!=null) fields[key]=String(input.fields[key]).slice(0,1000);

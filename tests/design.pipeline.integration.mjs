@@ -20,7 +20,7 @@ try{
   const upload=(await api(`/api/tasks/${task.id}/candidates`,'POST',{exported:{version:1,name:'Rounded hero',design:{...approved,'home.hero.borderRadius':22}},screen:'home-main'})).body;
   assert.ok(upload.candidate.screenshot,upload.captureError);
   const claimed=(await api('/api/worker/claim','POST',{id:'design-fixture',capabilities:['momentory:fe']},true)).body.task;assert.equal(claimed.id,task.id);
-  await api('/api/worker/complete','POST',{id:'design-fixture',taskId:task.id,status:'AWAITING_DESIGN_SELECTION',result:{fixture:'Studio export supplied by user'},verification:{ok:false}},true);
+  await api('/api/worker/complete','POST',{id:'design-fixture',taskId:task.id,leaseNonce:claimed.lease_nonce,status:'AWAITING_DESIGN_SELECTION',result:{fixture:'Studio export supplied by user'},verification:{ok:false}},true);
   const decision=(await api(`/api/tasks/${task.id}`)).body.decisions[0];
   const selected=(await api(`/api/decisions/${decision.id}`,'POST',{status:'APPROVED',selectedCandidateId:upload.candidate.id,rationale:'The 22px radius is visually calmer in the matched screenshots.'})).body;
   assert.equal(selected.task.status,'SELECTED');assert.ok(selected.followup?.id);
