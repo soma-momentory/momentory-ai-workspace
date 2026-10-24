@@ -16,7 +16,10 @@ const toLinux=file=>{
   assert.equal(result.status,0,result.stderr);return result.stdout.trim();
 };
 const runner=toLinux(path.join(root,'scripts','wsl-codex.sh'));
-const child=spawn('wsl.exe',['-d',distro,'--cd',root,'--exec','/usr/bin/systemd-run','--user','--scope',`--unit=${unit}`,
+const uid=spawnSync('wsl.exe',['-d',distro,'--exec','/usr/bin/id','-u'],{encoding:'utf8'}).stdout.trim();
+assert.match(uid,/^\d{1,8}$/);
+const runtime=`XDG_RUNTIME_DIR=/run/user/${uid}`;
+const child=spawn('wsl.exe',['-d',distro,'--cd',root,'--exec','/usr/bin/env',runtime,'/usr/bin/systemd-run','--user','--scope',`--unit=${unit}`,
   '-p','MemoryMax=268435456','-p','MemorySwapMax=0','--','/usr/bin/setsid','--wait','/bin/bash',runner,
   toLinux(pidFile),'30','0','/bin/sleep','120'],{stdio:['ignore','pipe','pipe'],windowsHide:true});
 let output='';for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{output+=chunk.toString();});
@@ -28,9 +31,16 @@ try {
   assert.ok(reapStaleWslCodex().includes(path.basename(pidFile)),'Stale Codex scope was not reaped');
   for(let i=0;i<100&&child.exitCode===null;i++)await delay(100);
   assert.notEqual(child.exitCode,null,'WSL child survived reaping');
-  const active=spawnSync('wsl.exe',['-d',distro,'--exec','/usr/bin/systemctl','--user','is-active',unit],{encoding:'utf8'});
+  const active=spawnSync('wsl.exe',['-d',distro,'--exec','/usr/bin/env',runtime,'/usr/bin/systemctl','--user','is-active',unit],{encoding:'utf8'});
   assert.notEqual(active.status,0,'Orphan scope remains active');
   assert.equal(fs.existsSync(pidFile),false,'Orphan marker remains');
   assert.equal(activeWslCodexForWorktree(root).length,0,'Reaped scope still blocks resume');
-  console.log(JSON.stringify({status:'PASS',unit,childExit:child.exitCode}));
+  const damaged=`99999999-${randomUUID()}.pid`,damagedFile=path.join(pidDir,damaged);
+  fs.writeFileSync(`${damagedFile}.json`,Buffer.alloc(192));
+  fs.writeFileSync(damagedFile,Buffer.alloc(5));
+  assert.ok(activeWslCodexForWorktree(root).includes(`${damaged}.json`),'Unknown metadata must fail closed before recovery');
+  assert.ok(reapStaleWslCodex().includes(damaged),'Inactive damaged metadata was not quarantined');
+  assert.equal(fs.existsSync(path.join(pidDir,'quarantine',`${damaged}.json`)),true);
+  assert.equal(activeWslCodexForWorktree(root).length,0,'Quarantined marker still blocks resume');
+  console.log(JSON.stringify({status:'PASS',unit,childExit:child.exitCode,damagedMetadataQuarantined:true}));
 } finally {if(child.exitCode===null)child.kill();}

@@ -35,7 +35,9 @@ export function preparedNpmDependency(cwd,step){
   try{
     const digest=createHash('sha256').update(fs.readFileSync(lock)).update(fs.readFileSync(manifest)).update(JSON.stringify(step.command)).digest('hex');
     const installed=JSON.parse(fs.readFileSync(hiddenLock,'utf8'));
+    const locked=JSON.parse(fs.readFileSync(lock,'utf8'));
     const entries=Object.entries(installed.packages||{});
+    const required=Object.entries(locked.packages||{}).filter(([name,meta])=>name&&!meta.optional);
     const base=path.resolve(cwd,prefix);
     const complete=entries.length>0&&entries.every(([relative,meta])=>{
       if(!relative||relative.split(/[\\/]/).includes('..'))return false;
@@ -44,11 +46,11 @@ export function preparedNpmDependency(cwd,step){
       const target=meta?.link?path.resolve(base,String(meta.resolved||'')):location;
       return target.startsWith(base+path.sep)&&fs.existsSync(path.join(target,'package.json'));
     });
-    return JSON.parse(fs.readFileSync(marker,'utf8')).digest===digest&&complete;
+    return JSON.parse(fs.readFileSync(marker,'utf8')).digest===digest&&complete&&required.every(([name])=>Object.hasOwn(installed.packages,name));
   }catch{return false;}
 }
 export async function verifyWslSetupBoundary(cwd,mode='wsl-setup'){
-  if(!['wsl-setup','wsl-check','wsl-lab'].includes(mode))throw new Error('Invalid WSL check boundary mode');
+  if(!['wsl-setup','wsl-check','wsl-check-generic','wsl-lab'].includes(mode))throw new Error('Invalid WSL check boundary mode');
   const config=wslCodexConfig(cwd),profileMode=mode==='wsl-check'?config.checkMode:mode;
   const key=`${config.distro}|${path.resolve(cwd)}|${profileMode}`;
   if(checkedSetup.has(key))return;
@@ -63,7 +65,7 @@ export async function verifyWslSetupBoundary(cwd,mode='wsl-setup'){
   };
   try{
     const script='if [ "$(cat "$1" 2>/dev/null)" = ALLOWED_SETUP ]; then echo ALLOWED_READ=1; else echo ALLOWED_READ=0; fi; if cat "$2" >/dev/null 2>&1; then echo OUTSIDE_READ=1; else echo OUTSIDE_READ=0; fi; if printf ALLOWED_WRITE > "$1"; then echo ALLOWED_WRITE=1; else echo ALLOWED_WRITE=0; fi; if printf BAD_WRITE > "$2" 2>/dev/null; then echo OUTSIDE_WRITE=1; else echo OUTSIDE_WRITE=0; fi';
-    const permission=mode==='wsl-check'?'workspace-check-locked':mode==='wsl-lab'?'workspace-lab':'workspace-setup';
+    const permission=mode.startsWith('wsl-check')?'workspace-check-locked':mode==='wsl-lab'?'workspace-lab':'workspace-setup';
     const args=['/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,'sandbox','-p',codexProfileName(profileMode),'-P',permission,'-C',config.worktree,'--','/bin/sh','-c',script,'probe',linux(allowed),linux(denied)];
     const result=await asynchronousProbe(wslTrustedCommandLaunch(cwd,args),90000);
     const expected=['ALLOWED_READ=1','OUTSIDE_READ=0','ALLOWED_WRITE=1'];
@@ -106,6 +108,15 @@ function cachedByteBuddyAgent(cwd,config){
   if(!fs.statSync(file).isFile()||fs.realpathSync(file)!==path.resolve(file))throw new Error('Invalid cached Byte Buddy agent path');
   return `${config.worktree}/.gradle/workspace-home/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/${files[0].replaceAll('\\','/')}`;
 }
+function cachedGradleExecutable(cwd,config){
+  const base=path.join(cwd,'.gradle','workspace-home','wrapper','dists');
+  if(!fs.existsSync(base))throw new Error('Reviewed Gradle distribution is missing');
+  const files=fs.readdirSync(base,{recursive:true}).filter(name=>/(?:^|[\\/])gradle-[^\\/]+[\\/]bin[\\/]gradle$/.test(name));
+  if(files.length!==1)throw new Error('Expected exactly one cached Gradle executable');
+  const file=path.join(base,files[0]);
+  if(!fs.statSync(file).isFile()||fs.realpathSync(file)!==path.resolve(file))throw new Error('Invalid cached Gradle executable');
+  return `${config.worktree}/.gradle/workspace-home/wrapper/dists/${files[0].replaceAll('\\','/')}`;
+}
 async function prepareWslGradle(cwd,step,signal){
   if(step.ifMissing!=='.gradle/workspace-home'||JSON.stringify(step.command)!==JSON.stringify(['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']))throw new Error('Only the reviewed Gradle dependency setup is allowed');
   const files=['build.gradle.kts','build.gradle','settings.gradle.kts','settings.gradle','gradle.properties','gradlew','gradle','buildSrc','build-logic'];
@@ -114,7 +125,7 @@ async function prepareWslGradle(cwd,step,signal){
   if(status.status!==0||ignoredBuildInputs.status!==0||status.stdout.trim()||ignoredBuildInputs.stdout.trim())throw new Error('Gradle build inputs or wrapper changed in the task worktree');
   const userHome=path.join(cwd,'.gradle','workspace-home');
   const initDir=path.join(userHome,'init.d');
-  if(fs.existsSync(path.join(userHome,'init.gradle'))||fs.existsSync(initDir)&&fs.readdirSync(initDir).length)throw new Error('Unreviewed Gradle user-home init script');
+  if(fs.existsSync(path.join(userHome,'init.gradle'))||fs.existsSync(path.join(userHome,'gradle.properties'))||fs.existsSync(initDir)&&fs.readdirSync(initDir).length)throw new Error('Unreviewed Gradle user-home script or properties');
   const wrapper=fs.readFileSync(path.join(cwd,'gradle','wrapper','gradle-wrapper.properties'),'utf8');
   if(!/distributionUrl=https\\?:\/\/services\.gradle\.org\/distributions\/gradle-[0-9.]+-bin\.zip/.test(wrapper))throw new Error('Unapproved Gradle distribution URL');
   const markerDir=path.join(root,'data','check-deps');fs.mkdirSync(markerDir,{recursive:true});
@@ -123,7 +134,11 @@ async function prepareWslGradle(cwd,step,signal){
   const configurations=['compileClasspath','testCompileClasspath','testRuntimeClasspath'];
   const initScript=`gradle.projectsEvaluated {\n  gradle.rootProject.tasks.register('workspaceResolveDependencies') {\n    doLast {\n      gradle.rootProject.allprojects.each { project ->\n        ${JSON.stringify(configurations)}.each { name ->\n          def configuration = project.configurations.findByName(name)\n          if (configuration != null && configuration.canBeResolved) {\n            configuration.files.each { artifact -> if (!artifact.isFile()) throw new GradleException("Missing artifact: " + artifact) }\n          }\n        }\n      }\n    }\n  }\n}\n`;
   digest.update(wrapper).update(JSON.stringify(step.command)).update(initScript);const expected=digest.digest('hex');
-  if(fs.existsSync(marker)&&fs.existsSync(path.join(cwd,step.ifMissing)))try{if(JSON.parse(fs.readFileSync(marker,'utf8')).digest===expected)return {ok:true,output:'Previously prepared Gradle dependencies match the reviewed build files'};}catch{}
+  if(fs.existsSync(marker)&&fs.existsSync(path.join(cwd,step.ifMissing))){
+    try{if(JSON.parse(fs.readFileSync(marker,'utf8')).digest===expected)return {ok:true,output:'Previously prepared Gradle dependencies match the reviewed build files'};}catch{}
+    throw new Error('Existing Gradle cache cannot enter a network-enabled setup after build inputs changed; use a fresh isolated worktree');
+  }
+  if(fs.existsSync(userHome))throw new Error('Unreviewed Gradle cache exists before network-enabled setup');
   const entireStatus=spawnSync('git',['status','--porcelain','--untracked-files=all'],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
   if(entireStatus.status!==0||entireStatus.stdout.trim())throw new Error('Network-enabled Gradle setup requires a clean committed task worktree');
   const config=nodeEnvironment(cwd);
@@ -177,10 +192,10 @@ export async function prepareWslDependency(cwd,step,signal){
 export async function runWslCheck(cwd,command,args,timeoutMs,signal){
   const config=nodeEnvironment(cwd);
   if(command==='gradlew.bat'||command==='./gradlew'){
-    await verifyWslSetupBoundary(cwd,'wsl-check');
+    await verifyWslSetupBoundary(cwd,'wsl-check-generic');
     fs.mkdirSync(path.join(cwd,'.gradle','workspace-tmp'),{recursive:true});
     const commandArgs=[...args,'--offline','--no-daemon','--rerun-tasks','--max-workers=2'];
-    const sandbox=['/usr/bin/unshare','-Urn','/bin/sh','-c','/usr/sbin/ip link set lo up && exec "$@"','outer','/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,'sandbox','-p',config.checkProfile,'-P','workspace-check-locked','-C',config.worktree,'--',...gradleEnvironment(config,cachedByteBuddyAgent(cwd,config)),'/bin/sh','-c',gradleShell,'gradlew',...commandArgs];
+    const sandbox=['/usr/bin/unshare','-Urn','/bin/sh','-c','/usr/sbin/ip link set lo up && exec "$@"','outer','/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,'sandbox','-p',codexProfileName('wsl-check-generic'),'-P','workspace-check-locked','-C',config.worktree,'--',...gradleEnvironment(config,cachedByteBuddyAgent(cwd,config)),'/bin/sh',cachedGradleExecutable(cwd,config),...commandArgs];
     return run(wslTrustedCommandLaunch(cwd,sandbox),cwd,timeoutMs,signal);
   }
   const executable=command==='npm'||command==='npm.cmd'?'/usr/bin/npm':command==='node'||command==='node.exe'?`${config.bin}/node`:null;

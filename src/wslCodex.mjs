@@ -14,6 +14,16 @@ const requireResult=(args,{timeout=15000}={})=>{
 };
 const command=(distro,args,options)=>requireResult(['-d',distro,'--exec',...args],options);
 const translate=(distro,winPath)=>command(distro,['/usr/bin/wslpath','-u',path.resolve(winPath).replaceAll('\\','/')]);
+const runtimeDir=distro=>{
+  const uid=command(distro,['/usr/bin/id','-u']);
+  if(!/^\d{1,8}$/.test(uid))throw new Error('Invalid WSL user ID');
+  return `/run/user/${uid}`;
+};
+const userSystemctl=(distro,args,knownRuntimeDir)=>{
+  let runtime;try{runtime=knownRuntimeDir||runtimeDir(distro);}catch(error){return {status:null,error,stdout:'',stderr:''};}
+  if(!/^\/run\/user\/\d{1,8}$/.test(runtime))return {status:null,error:new Error('Invalid WSL runtime directory'),stdout:'',stderr:''};
+  return spawnSync('wsl.exe',['-d',distro,'--exec','/usr/bin/env',`XDG_RUNTIME_DIR=${runtime}`,'/usr/bin/systemctl','--user',...args],{encoding:'utf8',timeout:10000,windowsHide:true});
+};
 
 export function wslCodexConfig(cwd,readOnly=false) {
   if(process.platform!=='win32')throw new Error('WSL Codex is available only on Windows');
@@ -45,7 +55,7 @@ export function wslCodexConfig(cwd,readOnly=false) {
   const codexHome=translate(distro,process.env.CODEX_HOME||path.join(os.homedir(),'.codex'));
   const worktree=translate(distro,cwd);
   const runner=translate(distro,path.join(root,'scripts','wsl-codex.sh'));
-  return {distro,home,mode,profile:codexProfileName(mode),checkProfile:codexProfileName(checkMode),checkMode,permission:readOnly?'workspace-locked-readonly':'workspace-locked',binary,codexHome,worktree,runner};
+  return {distro,home,runtimeDir:runtimeDir(distro),mode,profile:codexProfileName(mode),checkProfile:codexProfileName(checkMode),checkMode,permission:readOnly?'workspace-locked-readonly':'workspace-locked',binary,codexHome,worktree,runner};
 }
 
 export const asynchronousProbe=(launch,timeout=60000)=>new Promise(resolve=>{
@@ -97,13 +107,17 @@ function launchWslScope(config,cwd,command,tasksMax=128){
   const id=randomUUID(),pidFile=path.join(pidDir,`${process.pid}-${id}.pid`),unit=`ai-dev-workspace-${id}.scope`;
   const cpu=bounded('WORKSPACE_CODEX_CPU_SECONDS',600,30,1800);
   const memory=bounded('WORKSPACE_CODEX_MEMORY_KIB',4194304,1048576,8388608);
-  fs.writeFileSync(`${pidFile}.json`,JSON.stringify({cwd:path.resolve(cwd),distro:config.distro,unit,owner:process.pid}),{flag:'wx'});
-  const launchArgs=['-d',config.distro,'--cd',cwd,'--exec','/usr/bin/systemd-run','--user','--scope','--expand-environment=no',`--unit=${unit}`,
+  const metadata=`${pidFile}.json`,temporary=`${metadata}.${randomUUID()}.tmp`;
+  try{
+    fs.writeFileSync(temporary,JSON.stringify({cwd:path.resolve(cwd),distro:config.distro,runtimeDir:config.runtimeDir,unit,owner:process.pid}),{flag:'wx'});
+    fs.renameSync(temporary,metadata);
+  }finally{fs.rmSync(temporary,{force:true});}
+  const launchArgs=['-d',config.distro,'--cd',cwd,'--exec','/usr/bin/env',`XDG_RUNTIME_DIR=${config.runtimeDir}`,'/usr/bin/systemd-run','--user','--scope','--expand-environment=no',`--unit=${unit}`,
     '-p',`MemoryMax=${memory*1024}`,'-p','MemorySwapMax=0','-p',`TasksMax=${tasksMax}`,'-p','CPUQuota=200%','--',
     '/usr/bin/setsid','--wait','/bin/bash',config.runner,
     translate(config.distro,pidFile),String(cpu),'0','/usr/bin/env',`CODEX_HOME=${config.codexHome}`,
     ...command];
-  return {executable:'wsl.exe',args:launchArgs,pidFile,distro:config.distro,unit};
+  return {executable:'wsl.exe',args:launchArgs,pidFile,distro:config.distro,runtimeDir:config.runtimeDir,unit};
 }
 export async function wslCodexLaunch(cwd,readOnly,args) {
   const config=await verifyWslCodexBoundary(cwd,readOnly);
@@ -121,12 +135,9 @@ export function wslTrustedCommandLaunch(cwd,command){
 }
 export function stopWslCodex(launch,signal='TERM') {
   if(!launch?.pidFile||!launch.distro||!launch.unit)return false;
-  if(signal==='KILL')spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','kill','--signal=KILL',launch.unit],
-    {encoding:'utf8',timeout:10000,windowsHide:true});
-  const stopped=spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','stop',launch.unit],
-    {encoding:'utf8',timeout:10000,windowsHide:true});
-  const state=spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','is-active',launch.unit],
-    {encoding:'utf8',timeout:10000,windowsHide:true});
+  if(signal==='KILL')userSystemctl(launch.distro,['kill','--signal=KILL',launch.unit],launch.runtimeDir);
+  const stopped=userSystemctl(launch.distro,['stop',launch.unit],launch.runtimeDir);
+  const state=userSystemctl(launch.distro,['is-active',launch.unit],launch.runtimeDir);
   return !state.error&&state.status!==null&&state.status!==0&&/^(inactive|failed|unknown)$/m.test(state.stdout.trim())&&!stopped.error;
 }
 export function finishWslCodex(launch) {
@@ -135,18 +146,39 @@ export function finishWslCodex(launch) {
   fs.rmSync(launch.pidFile,{force:true});fs.rmSync(`${launch.pidFile}.json`,{force:true});
   return true;
 }
+function readScopeMetadata(metadata){
+  const match=/^(\d+)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.pid\.json$/.exec(metadata);
+  if(!match)throw new Error('Invalid WSL process marker name');
+  const meta=JSON.parse(fs.readFileSync(path.join(pidDir,metadata),'utf8'));
+  if(!meta||typeof meta.cwd!=='string'||!path.isAbsolute(meta.cwd)||!/^[A-Za-z0-9._-]{1,60}$/.test(meta.distro)||(meta.runtimeDir&&!/^\/run\/user\/\d{1,8}$/.test(meta.runtimeDir))||meta.unit!==`ai-dev-workspace-${match[2]}.scope`||meta.owner!==Number(match[1]))throw new Error('Invalid WSL process marker contents');
+  return meta;
+}
 export function activeWslCodexForWorktree(cwd) {
   if(process.platform!=='win32'||!fs.existsSync(pidDir))return [];
   const target=path.resolve(cwd).toLowerCase(),active=[];
   for(const name of fs.readdirSync(pidDir).filter(item=>item.endsWith('.pid.json'))) {
     try {
-      const meta=JSON.parse(fs.readFileSync(path.join(pidDir,name),'utf8'));
+      const meta=readScopeMetadata(name);
       if(String(meta.cwd).toLowerCase()!==target)continue;
-      const state=spawnSync('wsl.exe',['-d',meta.distro,'--exec','/usr/bin/systemctl','--user','is-active',meta.unit],{encoding:'utf8',timeout:10000,windowsHide:true});
+      const state=userSystemctl(meta.distro,['is-active',meta.unit],meta.runtimeDir);
       if(state.status===0||state.error||state.status===null||!/^(inactive|failed|unknown)$/m.test(state.stdout.trim()))active.push(meta.unit);
     }catch{active.push(name);}
   }
   return active;
+}
+function inactiveLegacyScope(name){
+  const match=/^\d+-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.pid$/.exec(name);
+  if(!match)return false;
+  const listed=spawnSync('wsl.exe',['--list','--quiet'],{timeout:10000,windowsHide:true});
+  if(listed.status!==0||!listed.stdout?.length)return false;
+  const distros=listed.stdout.toString('utf16le').split(/\r?\n/).map(value=>value.trim()).filter(value=>/^[A-Za-z0-9._-]{1,60}$/.test(value));
+  if(!distros.length)return false;
+  const unit=`ai-dev-workspace-${match[1]}.scope`;
+  return distros.every(distro=>{
+    const state=userSystemctl(distro,['is-active',unit]);
+    if(state.error||state.status===null||state.status===0)return false;
+    return /^(inactive|failed|unknown)$/m.test(state.stdout.trim())||/Failed to connect to bus: No such file or directory|execvpe\(\/usr\/bin\/systemctl\) failed: No such file or directory|env: can't execute '\/usr\/bin\/systemctl': No such file or directory/.test(state.stderr);
+  });
 }
 export function reapStaleWslCodex() {
   if(process.platform!=='win32'||!fs.existsSync(pidDir))return [];
@@ -158,8 +190,19 @@ export function reapStaleWslCodex() {
     if(owner===process.pid)continue;
     let alive=true;try{process.kill(owner,0);}catch(error){alive=error.code!=='ESRCH';}
     if(alive)continue;
-    let meta;try{meta=JSON.parse(fs.readFileSync(path.join(pidDir,metadata),'utf8'));}catch{continue;}
-    const launch={pidFile:path.join(pidDir,name),distro:meta.distro,unit:meta.unit};
+    let meta;try{meta=readScopeMetadata(metadata);}catch{
+      const bytes=fs.readFileSync(path.join(pidDir,metadata));
+      if(!bytes.length||bytes.some(byte=>byte!==0)||!inactiveLegacyScope(name))continue;
+      const quarantine=path.join(pidDir,'quarantine'),stat=fs.lstatSync(quarantine,{throwIfNoEntry:false});
+      if(stat&&!stat.isDirectory())continue;
+      if(!stat)fs.mkdirSync(quarantine);
+      if(fs.existsSync(path.join(quarantine,metadata))||fs.existsSync(path.join(quarantine,name)))continue;
+      fs.renameSync(path.join(pidDir,metadata),path.join(quarantine,metadata));
+      if(fs.existsSync(path.join(pidDir,name)))fs.renameSync(path.join(pidDir,name),path.join(quarantine,name));
+      reaped.push(name);
+      continue;
+    }
+    const launch={pidFile:path.join(pidDir,name),distro:meta.distro,runtimeDir:meta.runtimeDir,unit:meta.unit};
     if(stopWslCodex(launch,'KILL')){reaped.push(name);fs.rmSync(launch.pidFile,{force:true});fs.rmSync(`${launch.pidFile}.json`,{force:true});}
   }
   return reaped;

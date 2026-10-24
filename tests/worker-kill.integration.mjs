@@ -4,6 +4,7 @@ import path from 'node:path';
 import net from 'node:net';
 import {spawn,execFileSync} from 'node:child_process';
 import {randomBytes,randomUUID} from 'node:crypto';
+import {activeWslCodexForWorktree} from '../src/wslCodex.mjs';
 
 if(process.platform!=='win32') throw new Error('This worker process-tree kill test currently targets Windows');
 const root=path.resolve(import.meta.dirname,'..'),port=await new Promise(resolve=>{const socket=net.createServer();socket.listen(0,'127.0.0.1',()=>{const value=socket.address().port;socket.close(()=>resolve(value));});});
@@ -32,6 +33,7 @@ try{
   restarted=spawn(process.execPath,['src/worker.mjs'],{cwd:root,env,stdio:['ignore','ignore','ignore','ipc']});await delay(4000);
   const unchanged=(await api(`/api/tasks/${task.id}`)).task;assert.equal(unchanged.status,'STALE');assert.equal(unchanged.attempts,1);
   assert.equal(fs.existsSync(path.join(markerDir,marker)),false,'Restarted worker did not reap orphan Codex process');
+  assert.deepEqual(activeWslCodexForWorktree(running.worktree),[],'A stale Codex marker or scope still blocks the worktree');
   console.log(JSON.stringify({status:'PASS',taskId:task.id,worktree:task.worktree||running.worktree,partialFilePreserved:true,orphanReaped:true,attempts:unchanged.attempts,recoveredStatus:unchanged.status,database:db}));
 }finally{
   if(worker?.pid){try{execFileSync('taskkill',['/PID',String(worker.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});}catch{}}

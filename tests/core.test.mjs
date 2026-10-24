@@ -6,8 +6,8 @@ import path from 'node:path';
 import { Store } from '../src/store.mjs';
 import { routeTask } from '../src/router.mjs';
 import { nextHumanActions } from '../src/router.mjs';
-import { providerArgs } from '../src/provider.mjs';
-import { reviewVerdict, parseDesignCandidates } from '../src/engine.mjs';
+import { providerArgs,createProviderLineParser } from '../src/provider.mjs';
+import { reviewVerdict, parseDesignCandidates,selectedDesignApprovalReady,runCommand } from '../src/engine.mjs';
 import {root} from '../src/config.mjs';
 
 test('automatic routing avoids multiple agents for tiny edits and explores design alternatives',()=>{
@@ -21,10 +21,34 @@ test('provider commands use supported structured streaming and an explicit isola
   assert.deepEqual(args.slice(0,4),['-p',process.platform==='win32'?'ai-dev-workspace-wsl-readonly':'ai-dev-workspace-posix-readonly','-a','never']);
   assert.ok(providerArgs('claude').includes('stream-json'));
 });
+test('provider stream discards an oversized line without losing later events',()=>{
+  const lines=[];let oversized=0;
+  const parser=createProviderLineParser(line=>lines.push(line),()=>oversized++,20);
+  parser.feed('x'.repeat(21));
+  parser.feed('tail\n{"type":"result"}\n');
+  parser.feed('한');parser.feed('글');parser.flush();
+  assert.equal(oversized,1);
+  assert.deepEqual(lines,['{"type":"result"}','한글']);
+});
+test('non-WSL verification command has a finite timeout',async()=>{
+  const started=Date.now();
+  const result=await runCommand(process.cwd(),process.execPath,['-e','setInterval(()=>{},1000)'],500);
+  assert.equal(result.ok,false);
+  assert.equal(result.timedOut,true);
+  assert.ok(Date.now()-started<10000);
+});
 test('review cannot silently pass an ambiguous or fix-required answer',()=>{
   assert.equal(reviewVerdict('**FIX_REQUIRED**\nIssue'), 'FIX_REQUIRED');
   assert.equal(reviewVerdict('PASS\nVerified'), 'PASS');
   assert.equal(reviewVerdict('Looks good to me'), null);
+});
+test('selected design approval excludes unrelated edits, moved commits, and ignored files',()=>{
+  const base={verification:{ok:true},diff:{reviewable:true,changedFiles:['src/design/studioApproved.json']},outputPath:'src/design/studioApproved.json',checksChangedSource:false,headMoved:false,ignored:[],violations:[]};
+  assert.equal(selectedDesignApprovalReady(base),true);
+  assert.equal(selectedDesignApprovalReady({...base,diff:{...base.diff,changedFiles:[...base.diff.changedFiles,'src/screen.tsx']}}),false);
+  assert.equal(selectedDesignApprovalReady({...base,headMoved:true}),false);
+  assert.equal(selectedDesignApprovalReady({...base,ignored:['app/node_modules/']}),false);
+  assert.equal(selectedDesignApprovalReady({...base,verification:{ok:false}}),false);
 });
 test('design proposals require structured, distinct candidates before evaluation',()=>{
   const candidates=parseDesignCandidates('```json\n{"candidates":[{"name":"Timeline","layout":"chronological"},{"name":"Dashboard","layout":"summary"}]}\n```');

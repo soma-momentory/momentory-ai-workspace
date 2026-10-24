@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {root} from '../src/config.mjs';
 import {prepareWslDependency,preparedNpmDependency} from '../src/wslChecks.mjs';
@@ -24,6 +24,14 @@ try{
   assert.equal(preparedNpmDependency(dir,step),true);
   fs.rmSync(path.join(fakePackage,'package.json'));
   assert.equal(preparedNpmDependency(dir,step),false,'A missing installed package must force dependency setup again');
+  fs.writeFileSync(path.join(fakePackage,'package.json'),'{"name":"fake-package","version":"1.0.0"}');
+  const requiredLock=JSON.parse(fs.readFileSync(path.join(dir,'package-lock.json'),'utf8'));
+  requiredLock.packages['node_modules/missing-required']={version:'1.0.0'};
+  fs.writeFileSync(path.join(dir,'package-lock.json'),JSON.stringify(requiredLock));
+  const marker=path.join(root,'data','check-deps',`${createHash('sha256').update(path.resolve(dir)+'|node_modules').digest('hex')}.json`);
+  const digest=createHash('sha256').update(fs.readFileSync(path.join(dir,'package-lock.json'))).update(fs.readFileSync(path.join(dir,'package.json'))).update(JSON.stringify(step.command)).digest('hex');
+  fs.writeFileSync(marker,JSON.stringify({digest}));
+  assert.equal(preparedNpmDependency(dir,step),false,'A required lockfile package missing from the installed index must force setup again');
   fs.writeFileSync(path.join(dir,'package.json'),JSON.stringify({name:'workspace-deps-fixture',version:'2.0.0'}));
   await assert.rejects(prepareWslDependency(dir,step),/manifest or npm configuration changed/);
   await assert.rejects(prepareWslDependency(dir,{...step,command:[...step.command,'--ignore-scripts=false']}),/reviewed npm ci/);
@@ -34,4 +42,4 @@ try{
   git('add','package-lock.json');git('-c','user.name=Workspace Test','-c','user.email=workspace@example.invalid','commit','-m','unsafe fixture');
   await assert.rejects(prepareWslDependency(dir,step),/unapproved remote registry/);
   console.log(JSON.stringify({status:'PASS',boundedSetup:true,lockedManifest:true,markerOutsideWorktree:true}));
-}finally{if(path.resolve(dir).startsWith(path.resolve(base)+path.sep))fs.rmSync(dir,{recursive:true,force:true});}
+}finally{fs.rmSync(path.join(root,'data','check-deps',`${createHash('sha256').update(path.resolve(dir)+'|node_modules').digest('hex')}.json`),{force:true});if(path.resolve(dir).startsWith(path.resolve(base)+path.sep))fs.rmSync(dir,{recursive:true,force:true});}

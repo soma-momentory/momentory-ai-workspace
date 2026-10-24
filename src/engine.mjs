@@ -22,7 +22,7 @@ export function parseDesignCandidates(text) {
 }
 const context = (task) => `${project(task.project_id).name} development task. Goal: ${task.goal}\nProject: ${task.project_id}\nRepository: ${task.repo}\nCompletion criteria: ${task.completion_criteria || 'Verify the requested goal and report evidence.'}\nMode: ${task.mode}\n${forbidden}\nReturn a concise summary of what you changed and remaining risks.`;
 
-function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
+export function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
   return new Promise(resolve=>{
     if(isolate) verifyCodexProfile('check');
     const executable=isolate?(process.platform==='win32'?'codex.cmd':'codex'):command;
@@ -30,12 +30,14 @@ function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
     const env=childEnv();
     if(isolate) env.NODE_OPTIONS=`--require=${JSON.stringify(path.join(path.resolve(import.meta.dirname,'..'),'scripts','sandbox-temp.cjs'))}`;
     const child=spawn(executable,commandArgs,{cwd,windowsHide:true,shell:process.platform==='win32'&&executable!==process.execPath,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env});
-    let output='',timedOut=false;
+    let output='',timedOut=false,done=false,watchdog=null;
     for(const stream of [child.stdout,child.stderr]) stream.on('data',chunk=>{output=(output+chunk.toString('utf8')).slice(-12000);});
-    const timer=setTimeout(()=>{timedOut=true;stopTree(child);},timeoutMs);
-    const abort=()=>stopTree(child); signal?.addEventListener('abort',abort,{once:true});
-    child.on('error',error=>{clearTimeout(timer);resolve({ok:false,output:String(error)});});
-    child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted,code,timedOut,output:redact(output)});});
+    const finish=(code,error)=>{if(done)return;done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error,code,timedOut,output:redact([output,error].filter(Boolean).join('\n'))});};
+    const stop=()=>{stopTree(child);if(!watchdog){watchdog=setTimeout(()=>{stopTree(child,'SIGKILL');finish(null,'Command wrapper did not exit after termination');},5000);watchdog.unref();}};
+    const timer=setTimeout(()=>{timedOut=true;stop();},timeoutMs);
+    const abort=()=>stop(); signal?.addEventListener('abort',abort,{once:true});
+    child.on('error',error=>finish(null,error));
+    child.on('close',code=>finish(code));
   });
 }
 

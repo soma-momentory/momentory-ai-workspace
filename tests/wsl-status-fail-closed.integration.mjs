@@ -8,9 +8,12 @@ import {activeWslCodexForWorktree} from '../src/wslCodex.mjs';
 if(process.platform!=='win32')throw new Error('Windows WSL required');
 const cwd=path.resolve('../ai-dev-workspace-sample'),dir=path.join(root,'data','codex-processes');
 fs.mkdirSync(dir,{recursive:true});
-const metadata=path.join(dir,`${process.pid}-${randomUUID()}.pid.json`);
-fs.writeFileSync(metadata,JSON.stringify({cwd,distro:'NoSuchWorkspaceDistro',unit:'ai-dev-workspace-unreachable.scope',owner:process.pid}));
+const id=randomUUID(),unit=`ai-dev-workspace-${id}.scope`,metadata=path.join(dir,`${process.pid}-${id}.pid.json`);
+const malformed=path.join(dir,`${process.pid}-${randomUUID()}.pid.json`);
+fs.writeFileSync(metadata,JSON.stringify({cwd,distro:'NoSuchWorkspaceDistro',unit,owner:process.pid}));
+fs.writeFileSync(malformed,'{}');
 try{
-  assert.ok(activeWslCodexForWorktree(cwd).includes('ai-dev-workspace-unreachable.scope'),'Unknown WSL state must block duplicate execution');
-  console.log(JSON.stringify({status:'PASS',unreachableDistroBlocksResume:true}));
-}finally{fs.rmSync(metadata,{force:true});}
+  assert.ok(activeWslCodexForWorktree(cwd).includes(unit),'Unknown WSL state must block duplicate execution');
+  assert.ok(activeWslCodexForWorktree(cwd).includes(path.basename(malformed)),'Incomplete but valid JSON metadata must fail closed');
+  console.log(JSON.stringify({status:'PASS',unreachableDistroBlocksResume:true,malformedMetadataBlocksResume:true}));
+}finally{fs.rmSync(metadata,{force:true});fs.rmSync(malformed,{force:true});}
