@@ -9,10 +9,13 @@ import { project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
 import { applySelectedDesign, validateExport } from './design.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
-import {strictWslChecks,prepareWslDependency,runWslCheck} from './wslChecks.mjs';
+import {strictWslChecks,prepareWslDependency,runWslCheck,cleanupStaleBoundaryCanaries} from './wslChecks.mjs';
 
 const forbidden = 'Do not commit, push, merge, deploy, delete user files, read secrets, modify .env files, or change files outside this worktree. Keep changes scoped to the goal.';
 export function reviewVerdict(text) { return /^\s*\W*(PASS|FIX_REQUIRED)\b/i.exec(text)?.[1]?.toUpperCase() || null; }
+export function selectedDesignApprovalReady({verification,diff,outputPath,checksChangedSource,headMoved,ignored,violations}){
+  return Boolean(verification.ok&&!checksChangedSource&&diff.reviewable&&diff.changedFiles.length===1&&diff.changedFiles[0]===outputPath&&!headMoved&&!ignored.length&&!violations.length);
+}
 export function parseDesignCandidates(text) {
   try {const start=text.indexOf('{'),end=text.lastIndexOf('}');const value=JSON.parse(text.slice(start,end+1));if(Array.isArray(value.candidates)){const seen=new Set();return value.candidates.filter(x=>{if(!x||typeof x!=='object'||typeof x.name!=='string')return false;const key=JSON.stringify(x.layout||x.informationHierarchy||x.name).toLowerCase();if(seen.has(key))return false;seen.add(key);return true;}).slice(0,2);}}catch{}
   return [];
@@ -64,6 +67,7 @@ async function protectedViolations(task,files) {
 export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{},evaluate=()=>{},signal}={}) {
   const location=createWorktree(task);
   await save({worktree:location.dir,branch:location.branch,base_head:location.baseHead});
+  cleanupStaleBoundaryCanaries(location.dir);
   emit('worktree',{branch:location.branch,baseHead:location.baseHead,dirtySource:location.dirtySource});
   inheritApproved(task,location.dir);
   const repoConfig=repository(task.project_id,task.repo);
@@ -87,8 +91,12 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
     const diff=diffSummary(location.dir,location.baseHead);
     const checksChangedSource=beforeChecks!==recoveryFingerprint(location.dir,location.baseHead);
     const violations=await protectedViolations(task,diff.changedFiles);
-    const status=signal?.aborted?'CANCELLED':verification.ok&&!checksChangedSource&&diff.reviewable&&diff.changedFiles.includes(project(task.project_id).design.outputPath.replace(/\\/g,'/'))&&!violations.length?'AWAITING_APPROVAL':'UNVERIFIED';
-    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,protectedViolations:violations,checksChangedSource},verification,usage:{automation:true}};
+    const outputPath=project(task.project_id).design.outputPath.replace(/\\/g,'/');
+    const headMoved=git(location.dir,'rev-parse','HEAD')!==location.baseHead;
+    const ignored=ignoredWorktreeViolations(location.dir,new Set(['node_modules/','design-lab/node_modules/']));
+    const onlySelectedOutput=diff.changedFiles.length===1&&diff.changedFiles[0]===outputPath;
+    const status=signal?.aborted?'CANCELLED':selectedDesignApprovalReady({verification,diff,outputPath,checksChangedSource,headMoved,ignored,violations})?'AWAITING_APPROVAL':'UNVERIFIED';
+    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,protectedViolations:violations,checksChangedSource,headMoved,ignored,onlySelectedOutput},verification,usage:{automation:true}};
   }
   const provider=task.provider;
   const run=async (which,prompt,readOnly=false,sessionId=null)=>{

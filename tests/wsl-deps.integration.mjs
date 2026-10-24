@@ -4,7 +4,7 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {root} from '../src/config.mjs';
-import {prepareWslDependency} from '../src/wslChecks.mjs';
+import {prepareWslDependency,preparedNpmDependency} from '../src/wslChecks.mjs';
 
 if(process.platform!=='win32')throw new Error('Windows WSL2 required');
 const base=path.join(root,'data'),dir=path.join(base,`wsl-deps-${randomUUID()}`);
@@ -18,6 +18,12 @@ try{
   const first=await prepareWslDependency(dir,step);assert.equal(first.ok,true,first.output);
   fs.mkdirSync(path.join(dir,'node_modules'),{recursive:true});
   const second=await prepareWslDependency(dir,step);assert.equal(second.ok,true);assert.doesNotMatch(second.output,/Previously prepared/,'An empty node_modules directory is not an install marker');
+  const fakePackage=path.join(dir,'node_modules','fake-package');fs.mkdirSync(fakePackage);
+  fs.writeFileSync(path.join(fakePackage,'package.json'),'{"name":"fake-package","version":"1.0.0"}');
+  fs.writeFileSync(path.join(dir,'node_modules','.package-lock.json'),JSON.stringify({packages:{'node_modules/fake-package':{version:'1.0.0'}}}));
+  assert.equal(preparedNpmDependency(dir,step),true);
+  fs.rmSync(path.join(fakePackage,'package.json'));
+  assert.equal(preparedNpmDependency(dir,step),false,'A missing installed package must force dependency setup again');
   fs.writeFileSync(path.join(dir,'package.json'),JSON.stringify({name:'workspace-deps-fixture',version:'2.0.0'}));
   await assert.rejects(prepareWslDependency(dir,step),/manifest or npm configuration changed/);
   await assert.rejects(prepareWslDependency(dir,{...step,command:[...step.command,'--ignore-scripts=false']}),/reviewed npm ci/);

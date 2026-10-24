@@ -14,7 +14,7 @@ const env={...process.env,WORKSPACE_PORT:String(port),WORKSPACE_LAB_URL:`http://
 const server=spawn(process.execPath,['src/server.mjs'],{cwd:root,env,stdio:['ignore','pipe','pipe']});
 let worker=null,cookie='',logs='';for(const stream of [server.stdout,server.stderr])stream.on('data',chunk=>logs=(logs+chunk.toString()).slice(-12000));
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function api(route,method='GET',value,asWorker=false){const response=await fetch(base+route,{method,headers:{'Content-Type':'application/json',...(asWorker?{Authorization:`Bearer ${workerToken}`}:{Origin:base,Cookie:cookie})},body:value===undefined?undefined:JSON.stringify(value)});const body=await response.json();assert.ok(response.ok,`${route} ${response.status} ${JSON.stringify(body)}`);return {body,response};}
+async function api(route,method='GET',value,asWorker=false){let response;for(let attempt=0;attempt<3;attempt++){try{response=await fetch(base+route,{method,headers:{'Content-Type':'application/json',...(asWorker?{Authorization:`Bearer ${workerToken}`}:{Origin:base,Cookie:cookie})},body:value===undefined?undefined:JSON.stringify(value)});break;}catch(error){if(method!=='GET'||attempt===2)throw new Error(`${route} transport failed: ${error}; serverExit=${server.exitCode}; ${logs.slice(-3000)}`);await delay(1000);}}const body=await response.json();assert.ok(response.ok,`${route} ${response.status} ${JSON.stringify(body)}`);return {body,response};}
 try{
   let ready=false;for(let i=0;i<80;i++){try{if((await fetch(base)).ok){ready=true;break;}}catch{}await delay(250);}assert.ok(ready,logs);
   const login=await api('/api/login','POST',{token});cookie=login.response.headers.get('set-cookie').split(';')[0];

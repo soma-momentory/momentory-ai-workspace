@@ -50,10 +50,10 @@ export function wslCodexConfig(cwd,readOnly=false) {
 
 export const asynchronousProbe=(launch,timeout=60000)=>new Promise(resolve=>{
   const child=spawn(launch.executable,launch.args,{windowsHide:true,stdio:['ignore','pipe','pipe']});
-  let stdout='',stderr='',done=false,timedOut=false;
+  let stdout='',stderr='',done=false,timedOut=false,watchdog=null;
   child.stdout.on('data',chunk=>stdout+=chunk.toString());child.stderr.on('data',chunk=>stderr+=chunk.toString());
-  const timer=setTimeout(()=>{timedOut=true;stopWslCodex(launch,'KILL');spawn('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'}).on('error',()=>child.kill());},timeout);
-  const finish=(status,error)=>{if(done)return;done=true;clearTimeout(timer);finishWslCodex(launch);resolve({status:timedOut?null:status,stdout,stderr:error?`${stderr}\n${error}`:stderr,error});};
+  const timer=setTimeout(()=>{timedOut=true;stopWslCodex(launch,'KILL');spawn('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'}).on('error',()=>child.kill());watchdog=setTimeout(()=>finish(null,new Error('Probe wrapper did not exit after termination')),5000);watchdog.unref();},timeout);
+  const finish=(status,error)=>{if(done)return;done=true;clearTimeout(timer);clearTimeout(watchdog);const scopeStopped=finishWslCodex(launch);resolve({status:timedOut||!scopeStopped?null:status,stdout,stderr:[stderr,error,scopeStopped?'':'WSL probe scope remained active'].filter(Boolean).join('\n'),error});};
   child.on('error',error=>finish(null,error));child.on('close',code=>finish(code));
 });
 export async function verifyWslCodexBoundary(cwd,readOnly=false) {
@@ -121,20 +121,19 @@ export function wslTrustedCommandLaunch(cwd,command){
 }
 export function stopWslCodex(launch,signal='TERM') {
   if(!launch?.pidFile||!launch.distro||!launch.unit)return false;
+  if(signal==='KILL')spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','kill','--signal=KILL',launch.unit],
+    {encoding:'utf8',timeout:10000,windowsHide:true});
   const stopped=spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','stop',launch.unit],
     {encoding:'utf8',timeout:10000,windowsHide:true});
-  if(fs.existsSync(launch.pidFile)){
-    const pid=Number(fs.readFileSync(launch.pidFile,'utf8').trim());
-    if(Number.isInteger(pid)&&pid>=2)spawnSync('wsl.exe',['-d',launch.distro,'--exec','/bin/kill',`-${signal}`,'--',`-${pid}`],
-      {encoding:'utf8',timeout:10000,windowsHide:true});
-  }
   const state=spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','is-active',launch.unit],
     {encoding:'utf8',timeout:10000,windowsHide:true});
   return !state.error&&state.status!==null&&state.status!==0&&/^(inactive|failed|unknown)$/m.test(state.stdout.trim())&&!stopped.error;
 }
 export function finishWslCodex(launch) {
-  if(!launch?.pidFile)return;
-  if(stopWslCodex(launch,'KILL')){fs.rmSync(launch.pidFile,{force:true});fs.rmSync(`${launch.pidFile}.json`,{force:true});}
+  if(!launch?.pidFile)return true;
+  if(!stopWslCodex(launch,'KILL'))return false;
+  fs.rmSync(launch.pidFile,{force:true});fs.rmSync(`${launch.pidFile}.json`,{force:true});
+  return true;
 }
 export function activeWslCodexForWorktree(cwd) {
   if(process.platform!=='win32'||!fs.existsSync(pidDir))return [];

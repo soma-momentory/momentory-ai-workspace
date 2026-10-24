@@ -32,9 +32,11 @@ export function installCodexProfiles() {
         const beforeReadonlyDeps=Buffer.from(expected.toString().replace('"node_modules" = "read"\n','').replace('"expo-lab/node_modules" = "read"\n',''));
         const withInvalidNodePattern=Buffer.from(expected.toString().replace('"node_modules" = "read"\n"expo-lab/node_modules" = "read"\n','"**/node_modules/**" = "read"\n'));
         const beforeReadonlyBuild=Buffer.from(expected.toString().replace('".gradle" = "read"\n','').replace('"build" = "read"\n','').replace('"out" = "read"\n',''));
+        const beforeGradleCache=Buffer.from(expected.toString().replace('".gradle/workspace-home/caches/modules-2/files-2.1" = "read"\n','').replace('".gradle/workspace-setup.init.gradle" = "read"\n',''));
+        const withReadonlyGradleHome=Buffer.from(expected.toString().replace('".gradle/workspace-home/caches/modules-2/files-2.1" = "read"\n','".gradle/workspace-home" = "read"\n'));
         const beforeLoopback=Buffer.from(expected.toString().replace('enabled = true\n','enabled = false\n'));
         const prior=Buffer.from(beforeData.toString().replace('"~/.local/node_modules/node" = "read"\n',''));
-        if(((mode==='wsl'||mode==='wsl-readonly'||mode==='wsl-setup')&&(current.equals(prior)||current.equals(beforeData)||current.equals(beforeDns)||current.equals(beforeBoth)||current.equals(beforeEtc)||current.equals(beforeReadonlyDeps)||current.equals(withInvalidNodePattern)||current.equals(beforeReadonlyBuild)))||(mode==='wsl-check'&&current.equals(beforeLoopback)))fs.writeFileSync(target,expected);
+        if(((mode==='wsl'||mode==='wsl-readonly'||mode==='wsl-setup')&&(current.equals(prior)||current.equals(beforeData)||current.equals(beforeDns)||current.equals(beforeBoth)||current.equals(beforeEtc)||current.equals(beforeReadonlyDeps)||current.equals(withInvalidNodePattern)||current.equals(beforeReadonlyBuild)))||(mode==='wsl-check'&&current.equals(beforeLoopback))||(mode==='wsl-check-generic'&&(current.equals(beforeGradleCache)||current.equals(withReadonlyGradleHome))))fs.writeFileSync(target,expected);
         else throw new Error(`Codex profile differs from audited template: ${target}`);
       }
       continue;

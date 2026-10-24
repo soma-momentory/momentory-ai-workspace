@@ -5,10 +5,25 @@ import {spawn,spawnSync} from 'node:child_process';
 import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {childEnv,redact,stopTree} from './provider.mjs';
-import {wslCodexConfig,wslCodexLaunch,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex,asynchronousProbe} from './wslCodex.mjs';
+import {wslCodexConfig,wslCodexLaunch,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex,asynchronousProbe,activeWslCodexForWorktree} from './wslCodex.mjs';
 
 export const strictWslChecks=stack=>process.platform==='win32'&&['node','react-native-expo','spring'].includes(stack);
 const checkedSetup=new Set();
+export function cleanupStaleBoundaryCanaries(cwd){
+  if(process.platform!=='win32')return [];
+  const files=fs.readdirSync(cwd).filter(name=>/^\.workspace-(?:setup|isolation)-[0-9a-f-]{36}$/.test(name));
+  if(!files.length)return [];
+  if(activeWslCodexForWorktree(cwd).length)throw new Error('Active isolated scope owns a boundary canary');
+  const removed=[];
+  for(const name of files){
+    const target=path.join(cwd,name),stat=fs.lstatSync(target);
+    if(!stat.isFile()||stat.isSymbolicLink()||stat.size>64)throw new Error(`Unreviewed boundary canary: ${name}`);
+    const content=fs.readFileSync(target,'utf8');
+    if(!['ALLOWED_SETUP','ALLOWED_WRITE','ALLOWED_BOUNDARY'].includes(content))throw new Error(`Unreviewed boundary canary: ${name}`);
+    fs.rmSync(target);removed.push(name);
+  }
+  return removed;
+}
 export function preparedNpmDependency(cwd,step){
   if(!step||!['node_modules','design-lab/node_modules'].includes(step.ifMissing))return false;
   const prefix=step.ifMissing==='node_modules'?'.':'design-lab';
@@ -20,7 +35,16 @@ export function preparedNpmDependency(cwd,step){
   try{
     const digest=createHash('sha256').update(fs.readFileSync(lock)).update(fs.readFileSync(manifest)).update(JSON.stringify(step.command)).digest('hex');
     const installed=JSON.parse(fs.readFileSync(hiddenLock,'utf8'));
-    return JSON.parse(fs.readFileSync(marker,'utf8')).digest===digest&&Object.hasOwn(installed.packages||{},'');
+    const entries=Object.entries(installed.packages||{});
+    const base=path.resolve(cwd,prefix);
+    const complete=entries.length>0&&entries.every(([relative,meta])=>{
+      if(!relative||relative.split(/[\\/]/).includes('..'))return false;
+      const location=path.resolve(base,relative);
+      if(!location.startsWith(base+path.sep))return false;
+      const target=meta?.link?path.resolve(base,String(meta.resolved||'')):location;
+      return target.startsWith(base+path.sep)&&fs.existsSync(path.join(target,'package.json'));
+    });
+    return JSON.parse(fs.readFileSync(marker,'utf8')).digest===digest&&complete;
   }catch{return false;}
 }
 export async function verifyWslSetupBoundary(cwd,mode='wsl-setup'){
@@ -60,12 +84,13 @@ function run(launch,cwd,timeoutMs,signal){
   return new Promise(resolve=>{
     if(signal?.aborted){finishWslCodex(launch);resolve({ok:false,code:null,timedOut:false,output:'Cancelled before check start'});return;}
     const child=spawn(launch.executable,launch.args,{cwd,windowsHide:true,stdio:['ignore','pipe','pipe'],env:childEnv()});
-    let output='',timedOut=false,done=false;
+    let output='',timedOut=false,done=false,watchdog=null;
     for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{output=(output+chunk.toString('utf8')).slice(-12000);});
     const stop=()=>{if(launch.pidFile)stopWslCodex(launch);stopTree(child);};
-    const timer=setTimeout(()=>{timedOut=true;stop();},timeoutMs);
-    const abort=()=>stop();signal?.addEventListener('abort',abort,{once:true});
-    const finish=(code,error)=>{if(done)return;done=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);finishWslCodex(launch);resolve({ok:code===0&&!timedOut&&!signal?.aborted,code,timedOut,output:redact(error?`${output}\n${error}`:output)});};
+    const armWatchdog=()=>{if(!watchdog){watchdog=setTimeout(()=>finish(null,'Check wrapper did not exit after termination'),5000);watchdog.unref();}};
+    const timer=setTimeout(()=>{timedOut=true;stop();armWatchdog();},timeoutMs);
+    const abort=()=>{stop();armWatchdog();};signal?.addEventListener('abort',abort,{once:true});
+    const finish=(code,error)=>{if(done)return;done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);const scopeStopped=finishWslCodex(launch);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&scopeStopped,code,timedOut,output:redact([output,error,scopeStopped?'':'WSL process scope remained active'].filter(Boolean).join('\n'))});};
     child.on('error',error=>finish(null,String(error)));
     child.on('close',code=>finish(code));
   });
@@ -127,7 +152,7 @@ export async function prepareWslDependency(cwd,step,signal){
   const lockData=JSON.parse(fs.readFileSync(lock,'utf8'));
   for(const item of Object.values(lockData.packages||{}))if(item?.resolved){
     const resolved=String(item.resolved);
-    if(resolved.includes('://')){const url=new URL(resolved);if(url.protocol!=='https:'||url.hostname!=='registry.npmjs.org')throw new Error('Dependency lockfile contains an unapproved remote registry');}
+    if(resolved.includes('://')){const url=new URL(resolved);if(url.protocol!=='https:'||url.hostname!=='registry.npmjs.org'||!/^sha(?:256|384|512)-[A-Za-z0-9+/=]+$/.test(item.integrity||''))throw new Error('Dependency lockfile contains an unapproved remote registry or missing integrity hash');}
     else if(resolved.startsWith('/')||resolved.split(/[\\/]/).includes('..')||resolved.includes(':'))throw new Error('Dependency lockfile contains an unsafe local source');
   }
   const digest=createHash('sha256').update(fs.readFileSync(lock)).update(fs.readFileSync(manifest)).update(JSON.stringify(step.command)).digest('hex');
@@ -136,7 +161,8 @@ export async function prepareWslDependency(cwd,step,signal){
   if(preparedNpmDependency(cwd,step))return {ok:true,output:'Previously prepared Linux dependencies match the locked manifest and installed package index'};
   const config=nodeEnvironment(cwd);
   await verifyWslSetupBoundary(cwd);
-  const setup=['/usr/bin/env',`PATH=${config.searchPath}`,'npm_config_cache=/tmp/workspace-npm-cache','npm_config_userconfig=/dev/null','npm_config_globalconfig=/tmp/workspace-npm-global-empty','npm_config_registry=https://registry.npmjs.org/','/usr/bin/npm',...step.command.slice(1)];
+  const nonce=randomUUID(),npmCache=`/tmp/workspace-npm-${nonce}`,npmUser=`/tmp/workspace-npm-user-${nonce}`;
+  const setup=['/usr/bin/env',`PATH=${config.searchPath}`,`npm_config_cache=${npmCache}`,`npm_config_userconfig=${npmUser}`,'npm_config_globalconfig=/dev/null','npm_config_registry=https://registry.npmjs.org/','/usr/bin/npm',...step.command.slice(1)];
   const sandbox=[config.binary,'sandbox','-p',codexProfileName('wsl-setup'),'-P','workspace-setup','-C',config.worktree,'--',...setup];
   let result=await run(wslTrustedCommandLaunch(cwd,sandbox),cwd,900000,signal);
   if(!result.ok&&!signal?.aborted&&/ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND/.test(result.output)){
@@ -144,6 +170,7 @@ export async function prepareWslDependency(cwd,step,signal){
     const retry=await run(wslTrustedCommandLaunch(cwd,sandbox),cwd,900000,signal);
     result={...retry,output:`First dependency fetch failed transiently; one retry attempted.\nFirst failure: ${firstFailure}\nRetry: ${retry.output}`};
   }
+  spawnSync('wsl.exe',['-d',config.distro,'--exec','/bin/rm','-rf','--',npmCache],{encoding:'utf8',timeout:60000,windowsHide:true});
   if(result.ok)fs.writeFileSync(marker,JSON.stringify({digest,step:step.ifMissing,preparedAt:new Date().toISOString()}));
   return result;
 }

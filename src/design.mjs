@@ -6,7 +6,7 @@ import { root } from './config.mjs';
 import { repository, project } from './projects.mjs';
 import {childEnv,stopTree} from './provider.mjs';
 import {wslCodexConfig,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
-import {verifyWslSetupBoundary,prepareWslDependency} from './wslChecks.mjs';
+import {verifyWslSetupBoundary,prepareWslDependency,cleanupStaleBoundaryCanaries} from './wslChecks.mjs';
 import {validateMomentoryDesign} from './momentorySchema.mjs';
 
 const screenRoots={'home-main':'studio-home-hero','rest-hub':'studio-rest-root','archive':'studio-archive-root','my-main':'studio-my-root','report':'studio-report-root'};
@@ -37,10 +37,8 @@ async function ensureLab(url,projectId,checkout=null,signal=null) {
   if(labReady) {stopOwnedLab();labStartup=null;}
   if(!labStartup) labStartup=(async()=>{
     const cli=path.join(fe,'node_modules','expo','bin','cli');
-    const packageLink=path.join(fe,'node_modules','momentory-expo-lab');
-    let linuxDependencies=false;
-    if(process.platform==='win32')try{fs.statSync(packageLink);}catch{linuxDependencies=true;}
-    if(process.platform==='win32'&&(linuxDependencies||!fs.existsSync(cli))){
+    const linuxDependencies=process.platform==='win32';
+    if(linuxDependencies){
       const step=repository(projectId,project(projectId).design.repo).setup?.find(item=>item.ifMissing==='node_modules');
       if(!step)throw new Error('Expo Lab dependency setup is not configured');
       const setup=await prepareWslDependency(fe,step,signal);
@@ -114,6 +112,7 @@ async function captureDesignExclusive(candidateId,exported,screen,projectId,chec
   if(signal?.aborted)throw new Error('Design capture cancelled');
   if(!screenRoots[screen]) throw new Error('Unsupported screen');
   const fe=fs.realpathSync(checkout||labRepo(projectId));
+  cleanupStaleBoundaryCanaries(fe);
   const baseHead=execFileSync('git',['rev-parse','HEAD'],{cwd:fe,encoding:'utf8',timeout:10000}).trim();
   if(execFileSync('git',['status','--porcelain'],{cwd:fe,encoding:'utf8',timeout:10000}).trim())throw new Error('Design rendering checkout has unreviewed source changes');
   const lab=process.env.WORKSPACE_LAB_URL || project(projectId).design.labUrl;
