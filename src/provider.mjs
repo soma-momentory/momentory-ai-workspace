@@ -31,11 +31,12 @@ export function providerArgs(provider, {readOnly=false,sessionId=null}={}) {
   if (provider==='codex') return ['-p',codexProfileName(process.platform==='win32'?(readOnly?'wsl-readonly':'wsl'):(readOnly?'posix-readonly':'posix')),'-a','never','exec',...(sessionId?['resume']:[]),'--json',...(sessionId?[sessionId]:[]),'-'];
   throw new Error('Unknown provider');
 }
-export function runProvider({provider,cwd,prompt,readOnly=false,sessionId=null,timeoutMs=600000,onEvent=()=>{},signal}) {
+export async function runProvider({provider,cwd,prompt,readOnly=false,sessionId=null,timeoutMs=600000,onEvent=()=>{},signal}) {
+  const args=providerArgs(provider,{readOnly,sessionId});
+  if(provider==='codex'&&process.platform!=='win32') verifyCodexProfile(readOnly?'posix-readonly':'posix');
+  const launch=provider==='codex'&&process.platform==='win32'?await wslCodexLaunch(cwd,readOnly,args):null;
+  if(signal?.aborted){finishWslCodex(launch);return {ok:false,code:null,timedOut:false,sessionId,result:'',usage:null,stderr:'Cancelled before provider start'};}
   return new Promise((resolve,reject)=>{
-    const args=providerArgs(provider,{readOnly,sessionId});
-    if(provider==='codex'&&process.platform!=='win32') verifyCodexProfile(readOnly?'posix-readonly':'posix');
-    const launch=provider==='codex'&&process.platform==='win32'?wslCodexLaunch(cwd,readOnly,args):null;
     const exe=launch?.executable||provider;
     const child=spawn(exe,launch?.args||args,{cwd,windowsHide:true,shell:process.platform==='win32'&&exe!=='wsl.exe',detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:childEnv()});
     let buffer='',stderr='',last='',threadId=sessionId,reportedThreadId=sessionId,usage=null,finished=false,timedOut=false;

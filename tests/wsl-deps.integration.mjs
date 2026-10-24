@@ -17,7 +17,7 @@ try{
   git('init');git('add','package.json','package-lock.json');git('-c','user.name=Workspace Test','-c','user.email=workspace@example.invalid','commit','-m','fixture');
   const first=await prepareWslDependency(dir,step);assert.equal(first.ok,true,first.output);
   fs.mkdirSync(path.join(dir,'node_modules'),{recursive:true});
-  const second=await prepareWslDependency(dir,step);assert.equal(second.ok,true);assert.match(second.output,/Previously prepared/);
+  const second=await prepareWslDependency(dir,step);assert.equal(second.ok,true);assert.doesNotMatch(second.output,/Previously prepared/,'An empty node_modules directory is not an install marker');
   fs.writeFileSync(path.join(dir,'package.json'),JSON.stringify({name:'workspace-deps-fixture',version:'2.0.0'}));
   await assert.rejects(prepareWslDependency(dir,step),/manifest or npm configuration changed/);
   await assert.rejects(prepareWslDependency(dir,{...step,command:[...step.command,'--ignore-scripts=false']}),/reviewed npm ci/);

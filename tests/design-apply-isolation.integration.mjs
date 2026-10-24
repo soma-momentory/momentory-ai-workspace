@@ -18,6 +18,8 @@ try{
   const applied=await applySelectedDesign(exported,'momentory',dir);
   assert.deepEqual(applied.changedKeys,['home.hero.borderRadius']);
   assert.equal(JSON.parse(fs.readFileSync(target,'utf8'))['home.hero.borderRadius'],24);
+  const repeated=await applySelectedDesign(exported,'momentory',dir);
+  assert.equal(repeated.alreadyApplied,true,'A safe retry must reuse the applied design');
   assert.equal(fs.existsSync(canary),false,'Untrusted worktree script executed');
   await assert.rejects(validateExport({version:1,name:'Invalid',design:{...approved,'home.hero.borderRadius':999}},'momentory',dir),/Invalid home.hero.borderRadius/);
   console.log(JSON.stringify({status:'PASS',untrustedScriptExecuted:false,changedKeys:applied.changedKeys}));

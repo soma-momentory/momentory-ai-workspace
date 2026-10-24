@@ -8,6 +8,11 @@ import { Store } from './store.mjs';
 import { redact } from './provider.mjs';
 
 export function git(cwd,...args) { return execFileSync('git',args,{cwd,encoding:'utf8',timeout:15000,windowsHide:true}).trim(); }
+export function ignoredWorktreeViolations(dir,allowed=[]){
+  const safe=new Set(allowed);
+  const visible=new Set(git(dir,'ls-files','--others','--exclude-standard','--directory').split(/\r?\n/).filter(Boolean));
+  return git(dir,'ls-files','--others','--ignored','--exclude-standard','--directory').split(/\r?\n/).filter(file=>file&&!visible.has(file)&&!safe.has(file));
+}
 const samePath=(a,b)=>{const left=fs.realpathSync(a),right=fs.realpathSync(b);return process.platform==='win32'?left.toLowerCase()===right.toLowerCase():left===right;};
 export function repoStatus(projectId,repoId) {
   const dir=repository(projectId,repoId).path;
@@ -19,6 +24,8 @@ export function createWorktree(task) {
   const info=repoStatus(task.project_id,task.repo);
   const dir=path.join(root,'worktrees',task.project_id,task.id);
   if (fs.existsSync(dir)) {
+    const actualDir=fs.realpathSync(dir),expectedDir=path.resolve(dir);
+    if(fs.lstatSync(dir).isSymbolicLink()||(process.platform==='win32'?actualDir.toLowerCase()!==expectedDir.toLowerCase():actualDir!==expectedDir))throw new Error('Worktree path is linked outside its isolation directory');
     if(task.worktree!==dir) throw new Error('Uncheckpointed worktree requires manual inspection before retry');
     if (!samePath(path.resolve(git(dir,'rev-parse','--show-toplevel')),dir)) throw new Error('Worktree path mismatch');
     const baseHead=task.base_head || git(dir,'rev-parse','HEAD');
@@ -28,10 +35,9 @@ export function createWorktree(task) {
   fs.mkdirSync(path.dirname(dir),{recursive:true});
   const branch=`workspace/${task.id}`;
   git(info.dir,'worktree','add','-b',branch,dir,info.head);
-  inheritApproved(task,dir);
   return {dir,branch,baseHead:info.head,dirtySource:!!info.dirty};
 }
-function inheritApproved(task,dir) {
+export function inheritApproved(task,dir) {
   if(!task.dependsOn?.length) return;
   const store=new Store();
   try {
@@ -42,13 +48,14 @@ function inheritApproved(task,dir) {
       if(!parent.worktree||!fs.existsSync(parent.worktree)) throw new Error(`Approved worktree unavailable: ${id}`);
       const patch=execFileSync('git',['diff','--binary',parent.base_head],{cwd:parent.worktree,encoding:'utf8',maxBuffer:10*1024*1024,timeout:30000});
       if(patch) {
-        execFileSync('git',['apply','--check','--binary','-'],{cwd:dir,input:patch,timeout:30000});
-        execFileSync('git',['apply','--binary','-'],{cwd:dir,input:patch,timeout:30000});
+        const already=(()=>{try{execFileSync('git',['apply','--reverse','--check','--binary','-'],{cwd:dir,input:patch,timeout:30000,stdio:'ignore'});return true;}catch{return false;}})();
+        if(!already){execFileSync('git',['apply','--check','--binary','-'],{cwd:dir,input:patch,timeout:30000});execFileSync('git',['apply','--binary','-'],{cwd:dir,input:patch,timeout:30000});}
       }
       const untracked=git(parent.worktree,'ls-files','--others','--exclude-standard').split(/\r?\n/).filter(Boolean);
       for(const file of untracked) {
         const source=path.resolve(parent.worktree,file),target=path.resolve(dir,file);
-        if(!source.startsWith(path.resolve(parent.worktree)+path.sep)||!target.startsWith(path.resolve(dir)+path.sep)||!fs.realpathSync(source).startsWith(fs.realpathSync(parent.worktree)+path.sep)||fs.lstatSync(source).isSymbolicLink()||fs.existsSync(target)) throw new Error(`Unsafe inherited file: ${file}`);
+        if(!source.startsWith(path.resolve(parent.worktree)+path.sep)||!target.startsWith(path.resolve(dir)+path.sep)||!fs.realpathSync(source).startsWith(fs.realpathSync(parent.worktree)+path.sep)||fs.lstatSync(source).isSymbolicLink()) throw new Error(`Unsafe inherited file: ${file}`);
+        if(fs.existsSync(target)){if(fs.lstatSync(target).isSymbolicLink()||!fs.readFileSync(target).equals(fs.readFileSync(source)))throw new Error(`Conflicting inherited file: ${file}`);continue;}
         fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(source,target);
       }
     }
@@ -58,14 +65,17 @@ export function diffSummary(dir,baseHead) {
   const status=git(dir,'status','--porcelain');
   const changed=git(dir,'diff','--name-only',baseHead);
   const untracked=git(dir,'ls-files','--others','--exclude-standard');
+  let opaque=false;
   const extras=untracked.split(/\r?\n/).filter(Boolean).flatMap(file=>{
     const name=path.resolve(dir,file);if(!name.startsWith(path.resolve(dir)+path.sep)||/(^|\/)(?:\.env|\.git)/.test(file))return [];
-    const stat=fs.lstatSync(name);if(stat.isSymbolicLink()||!fs.realpathSync(name).startsWith(fs.realpathSync(dir)+path.sep)||!stat.isFile()||stat.size>32000)return [`--- /dev/null\n+++ b/${file}\n(binary, linked, or large new file)`];
-    const content=fs.readFileSync(name,'utf8');if(content.includes('\0'))return [`--- /dev/null\n+++ b/${file}\n(binary new file)`];
+    const stat=fs.lstatSync(name);if(stat.isSymbolicLink()||!fs.realpathSync(name).startsWith(fs.realpathSync(dir)+path.sep)||!stat.isFile()||stat.size>32000){opaque=true;return [`--- /dev/null\n+++ b/${file}\n(binary, linked, or large new file)`];}
+    const content=fs.readFileSync(name,'utf8');if(content.includes('\0')){opaque=true;return [`--- /dev/null\n+++ b/${file}\n(binary new file)`];}
     return [`--- /dev/null\n+++ b/${file}\n${content.split(/\r?\n/).map(line=>`+${line}`).join('\n')}`];
   });
   const patch=execFileSync('git',['diff','--no-ext-diff','--binary',baseHead],{cwd:dir,encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024});
-  return {status,changedFiles:[...new Set([...changed.split(/\r?\n/),...untracked.split(/\r?\n/)].filter(Boolean))],diff:git(dir,'diff','--stat',baseHead).slice(0,10000),patch:redact([patch,...extras].join('\n')).slice(0,120000)};
+  const full=[patch,...extras].join('\n'),masked=redact(full);
+  const reviewable=!opaque&&!/GIT binary patch|Binary files .* differ/.test(patch)&&full.length<=120000&&masked===full;
+  return {status,changedFiles:[...new Set([...changed.split(/\r?\n/),...untracked.split(/\r?\n/)].filter(Boolean))],diff:git(dir,'diff','--stat',baseHead).slice(0,10000),patch:masked.slice(0,120000),reviewable,reviewError:reviewable?null:'Diff has hidden, truncated, binary, or redacted content; inspect it locally before recovery or approval'};
 }
 export function recoveryFingerprint(dir,baseHead){
   const hash=createHash('sha256');

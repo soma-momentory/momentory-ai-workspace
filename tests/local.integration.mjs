@@ -25,8 +25,19 @@ try {
   let done=null;for(let i=0;i<180;i++){await new Promise(r=>setTimeout(r,1000));const current=(await api(`/api/tasks/${task.id}`)).data.task;if(['AWAITING_APPROVAL','FAILED','UNVERIFIED','STALE'].includes(current.status)){done=current;break;}}
   assert.ok(done,`Timed out: ${log}`);assert.equal(done.status,'AWAITING_APPROVAL',JSON.stringify(done.result));
   assert.ok(done.result.diff.changedFiles.includes('index.mjs'));assert.equal(done.verification.ok,true);
+  assert.ok(!done.result.diff.changedFiles.some(name=>['data','node_modules','.gradle','build','out','expo-lab'].includes(name)),'Sandbox mount placeholders leaked into the reviewable diff');
   const details=(await api(`/api/tasks/${task.id}`)).data;
   await api(`/api/decisions/${details.decisions[0].id}`,'POST',{status:'APPROVED'});
   assert.equal((await api(`/api/tasks/${task.id}`)).data.task.status,'APPROVED');
-  console.log(JSON.stringify({status:'PASS',taskId:task.id,repo,changedFiles:done.result.diff.changedFiles,checks:done.verification.checks.map(x=>({command:x.command,ok:x.ok})),events:details.events.length},null,2));
+  fs.writeFileSync(path.join(repo,'sentinel.txt'),'BASELINE\n');
+  fs.writeFileSync(path.join(repo,'mutating.test.mjs'),"import test from 'node:test'; import fs from 'node:fs'; test('check side effect',()=>{fs.writeFileSync('sentinel.txt','MUTATED_BY_CHECK\\n')});\n");
+  execFileSync('git',['add','sentinel.txt','mutating.test.mjs'],{cwd:repo});
+  execFileSync('git',['-c','user.name=Workspace Test','-c','user.email=workspace@example.invalid','commit','-m','check mutation fixture'],{cwd:repo});
+  const {data:{task:mutating}}=await api('/api/tasks','POST',{projectId:'sample',goal:'Fix only index.mjs so the sum test passes; preserve every other source file.',repo:'app',provider:'codex',mode:'FAST'});
+  let mutated=null;for(let i=0;i<180;i++){await new Promise(r=>setTimeout(r,1000));const current=(await api(`/api/tasks/${mutating.id}`)).data.task;if(['AWAITING_APPROVAL','FAILED','UNVERIFIED','STALE'].includes(current.status)){mutated=current;break;}}
+  assert.ok(mutated,'Mutation fixture task timed out');
+  assert.equal(mutated.status,'UNVERIFIED',JSON.stringify(mutated.result));
+  assert.equal(mutated.verification.ok,true,'The fixture must pass checks while changing tracked source');
+  assert.equal(mutated.result.checksChangedSource,true);
+  console.log(JSON.stringify({status:'PASS',taskId:task.id,repo,changedFiles:done.result.diff.changedFiles,checks:done.verification.checks.map(x=>({command:x.command,ok:x.ok})),events:details.events.length,checkMutationDenied:true},null,2));
 } finally {const exited=new Promise(resolve=>child.once('exit',resolve));child.send('stop');await Promise.race([exited,new Promise(resolve=>setTimeout(resolve,35000))]);if(child.exitCode===null)child.kill();}

@@ -66,7 +66,19 @@ async function loop() {
           const pendingEvents=new Set();
           const emit=(event,payload)=>{const pending=api('/api/worker/event',{id,taskId:task.id,leaseNonce:task.lease_nonce,event,payload}).catch(error=>console.error(error.message)).finally(()=>pendingEvents.delete(pending));pendingEvents.add(pending);};
           const save=fields=>api('/api/worker/patch',{id,taskId:task.id,leaseNonce:task.lease_nonce,fields});
-          const candidate=(provider,proposal)=>api('/api/worker/candidate',{id,taskId:task.id,leaseNonce:task.lease_nonce,provider,proposal});
+          const candidate=async(provider,proposal)=>{
+            const created=await api('/api/worker/candidate',{id,taskId:task.id,leaseNonce:task.lease_nonce,provider,proposal});
+            if(!created.pending)return created;
+            for(let attempt=0;attempt<450;attempt++){
+              if(controller.signal.aborted)throw new Error('Candidate rendering cancelled');
+              await new Promise(resolve=>setTimeout(resolve,2000));
+              let current;
+              try{current=await api('/api/worker/candidate-status',{id,taskId:task.id,leaseNonce:task.lease_nonce,candidateId:created.id});}
+              catch(error){if(String(error).includes('HTTP 409'))throw error;continue;}
+              if(current.rendered||current.status==='CAPTURE_FAILED')return current;
+            }
+            throw new Error('Candidate rendering exceeded 15 minutes');
+          };
           const evaluate=(candidateId,evaluation)=>api('/api/worker/evaluation',{id,taskId:task.id,leaseNonce:task.lease_nonce,candidateId,evaluation});
           try {
             const result=await executeTask(task,{emit,save,candidate,evaluate,signal:controller.signal});

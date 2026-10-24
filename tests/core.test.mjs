@@ -31,6 +31,26 @@ test('design proposals require structured, distinct candidates before evaluation
   assert.deepEqual(candidates.map(x=>x.name),['Timeline','Dashboard']);
   assert.deepEqual(parseDesignCandidates('Unstructured answer'),[]);
 });
+
+test('design capture status survives a process restart and gates selection',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-capture-'));
+  const file=path.join(dir,'store.sqlite');
+  try{
+    let db=new Store(file);
+    const task=db.createTask({projectId:'momentory',repo:'fe',goal:'Compare structural home hero options'},{mode:'EXPLORE',provider:'claude',reason:'test'});
+    const id=db.addCandidate(task.id,'claude',{screen:'home-main',exported:{version:1,name:'Option',design:{}}});
+    assert.equal(db.setCandidateCapturePending(id),true);
+    assert.deepEqual(db.pendingCaptures(),[id]);
+    db.close();db=new Store(file);
+    assert.deepEqual(db.pendingCaptures(),[id]);
+    assert.equal(db.candidate(id).status,'CAPTURE_PENDING');
+    db.setCandidateCaptureFailed(id,'controlled renderer error');
+    assert.deepEqual(db.pendingCaptures(),[]);
+    assert.equal(db.candidate(id).status,'CAPTURE_FAILED');
+    assert.equal(db.events(task.id).filter(event=>event.kind==='design_capture_failed').length,1);
+    db.close();
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
 test('persistent queue claims once, recovers lease, limits attempts and records approval',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'momentory-store-'));
   const file=path.join(dir,'store.sqlite');
@@ -97,6 +117,25 @@ test('human work stays out of AI claims and completion unlocks a dependent task'
     assert.equal(db.completeHuman(human.id,'Use a calm, precise tone').status,'DONE');
     assert.equal(db.claim('codex-slot',['sample:app'],30000,'codex').id,dependent.id);
     assert.ok(db.events(dependent.id).some(event=>event.kind==='unblocked'));
+  }finally{db.close();fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('failed or rejected parents block queued dependents until the dependency is resolved',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-blocked-dependency-'));
+  const db=new Store(path.join(dir,'db.sqlite'));
+  try{
+    const parent=db.createTask({projectId:'sample',goal:'Produce a prerequisite result',repo:'app'},{mode:'FAST',provider:'codex',reason:'test'});
+    const child=db.createTask({projectId:'sample',goal:'Use the prerequisite result',repo:'app',dependsOn:[parent.id]},{mode:'FAST',provider:'codex',reason:'test'});
+    db.patch(parent.id,{status:'FAILED'},'completed');
+    assert.equal(db.getTask(child.id).status,'BLOCKED');
+    assert.ok(db.events(child.id).some(event=>event.kind==='dependency_blocked'));
+    db.patch(parent.id,{status:'APPROVED'},'manual_test_approval');
+    assert.equal(db.getTask(child.id).status,'QUEUED');
+    assert.ok(db.events(child.id).some(event=>event.kind==='unblocked'));
+    const rejected=db.createTask({projectId:'sample',goal:'Evaluate another prerequisite',repo:'app'},{mode:'FAST',provider:'codex',reason:'test'});
+    const waiting=db.createTask({projectId:'sample',goal:'Follow a rejected result',repo:'app',dependsOn:[rejected.id]},{mode:'FAST',provider:'codex',reason:'test'});
+    const decision=db.addDecision(rejected.id,'result',{question:'Accept?'});
+    db.resolveDecision(decision,'REJECTED');
+    assert.equal(db.getTask(waiting.id).status,'BLOCKED');
   }finally{db.close();fs.rmSync(dir,{recursive:true,force:true});}
 });
 test('Momentory design selection requires a rendered candidate',()=>{

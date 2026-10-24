@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createWorktree, diffSummary } from './git.mjs';
+import { createWorktree, inheritApproved, diffSummary, recoveryFingerprint, ignoredWorktreeViolations } from './git.mjs';
 import { runProvider, stopTree, redact, childEnv } from './provider.mjs';
 import { git } from './git.mjs';
 import { project, repository } from './projects.mjs';
@@ -65,6 +65,7 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   const location=createWorktree(task);
   await save({worktree:location.dir,branch:location.branch,base_head:location.baseHead});
   emit('worktree',{branch:location.branch,baseHead:location.baseHead,dirtySource:location.dirtySource});
+  inheritApproved(task,location.dir);
   const repoConfig=repository(task.project_id,task.repo);
   for(const step of repoConfig.setup||[]) if(strictWslChecks(repoConfig.stack)||!fs.existsSync(path.join(location.dir,step.ifMissing))) {
     const setup=strictWslChecks(repoConfig.stack)?await prepareWslDependency(location.dir,step,signal):await runCommand(location.dir,step.command[0],step.command.slice(1),600000,signal);
@@ -76,16 +77,18 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
     try{selected=store.candidate(task.design_candidate_id);}finally{store.close();}
     if(project(task.project_id).design.adapter!=='momentory-expo-lab'||task.repo!==project(task.project_id).design.repo||selected?.status!=='SELECTED'||!selected.proposal?.exported||!task.dependsOn.includes(selected.task_id))
       return {status:'UNVERIFIED',result:{error:'Selected design lineage invalid'},verification:{ok:false,reason:'Selected design lineage invalid'}};
-    if(!selected.screenshot) return {status:'UNVERIFIED',result:{candidateId:selected.id},verification:{ok:false,reason:'Visual screenshot comparison is missing'}};
+    if(!selected.screenshot||selected.screenshot.baseHead!==location.baseHead) return {status:'UNVERIFIED',result:{candidateId:selected.id},verification:{ok:false,reason:'Visual screenshot is missing or was rendered from a different source commit'}};
     let applied;
     try{applied=await applySelectedDesign(selected.proposal.exported,task.project_id,location.dir);}
     catch(error){emit('design_applied',{ok:false,error:String(error)});return {status:'FAILED',result:{candidateId:selected.id,error:String(error)},verification:{ok:false,reason:'Design apply failed'}};}
     emit('design_applied',{ok:true,changedKeys:applied.changedKeys});
-    const diff=diffSummary(location.dir,location.baseHead);
+    const beforeChecks=recoveryFingerprint(location.dir,location.baseHead);
     const verification=await verifyTask(task,location.dir,signal);
+    const diff=diffSummary(location.dir,location.baseHead);
+    const checksChangedSource=beforeChecks!==recoveryFingerprint(location.dir,location.baseHead);
     const violations=await protectedViolations(task,diff.changedFiles);
-    const status=signal?.aborted?'CANCELLED':verification.ok&&diff.changedFiles.includes(project(task.project_id).design.outputPath.replace(/\\/g,'/'))&&!violations.length?'AWAITING_APPROVAL':'UNVERIFIED';
-    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,protectedViolations:violations},verification,usage:{automation:true}};
+    const status=signal?.aborted?'CANCELLED':verification.ok&&!checksChangedSource&&diff.reviewable&&diff.changedFiles.includes(project(task.project_id).design.outputPath.replace(/\\/g,'/'))&&!violations.length?'AWAITING_APPROVAL':'UNVERIFIED';
+    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,protectedViolations:violations,checksChangedSource},verification,usage:{automation:true}};
   }
   const provider=task.provider;
   const run=async (which,prompt,readOnly=false,sessionId=null)=>{
@@ -111,7 +114,7 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
           const patch=proposal.studioPatch;
           if(Object.keys(patch).length && Object.keys(patch).every(key=>Object.hasOwn(approved,key))) {
             try {
-              const exported=await validateExport({version:1,name:String(proposal.name).slice(0,60),design:{...approved,...patch}},task.project_id);
+              const exported=await validateExport({version:1,name:String(proposal.name).slice(0,60),design:{...approved,...patch}},task.project_id,location.dir);
               const fingerprint=JSON.stringify(exported.design);
               if(fingerprint===JSON.stringify(approved)||seenDrafts.has(fingerprint)) throw new Error('Draft has no distinct editable changes');
               seenDrafts.add(fingerprint);proposal.exported=exported;proposal.screen=screen;
@@ -135,32 +138,51 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   }
   let execution=await run(provider,context(task),false,task.session_id);
   await save({session_id:execution.sessionId});
-  if(!execution.ok) return {status:'FAILED',result:execution,verification:{ok:false,reason:'Provider failed'},usage:execution.usage};
+  if(!execution.ok) return {status:signal?.aborted?'CANCELLED':'FAILED',result:execution,verification:{ok:false,reason:signal?.aborted?'Task cancelled':'Provider failed'},usage:execution.usage};
   let diff=diffSummary(location.dir,location.baseHead);
   if(diff.changedFiles.length===0) return {status:'UNVERIFIED',result:execution,verification:{ok:false,reason:'No code changes detected'},usage:execution.usage};
-  let verification=await verifyTask(task,location.dir,signal);
+  let checksChangedSource=false;
+  const hasDesignDependencies=(repoConfig.setup||[]).some(step=>step.ifMissing==='design-lab/node_modules');
+  const allowedIgnored=new Set(repoConfig.stack==='spring'?['.gradle/','build/','out/']:['node_modules/',...(hasDesignDependencies?['design-lab/node_modules/']:[])]);
+  const unsafeIgnored=()=>ignoredWorktreeViolations(location.dir,allowedIgnored);
+  const verifyWithoutMutation=async()=>{
+    const hidden=unsafeIgnored();
+    if(hidden.length)return {ok:false,checks:[],unsafeIgnored:hidden};
+    const before=recoveryFingerprint(location.dir,location.baseHead);
+    const result=await verifyTask(task,location.dir,signal);
+    if(before!==recoveryFingerprint(location.dir,location.baseHead))checksChangedSource=true;
+    return result;
+  };
+  let verification=await verifyWithoutMutation();
+  if(verification.unsafeIgnored)return {status:'UNVERIFIED',result:{execution,diff,unsafeIgnored:verification.unsafeIgnored},verification:{ok:false,reason:'Ignored worktree content changed before verification'},usage:execution.usage};
   emit('verification',{ok:verification.ok,checks:verification.checks.map(c=>({command:c.command,ok:c.ok,output:c.output.slice(-1500)}))});
   if(!verification.ok && !signal?.aborted) {
     const failure=verification.checks.filter(x=>!x.ok).map(x=>`${x.command}\n${x.output.slice(-4000)}`).join('\n');
     const fix=await run(provider,`${context(task)}\nVerification failed. Fix the causes, then explain.\n${failure}`,false,execution.sessionId);
     execution=fix;
     if(!fix.ok) return {status:'FAILED',result:{execution:fix,diff},verification:{ok:false,reason:'Automatic correction failed'},usage:fix.usage};
-    verification=await verifyTask(task,location.dir,signal);
+    verification=await verifyWithoutMutation();
+    if(verification.unsafeIgnored)return {status:'UNVERIFIED',result:{execution,diff,unsafeIgnored:verification.unsafeIgnored},verification:{ok:false,reason:'Ignored worktree content changed before reverification'},usage:execution.usage};
     emit('reverification',{ok:verification.ok});
   }
   let review=null;
+  let reviewIncomplete=false;
   if(task.mode==='REVIEW' && verification.ok && !signal?.aborted) {
     const other=provider==='claude'?'codex':'claude';
-    const reviewPatch=diffSummary(location.dir,location.baseHead).patch.slice(0,30000);
-    review=await run(other,`Independently review this current worktree patch for goal: ${task.goal}. The patch is supplied directly so review does not depend on Git metadata access. Read project files as needed. Read only. Identify correctness, security and test gaps. Start answer with PASS or FIX_REQUIRED, followed by evidence. ${forbidden}\nPatch:\n${reviewPatch}`,true);
-    const verdict=review.ok?reviewVerdict(review.result):null;
+    const reviewDiff=diffSummary(location.dir,location.baseHead);
+    if(!reviewDiff.reviewable||reviewDiff.patch.length>30000)reviewIncomplete=true;
+    else review=await run(other,`Independently review this current worktree patch for goal: ${task.goal}. The patch is supplied directly so review does not depend on Git metadata access. Read project files as needed. Read only. Identify correctness, security and test gaps. Start answer with PASS or FIX_REQUIRED, followed by evidence. ${forbidden}\nPatch:\n${reviewDiff.patch}`,true);
+    const verdict=review?.ok?reviewVerdict(review.result):null;
     if(verdict==='FIX_REQUIRED') {
       execution=await run(provider,`${context(task)}\nIndependent review found issues. Address them: ${review.result.slice(0,8000)}`,false,execution.sessionId);
       if(!execution.ok) return {status:'FAILED',result:{execution,review,diff},verification:{ok:false,reason:'Review correction failed'},usage:execution.usage};
-      verification=await verifyTask(task,location.dir,signal);
+      verification=await verifyWithoutMutation();
+      if(verification.unsafeIgnored)return {status:'UNVERIFIED',result:{execution,review,diff,unsafeIgnored:verification.unsafeIgnored},verification:{ok:false,reason:'Ignored worktree content changed before review reverification'},usage:execution.usage};
       emit('review_reverification',{ok:verification.ok});
       if(verification.ok) {
-        review=await run(other,`Read-only re-review of the current diff for goal: ${task.goal}. Check the previous findings were addressed. Start with PASS or FIX_REQUIRED and explain. Previous findings: ${review.result.slice(0,8000)}`,true);
+        const current=diffSummary(location.dir,location.baseHead);
+        if(!current.reviewable||current.patch.length>30000)reviewIncomplete=true;
+        else review=await run(other,`Read-only re-review of the current diff for goal: ${task.goal}. Check the previous findings were addressed. Start with PASS or FIX_REQUIRED and explain. Previous findings: ${review.result.slice(0,8000)}\nCurrent patch:\n${current.patch}`,true);
       }
     }
   }
@@ -168,6 +190,6 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   const violations=await protectedViolations(task,diff.changedFiles);
   const headMoved=git(location.dir,'rev-parse','HEAD')!==location.baseHead;
   const finalVerdict=review?.ok?reviewVerdict(review.result):null;
-  const status=signal?.aborted?'CANCELLED':!verification.ok?'FAILED':violations.length||headMoved?'UNVERIFIED':review && finalVerdict!=='PASS'?'UNVERIFIED':'AWAITING_APPROVAL';
-  return {status,result:{execution,review,diff,baseHead:location.baseHead,dirtySource:location.dirtySource,protectedViolations:violations,headMoved},verification,usage:{primary:execution.usage,review:review?.usage}};
+  const status=signal?.aborted?'CANCELLED':!verification.ok?'FAILED':violations.length||headMoved||checksChangedSource||!diff.reviewable||reviewIncomplete?'UNVERIFIED':review && finalVerdict!=='PASS'?'UNVERIFIED':'AWAITING_APPROVAL';
+  return {status,result:{execution,review,diff,baseHead:location.baseHead,dirtySource:location.dirtySource,protectedViolations:violations,headMoved,checksChangedSource,reviewIncomplete},verification,usage:{primary:execution.usage,review:review?.usage}};
 }

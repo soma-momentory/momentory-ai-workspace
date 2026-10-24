@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {root} from '../src/config.mjs';
+import {repository} from '../src/projects.mjs';
+import {prepareWslDependency,runWslCheck,verifyWslSetupBoundary} from '../src/wslChecks.mjs';
+
+if(process.platform!=='win32')throw new Error('Windows WSL required');
+const cwd=process.env.WORKSPACE_TEST_BE_WORKTREE;
+assert.ok(cwd&&path.resolve(cwd).startsWith(path.join(root,'worktrees')+path.sep),'Use an isolated BE Git worktree under Workspace worktrees');
+assert.equal(path.resolve(execFileSync('git',['rev-parse','--show-toplevel'],{cwd,encoding:'utf8'}).trim()).toLowerCase(),path.resolve(cwd).toLowerCase());
+const setup=repository('momentory','be').setup[0];
+await verifyWslSetupBoundary(cwd,'wsl-check');
+const prepared=await prepareWslDependency(cwd,setup);
+assert.equal(prepared.ok,true,prepared.output);
+const checked=await runWslCheck(cwd,'gradlew.bat',['test'],900000);
+assert.equal(checked.ok,true,checked.output);
+assert.match(checked.output,/BUILD SUCCESSFUL/);
+assert.equal(execFileSync('git',['status','--porcelain'],{cwd,encoding:'utf8'}).trim(),'');
+console.log(JSON.stringify({status:'PASS',setup:'root-deny network-enabled',check:'root-deny offline',gitClean:true,output:checked.output.slice(-600)}));

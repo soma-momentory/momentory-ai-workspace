@@ -17,14 +17,14 @@ npm run isolation:setup
 On Windows, real Codex AI sessions and Node/Expo verification commands require WSL2 Ubuntu with systemd, bubblewrap, Linux Codex CLI 0.164.0, and Linux Node 22.14.0 under `$HOME/.local/node_modules/node/bin`. The tested installation was:
 
 ```powershell
-wsl.exe -d Ubuntu -- bash -lc 'sudo apt update && sudo apt install -y nodejs npm bubblewrap'
+wsl.exe -d Ubuntu -- bash -lc 'sudo apt update && sudo apt install -y nodejs npm bubblewrap iproute2 openjdk-21-jdk-headless'
 wsl.exe -d Ubuntu -- bash -lc 'npm install --prefix "$HOME/.local" node@22.14.0 @openai/codex@0.164.0'
 npm run isolation:setup
 npm run test:codex-boundary
 npm run test:wsl-check-boundary
 ```
 
-The WSL Codex CLI uses the existing Windows Codex login through `CODEX_HOME`; do not copy credentials into the repository. If WSL, systemd, authentication, the profile, or a deny probe fails, Codex execution fails closed. Node/Expo checks install Linux dependencies with `npm ci --ignore-scripts` in each isolated Worktree; on Windows DrvFS this initial setup took about seven minutes for Momentory FE. Java/Gradle checks still use the Windows MXC check profile and have a wider read boundary, documented in `SECURITY.md`.
+The WSL Codex CLI uses the existing Windows Codex login through `CODEX_HOME`; do not copy credentials into the repository. If WSL, systemd, authentication, the profile, or a deny probe fails, Codex execution fails closed. Node/Expo checks install Linux dependencies with `npm ci --ignore-scripts` in each isolated Worktree; on Windows DrvFS this initial setup took about seven minutes for Momentory FE. Spring checks require WSL OpenJDK 21 and an isolated Gradle dependency cache. The setup fetches dependencies from a clean committed build; later tests run offline in a loopback-only network namespace. `npm run test:be-isolation` passed on the tested Windows/WSL host after configuring a bounded 384-task Gradle scope and startup Byte Buddy agent. See `TEST_REPORT.md` for the exact result and Docker-dependent test limitation.
 
 On an authorized Mac, run this manual acceptance sequence from a clone of the same commit. Set the repository path overrides in the local `.env` if Momentory is not beside the Workspace clone. Record `sw_vers`, `node --version`, `claude --version`, `codex --version`, command output and the resulting task IDs. No Mac result has been supplied yet.
 

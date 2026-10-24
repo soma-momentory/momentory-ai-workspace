@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import net from 'node:net';
+import path from 'node:path';
+import {randomUUID} from 'node:crypto';
+import {captureDesign} from '../src/design.mjs';
+
+const checkout=process.env.WORKSPACE_TEST_FE_WORKTREE;
+assert.ok(checkout&&fs.existsSync(path.join(checkout,'expo-lab','package.json')),'Set WORKSPACE_TEST_FE_WORKTREE to a clean Momentory FE worktree');
+const port=await new Promise(resolve=>{const listener=net.createServer();listener.listen(0,'127.0.0.1',()=>{const value=listener.address().port;listener.close(()=>resolve(value));});});
+process.env.WORKSPACE_LAB_URL=`http://localhost:${port}`;
+const design=JSON.parse(fs.readFileSync(path.join(checkout,'src','design','studioApproved.json'),'utf8'));
+const controller=new AbortController();
+const started=Date.now();
+const capture=captureDesign(randomUUID(),{version:1,name:'Cancellation fixture',design},'home-main','momentory',checkout,controller.signal);
+setTimeout(()=>controller.abort(),2000);
+await assert.rejects(Promise.race([capture,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Cancellation exceeded 30 seconds')),30000))]),/cancel|abort|closed/i);
+assert.equal(controller.signal.aborted,true);
+assert.ok(Date.now()-started<30000);
+console.log(JSON.stringify({status:'PASS',activeCaptureAborted:true,elapsedMs:Date.now()-started}));

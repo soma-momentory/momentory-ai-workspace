@@ -6,7 +6,7 @@ The workspace source lives at `C:\SWM\ai-dev-workspace`. Momentory is a register
 
 ## Start on Windows
 
-Requires Node 22.13+, Git, and authenticated official `claude` and `codex` CLIs. Run `npm run setup` once to create ignored `.env` with two distinct random tokens, run `npm run isolation:setup` to install sandbox profiles, and verify paths in `projects.json`. Then run:
+Requires Node 22.13+, Git, authenticated official `claude` and `codex` CLIs, plus WSL2 Ubuntu with systemd, bubblewrap, Linux Codex and Node 22 for isolated Windows AI and Node/Expo checks. Spring checks additionally require WSL OpenJDK 21. Run `npm run setup` once to create ignored `.env` with two distinct random tokens, run `npm run isolation:setup` to install sandbox profiles, and verify paths in `projects.json`. The exact setup and acceptance commands are in [OPERATIONS.md](OPERATIONS.md). Then run:
 
 ```powershell
 cd C:\SWM\ai-dev-workspace

@@ -1,0 +1,29 @@
+default_permissions = "workspace-locked"
+
+[permissions.workspace-locked.filesystem]
+":root" = "deny"
+":minimal" = "read"
+":tmpdir" = "write"
+"~/.local/node_modules/@openai/codex-linux-x64" = "read"
+"~/.local/node_modules/@openai/codex" = "read"
+"~/.local/node_modules/node" = "read"
+glob_scan_max_depth = 8
+
+[permissions.workspace-locked.filesystem.":workspace_roots"]
+"." = "write"
+"data" = "deny"
+"node_modules" = "read"
+"design-lab/node_modules" = "read"
+".gradle" = "read"
+"build" = "read"
+"out" = "read"
+".git" = "read"
+".agents" = "read"
+".codex" = "read"
+"**/.env*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/credentials.json" = "deny"
+
+[permissions.workspace-locked.network]
+enabled = false
