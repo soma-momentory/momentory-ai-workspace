@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {root} from '../src/config.mjs';
+const target=path.resolve(root,'../ai-dev-workspace-sample');
+if(fs.existsSync(target)) throw new Error(`Sample target already exists: ${target}`);
+fs.mkdirSync(target);
+for(const name of ['index.mjs','index.test.mjs'])fs.copyFileSync(path.join(root,'examples','sample-template',name),path.join(target,name));
+execFileSync('git',['init','-b','dev'],{cwd:target,stdio:'inherit'});
+execFileSync('git',['add','index.mjs','index.test.mjs'],{cwd:target,stdio:'inherit'});
+execFileSync('git',['-c','user.name=Workspace Sample','-c','user.email=sample@local.invalid','commit','-m','Add sample project'],{cwd:target,stdio:'inherit'});
+console.log(`Sample project ready: ${target}`);

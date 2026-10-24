@@ -1,0 +1,21 @@
+{
+  "projects": [
+    {
+      "id": "momentory",
+      "name": "Momentory",
+      "repositories": {
+        "fe": { "path": "../momentory/momentory/momentory-fe", "stack": "react-native-expo", "setup": [{"ifMissing":"node_modules","command":["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund"]},{"ifMissing":"design-lab/node_modules","command":["npm", "ci", "--prefix", "design-lab", "--ignore-scripts", "--no-audit", "--no-fund"]}], "protectionAdapter": "harness-scope", "checkTimeoutMs": 600000, "checks": [["npm", "run", "typecheck"], ["npm", "run", "lint"], ["npm", "run", "test", "--", "--ci", "--runInBand"]], "protectedPaths": ["harness/", "docs/spec/", "CLAUDE.md", "AGENTS.md", "package.json", "package-lock.json"] },
+        "be": { "path": "../momentory/momentory/momentory-be", "stack": "spring", "checks": [["./gradlew", "test"]], "protectedPaths": ["src/main/resources/db/migration/", "gradlew", "gradlew.bat", "build.gradle", "settings.gradle"] }
+      },
+      "design": { "adapter": "momentory-expo-lab", "repo": "fe", "outputPath": "src/design/studioApproved.json", "contextFiles": ["docs/spec/PRODUCT.md", "docs/DESIGN.md", "src/design/studioApproved.json"], "labUrl": "http://127.0.0.1:8085", "rules": ["Use actual app components and existing tokens", "Preserve rejected design history", "Compare candidates with equal content and viewport"] }
+    },
+    {
+      "id": "sample",
+      "name": "Sample Project",
+      "repositories": {
+        "app": { "path": "../ai-dev-workspace-sample", "stack": "node", "checks": [["node", "--check", "index.mjs"], ["node", "--test"]] }
+      },
+      "design": { "adapter": "generic" }
+    }
+  ]
+}

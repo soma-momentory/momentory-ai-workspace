@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+
+const root=path.resolve(import.meta.dirname,'..');
+const repo=path.join(root,'data','integration-repo-'+randomUUID());
+fs.mkdirSync(repo,{recursive:true});
+fs.writeFileSync(path.join(repo,'package.json'),JSON.stringify({name:'workspace-workflow-test',private:true,type:'module'},null,2));
+fs.writeFileSync(path.join(repo,'index.mjs'),'export function sum(a,b) { return 0; }\n');
+fs.writeFileSync(path.join(repo,'index.test.mjs'),"import test from 'node:test'; import assert from 'node:assert/strict'; import {sum} from './index.mjs'; test('sum',()=>assert.equal(sum(2,3),5));\n");
+execFileSync('git',['init','-b','test'],{cwd:repo});
+execFileSync('git',['add','.'],{cwd:repo});
+execFileSync('git',['-c','user.name=Workspace Test','-c','user.email=workspace@example.invalid','commit','-m','baseline'],{cwd:repo});
+process.env.WORKSPACE_REPO_SAMPLE_APP=repo;
+const { executeTask }=await import('../src/engine.mjs');
+const task={id:randomUUID(),project_id:'sample',goal:'Fix only index.mjs so the existing sum test passes. Do not alter index.test.mjs or package.json.',repo:'app',mode:process.env.WORKFLOW_MODE||'FAST',provider:process.env.WORKFLOW_PROVIDER||'codex',session_id:null,dependsOn:[],completion_criteria:'The sum test passes.'};
+const events=[];
+const result=await executeTask(task,{emit:(kind,payload)=>events.push({kind,payload})});
+console.log(JSON.stringify({repo,taskId:task.id,status:result.status,changedFiles:result.result?.diff?.changedFiles,verification:result.verification,events:events.length},null,2));
+assert.equal(result.status,'AWAITING_APPROVAL',JSON.stringify(result.result?.execution?.stderr));
+assert.ok(result.result.diff.changedFiles.includes('index.mjs'));
+assert.ok(!result.result.diff.changedFiles.includes('index.test.mjs'));
+assert.equal(result.verification.ok,true);

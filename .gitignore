@@ -1,0 +1,5 @@
+.env
+data/
+worktrees/
+examples/sample-project/
+*.log

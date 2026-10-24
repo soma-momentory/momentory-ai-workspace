@@ -1,0 +1,23 @@
+{
+  "name": "ai-dev-workspace",
+  "version": "1.0.0-dev",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "local": "node src/local.mjs",
+    "setup": "node scripts/setup.mjs",
+    "start": "node src/server.mjs",
+    "worker": "node src/worker.mjs",
+    "sample:init": "node scripts/init-sample.mjs",
+    "test:local-integration": "node tests/local.integration.mjs",
+    "test:workflow-integration": "node tests/workflow.integration.mjs",
+    "test:collaboration-integration": "node tests/collaboration.integration.mjs",
+    "test:momentory-integration": "node tests/momentory.integration.mjs",
+    "test:design-capture": "node tests/design.capture.mjs",
+    "test:design-pipeline": "node tests/design.pipeline.integration.mjs",
+    "test:design-resume": "node tests/design.resume.integration.mjs",
+    "test:explore-integration": "node tests/explore.integration.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
