@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import { root } from './config.mjs';
 import { repository } from './projects.mjs';
 import { Store } from './store.mjs';
@@ -65,4 +66,22 @@ export function diffSummary(dir,baseHead) {
   });
   const patch=execFileSync('git',['diff','--no-ext-diff','--binary',baseHead],{cwd:dir,encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024});
   return {status,changedFiles:[...new Set([...changed.split(/\r?\n/),...untracked.split(/\r?\n/)].filter(Boolean))],diff:git(dir,'diff','--stat',baseHead).slice(0,10000),patch:redact([patch,...extras].join('\n')).slice(0,120000)};
+}
+export function recoveryFingerprint(dir,baseHead){
+  const hash=createHash('sha256');
+  const patch=execFileSync('git',['diff','--no-ext-diff','--binary',baseHead],{cwd:dir,maxBuffer:50*1024*1024,timeout:30000});
+  hash.update(patch);
+  const files=execFileSync('git',['ls-files','--others','--exclude-standard','-z'],{cwd:dir,encoding:'utf8',maxBuffer:5*1024*1024,timeout:30000}).split('\0').filter(Boolean).sort();
+  for(const file of files){
+    const target=path.resolve(dir,file),base=path.resolve(dir)+path.sep;
+    if(!target.startsWith(base))throw new Error('Unsafe recovery path');
+    const stat=fs.lstatSync(target);
+    hash.update(`\0${file}\0${stat.mode}\0${stat.size}\0`);
+    if(stat.isSymbolicLink())hash.update(fs.readlinkSync(target));
+    else if(stat.isFile()){
+      if(stat.size>50*1024*1024)throw new Error(`Recovery file too large to fingerprint: ${file}`);
+      hash.update(fs.readFileSync(target));
+    }else throw new Error(`Unsupported recovery file: ${file}`);
+  }
+  return hash.digest('hex');
 }

@@ -19,13 +19,19 @@ try{
   worker=spawn(process.execPath,['src/worker.mjs'],{cwd:root,env,stdio:['ignore','ignore','ignore','ipc']});
   let running=null,started=false;for(let i=0;i<1200;i++){await delay(100);const detail=await api(`/api/tasks/${task.id}`);running=detail.task;if(detail.events.some(event=>event.kind==='provider_started')){started=true;break;}if(['AWAITING_APPROVAL','FAILED','UNVERIFIED'].includes(running.status))break;}
   assert.ok(started,`Provider did not start before task ended: ${running?.status}`);assert.ok(running.worktree && fs.existsSync(running.worktree),'Worktree checkpoint missing');
+  const markerDir=path.join(root,'data','codex-processes');let marker=null;
+  for(let i=0;i<300;i++){marker=fs.existsSync(markerDir)?fs.readdirSync(markerDir).find(name=>name.startsWith(`${worker.pid}-`)&&name.endsWith('.pid')):null;if(marker)break;await delay(100);}
+  assert.ok(marker,'WSL Codex process marker missing before crash injection');
+  const partial=path.join(running.worktree,'partial-change.txt');fs.writeFileSync(partial,'PARTIAL_WRITE_BEFORE_WORKER_CRASH\n');
   execFileSync('taskkill',['/PID',String(worker.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});
   const exited=new Promise(resolve=>worker.once('exit',resolve));await Promise.race([exited,delay(5000)]);worker=null;
   let stale=null;for(let i=0;i<400;i++){await delay(100);stale=(await api(`/api/tasks/${task.id}`)).task;if(stale.status==='STALE')break;}
   assert.equal(stale.status,'STALE');assert.equal(stale.attempts,1);
+  assert.equal(fs.readFileSync(partial,'utf8'),'PARTIAL_WRITE_BEFORE_WORKER_CRASH\n');
   restarted=spawn(process.execPath,['src/worker.mjs'],{cwd:root,env,stdio:['ignore','ignore','ignore','ipc']});await delay(4000);
   const unchanged=(await api(`/api/tasks/${task.id}`)).task;assert.equal(unchanged.status,'STALE');assert.equal(unchanged.attempts,1);
-  console.log(JSON.stringify({status:'PASS',taskId:task.id,worktree:task.worktree||running.worktree,attempts:unchanged.attempts,recoveredStatus:unchanged.status,database:db}));
+  assert.equal(fs.existsSync(path.join(markerDir,marker)),false,'Restarted worker did not reap orphan Codex process');
+  console.log(JSON.stringify({status:'PASS',taskId:task.id,worktree:task.worktree||running.worktree,partialFilePreserved:true,orphanReaped:true,attempts:unchanged.attempts,recoveredStatus:unchanged.status,database:db}));
 }finally{
   if(worker?.pid){try{execFileSync('taskkill',['/PID',String(worker.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});}catch{}}
   if(restarted){const exit=new Promise(resolve=>restarted.once('exit',resolve));restarted.send('stop');await Promise.race([exit,delay(10000)]);if(restarted.exitCode===null)restarted.kill();}

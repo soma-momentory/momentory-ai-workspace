@@ -8,7 +8,8 @@ import { publicProjects, project } from './projects.mjs';
 import { Store } from './store.mjs';
 import { routeTask, nextHumanActions, TASK_TYPES } from './router.mjs';
 import { validateExport, captureDesign } from './design.mjs';
-import { repoStatus } from './git.mjs';
+import { repoStatus, diffSummary, recoveryFingerprint } from './git.mjs';
+import { activeWslCodexForWorktree, reapStaleWslCodex } from './wslCodex.mjs';
 
 const config=settings();
 const store=new Store();
@@ -43,6 +44,11 @@ const urlFor=req=>new URL(req.url,`http://${req.headers.host||'localhost'}`);
 const owned=(taskId,workerId,nonce)=>{const task=store.getTask(taskId);return task?.status==='RUNNING' && task.lease_owner===workerId && task.lease_nonce===nonce && typeof nonce==='string' ? task : null;};
 const loginFailures=new Map();
 const riskyGoal=goal=>/\b(?:deploy|production|prod|push|merge|delete|drop database|reset --hard|credential|secret|payment|billing)\b|운영\s*배포|강제\s*푸시|메인\s*병합|대량\s*삭제|자격\s*증명/.test(goal.toLowerCase());
+function recoveryDiff(task){
+  if(task.status!=='STALE'||!task.worktree||!task.base_head||!fs.existsSync(task.worktree))return null;
+  try{const diff=diffSummary(task.worktree,task.base_head);return {...diff,hash:recoveryFingerprint(task.worktree,task.base_head)};}
+  catch(error){return {error:String(error)};}
+}
 function hasDependencyCycle(taskId,dependencies){const visit=(id,seen)=>id===taskId||(!seen.has(id)&&store.getTask(id)?.dependsOn.some(next=>visit(next,new Set([...seen,id]))));return dependencies.some(id=>visit(id,new Set()));}
 
 async function handle(req,res) {
@@ -152,7 +158,7 @@ async function handle(req,res) {
     const match=/^\/api\/tasks\/([0-9a-f-]{36})(?:\/(events|decisions|candidates|control|followup))?$/.exec(pathname);
     if(match) {
       const task=store.getTask(match[1]);if(!task) return send(res,404,{error:'Task not found'});
-      if(req.method==='GET') return send(res,200,{task,events:store.events(task.id,Number(url.searchParams.get('after')||0)),decisions:store.decisions(task.id),candidates:store.candidates(task.id)});
+      if(req.method==='GET') return send(res,200,{task,recovery:recoveryDiff(task),events:store.events(task.id,Number(url.searchParams.get('after')||0)),decisions:store.decisions(task.id),candidates:store.candidates(task.id)});
       const input=await body(req);
       if(req.method==='PATCH' && !match[2]) {
         if(task.status!=='QUEUED' && task.status!=='PAUSED') return send(res,409,{error:'Only waiting tasks can be edited'});
@@ -179,13 +185,29 @@ async function handle(req,res) {
         if(!['cancel','pause','resume'].includes(input.action)) return send(res,400,{error:'Invalid action'});
         if(input.action==='cancel') store.patch(task.id,{cancel_requested:1,status:task.status==='QUEUED'?'CANCELLED':task.status},'cancel_requested');
         if(input.action==='pause') store.patch(task.id,{pause_requested:1,status:task.status==='QUEUED'?'PAUSED':task.status},'pause_requested');
-        if(input.action==='resume' && ['PAUSED','FAILED','UNVERIFIED','STALE'].includes(task.status)) store.patch(task.id,{pause_requested:0,cancel_requested:0,status:'QUEUED'},'resumed');
+        if(input.action==='resume' && ['PAUSED','FAILED','UNVERIFIED','STALE'].includes(task.status)) {
+          reapStaleWslCodex();
+          if(task.worktree&&activeWslCodexForWorktree(task.worktree).length)return send(res,409,{error:'Prior Codex process remains active'});
+          if(task.status==='STALE'){
+            const expected=path.join(path.resolve(import.meta.dirname,'..'),'worktrees',task.project_id,task.id);
+            if(!task.worktree&&fs.existsSync(expected))return send(res,409,{error:'Uncheckpointed worktree needs local recovery before resume'});
+            const recovery=recoveryDiff(task);
+            if(recovery?.error)return send(res,409,{error:'Recovery diff unavailable; inspect worktree locally'});
+            if(recovery?.changedFiles.length&&input.reviewedDiffHash!==recovery.hash)return send(res,409,{error:'Review the preserved partial diff before resuming',recovery});
+          }
+          store.patch(task.id,{pause_requested:0,cancel_requested:0,status:'QUEUED'},'resumed');
+        }
         return send(res,200,{task:store.getTask(task.id)});
       }
       if(match[2]==='followup') {
         if(typeof input.instruction!=='string'||input.instruction.trim().length<3||input.instruction.length>3000) return send(res,400,{error:'Invalid instruction'});
+        if(typeof input.requestId!=='string'||!/^[0-9a-f-]{36}$/i.test(input.requestId))return send(res,400,{error:'A stable requestId is required for recoverable follow-up'});
         const dependsOn=['REJECTED','CANCELLED'].includes(task.status)?[]:[task.id];
-        const next=store.createTask({goal:`${task.goal}\nFollow-up: ${input.instruction}`,projectId:task.project_id,repo:task.repo,dependsOn,priority:task.priority,completionCriteria:task.completion_criteria,type:'COLLABORATIVE_TASK'},routeTask({goal:input.instruction,repo:task.repo},store.listTasks(task.project_id)));
+        const parentContext=task.goal.slice(0,500);
+        const nextGoal=`Follow-up for ${task.id} (${parentContext}): ${input.instruction.trim()}`;
+        const existing=store.followupRequest(task.id,input.requestId);
+        if(existing){if(existing.goal!==nextGoal)return send(res,409,{error:'requestId already used for a different instruction'});return send(res,200,{task:existing,deduplicated:true});}
+        const next=store.createTask({goal:nextGoal,projectId:task.project_id,repo:task.repo,dependsOn,priority:task.priority,completionCriteria:task.completion_criteria,type:'COLLABORATIVE_TASK'},routeTask({goal:input.instruction,repo:task.repo},store.listTasks(task.project_id)),{parentTaskId:task.id,requestId:input.requestId});
         const scopeImpact={parentStatus:task.status,waitsForParent:dependsOn.length>0,possibleRework:task.status==='RUNNING'||/change|replace|instead|변경|교체|대신/.test(input.instruction.toLowerCase()),note:'The instruction is queued; it does not interrupt the active provider. Approved same-repository changes are inherited when the follow-up starts.'};
         store.event(task.id,'followup_created',{id:next.id,scopeImpact});store.event(next.id,'planning_impact',scopeImpact);return send(res,201,{task:next,scopeImpact});
       }

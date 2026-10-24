@@ -1,0 +1,20 @@
+default_permissions = "workspace-locked-readonly"
+
+[permissions.workspace-locked-readonly.filesystem]
+":root" = "deny"
+":minimal" = "read"
+":tmpdir" = "write"
+glob_scan_max_depth = 8
+
+[permissions.workspace-locked-readonly.filesystem.":workspace_roots"]
+"." = "read"
+".git" = "read"
+".agents" = "read"
+".codex" = "read"
+"**/.env*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/credentials.json" = "deny"
+
+[permissions.workspace-locked-readonly.network]
+enabled = false

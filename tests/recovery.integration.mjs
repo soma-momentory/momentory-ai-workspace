@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import {spawn} from 'node:child_process';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,randomUUID} from 'node:crypto';
 import {Store} from '../src/store.mjs';
 
 const root=path.resolve(import.meta.dirname,'..'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-recovery-'));
@@ -27,11 +27,26 @@ try{
   assert.equal((await api('/api/worker/complete','POST',{id:'codex-slot',taskId:first.id,leaseNonce:oldClaim.lease_nonce,status:'FAILED'},true)).status,409);
   assert.equal((await api('/api/worker/complete','POST',{id:'codex-slot',taskId:first.id,leaseNonce:newClaim.lease_nonce,status:'UNVERIFIED',verification:{ok:false}},true)).status,200);
 
+  const requestId=randomUUID(),instruction='Preserve the partial result and prepare a reviewed correction';
+  const initialFollowup=await api(`/api/tasks/${first.id}/followup`,'POST',{requestId,instruction});
+  assert.equal(initialFollowup.status,201);
+  const followupId=initialFollowup.body.task.id;
+  assert.deepEqual(initialFollowup.body.task.dependsOn,[first.id],'An unverified parent must block its follow-up until approved');
+  assert.match(initialFollowup.body.task.goal,/Fix the sample project function/,'Follow-up must carry the parent objective');
+  const eventCursor=(await api(`/api/tasks/${first.id}`)).body.events.at(-1).id;
+  await stop();await start();
+  const replayed=await api(`/api/tasks/${first.id}/followup`,'POST',{requestId,instruction});
+  assert.equal(replayed.status,200);assert.equal(replayed.body.task.id,followupId);assert.equal(replayed.body.deduplicated,true);
+  assert.equal((await api(`/api/tasks/${first.id}/followup`,'POST',{requestId,instruction:'A different instruction'})).status,409);
+  const after=(await api(`/api/tasks/${first.id}?after=${eventCursor}`)).body.events;
+  assert.equal(after.filter(event=>event.kind==='followup_created').length,0,'Reconnection created a duplicate follow-up event');
+  db=new Store(env.WORKSPACE_DATA_FILE);assert.equal(db.db.prepare('SELECT COUNT(*) AS total FROM followup_requests WHERE parent_task_id=? AND request_id=?').get(first.id,requestId).total,1);db.close();
+
   const second=await create('Inspect a saved sample worktree after an interrupted run');
   const savedClaim=(await api('/api/worker/claim','POST',{id:'codex-slot',capabilities:['sample:app'],provider:'codex'},true)).body.task;assert.equal(savedClaim.id,second.id);
   assert.equal((await api('/api/worker/patch','POST',{id:'codex-slot',taskId:second.id,leaseNonce:savedClaim.lease_nonce,fields:{worktree:path.join(dir,'preserved-worktree'),base_head:'fixture'}},true)).status,200);
   await stop();db=new Store(env.WORKSPACE_DATA_FILE);db.db.prepare('UPDATE tasks SET lease_until=0 WHERE id=?').run(second.id);db.close();
   await start();let stale=null;for(let i=0;i<80;i++){stale=(await api(`/api/tasks/${second.id}`)).body.task;if(stale.status==='STALE')break;await delay(100);}assert.equal(stale.status,'STALE');
   assert.equal((await api('/api/worker/claim','POST',{id:'codex-slot',capabilities:['sample:app'],provider:'codex'},true)).body.task,null);
-  console.log(JSON.stringify({status:'PASS',firstTask:first.id,oldNonceRejected:true,newNonceAccepted:true,secondTask:second.id,preservedStatus:stale.status}));
+  console.log(JSON.stringify({status:'PASS',firstTask:first.id,oldNonceRejected:true,newNonceAccepted:true,followupAfterReconnect:followupId,duplicateFollowupPrevented:true,secondTask:second.id,preservedStatus:stale.status}));
 }finally{await stop();fs.rmSync(dir,{recursive:true,force:true});}

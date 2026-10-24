@@ -8,6 +8,7 @@ import { routeTask } from '../src/router.mjs';
 import { nextHumanActions } from '../src/router.mjs';
 import { providerArgs } from '../src/provider.mjs';
 import { reviewVerdict, parseDesignCandidates } from '../src/engine.mjs';
+import {root} from '../src/config.mjs';
 
 test('automatic routing avoids multiple agents for tiny edits and explores design alternatives',()=>{
   assert.equal(routeTask({goal:'문구 오타 수정',repo:'fe'}).mode,'FAST');
@@ -15,8 +16,9 @@ test('automatic routing avoids multiple agents for tiny edits and explores desig
   assert.equal(routeTask({goal:'보안 아키텍처 리팩터',repo:'be'}).mode,'REVIEW');
   assert.equal(routeTask({goal:'버그 테스트 수정',repo:'fe'}).provider,'codex');
 });
-test('provider commands use supported structured streaming and a bounded sandbox',()=>{
-  assert.deepEqual(providerArgs('codex',{readOnly:true}).slice(0,4),['-s','read-only','-a','never']);
+test('provider commands use supported structured streaming and an explicit isolation profile',()=>{
+  const args=providerArgs('codex',{readOnly:true});
+  assert.deepEqual(args.slice(0,4),['-p',process.platform==='win32'?'ai-dev-workspace-wsl-readonly':'ai-dev-workspace-posix-readonly','-a','never']);
   assert.ok(providerArgs('claude').includes('stream-json'));
 });
 test('review cannot silently pass an ambiguous or fix-required answer',()=>{
@@ -65,6 +67,24 @@ test('a stale worktree is preserved and never automatically claimed by another w
     db.recoverExpired();assert.equal(db.getTask(task.id).status,'STALE');
     assert.equal(db.claim('other',['momentory:fe']),null);assert.equal(db.claim('laptop',['momentory:fe']),null);
   } finally {db.close();fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('an uncheckpointed physical worktree is not automatically claimed after lease loss',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-uncheckpointed-'));
+  const db=new Store(path.join(dir,'db.sqlite'));
+  let worktree,created=false;
+  try{
+    const task=db.createTask({projectId:'sample',goal:'Preserve an interrupted write',repo:'app'},{mode:'FAST',provider:'codex',reason:'test'});
+    db.claim('worker',['sample:app']);
+    worktree=path.join(root,'worktrees','sample',task.id);
+    assert.equal(fs.existsSync(worktree),false,'Fixture path already exists');
+    fs.mkdirSync(path.dirname(worktree),{recursive:true});fs.mkdirSync(worktree);created=true;fs.writeFileSync(path.join(worktree,'partial.txt'),'PARTIAL');
+    db.db.prepare('UPDATE tasks SET lease_until=0 WHERE id=?').run(task.id);
+    db.recoverExpired();assert.equal(db.getTask(task.id).status,'STALE');
+    assert.equal(db.claim('another',['sample:app']),null);
+  }finally{
+    db.close();fs.rmSync(dir,{recursive:true,force:true});
+    if(created&&path.resolve(worktree).startsWith(path.join(root,'worktrees','sample')+path.sep))fs.rmSync(worktree,{recursive:true,force:true});
+  }
 });
 test('human work stays out of AI claims and completion unlocks a dependent task',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-human-'));

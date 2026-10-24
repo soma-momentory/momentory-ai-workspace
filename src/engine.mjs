@@ -7,8 +7,9 @@ import { runProvider, stopTree, redact, childEnv } from './provider.mjs';
 import { git } from './git.mjs';
 import { project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
-import { designApplyArgs, validateExport } from './design.mjs';
+import { applySelectedDesign, validateExport } from './design.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
+import {strictWslChecks,prepareWslDependency,runWslCheck} from './wslChecks.mjs';
 
 const forbidden = 'Do not commit, push, merge, deploy, delete user files, read secrets, modify .env files, or change files outside this worktree. Keep changes scoped to the goal.';
 export function reviewVerdict(text) { return /^\s*\W*(PASS|FIX_REQUIRED)\b/i.exec(text)?.[1]?.toUpperCase() || null; }
@@ -37,11 +38,11 @@ function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
 
 export async function verifyTask(task,cwd,signal) {
   const checks=[];
-  const configured=repository(task.project_id,task.repo).checks;
+  const repo=repository(task.project_id,task.repo),configured=repo.checks;
   const commands=configured.map(parts=>[process.platform==='win32'&&parts[0]==='./gradlew'?'gradlew.bat':process.platform==='win32'&&parts[0]==='npm'?'npm.cmd':parts[0],parts.slice(1)]);
   for(const [command,args] of commands) {
     if(signal?.aborted) break;
-    const result=await runCommand(cwd,command,args,repository(task.project_id,task.repo).checkTimeoutMs||300000,signal,{isolate:true});
+    const result=strictWslChecks(repo.stack)?await runWslCheck(cwd,command,args,repo.checkTimeoutMs||300000,signal):await runCommand(cwd,command,args,repo.checkTimeoutMs||300000,signal,{isolate:true});
     checks.push({command:[command,...args].join(' '),...result});
   }
   return {ok:checks.length===commands.length && checks.every(x=>x.ok),checks};
@@ -65,8 +66,8 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   await save({worktree:location.dir,branch:location.branch,base_head:location.baseHead});
   emit('worktree',{branch:location.branch,baseHead:location.baseHead,dirtySource:location.dirtySource});
   const repoConfig=repository(task.project_id,task.repo);
-  for(const step of repoConfig.setup||[]) if(!fs.existsSync(path.join(location.dir,step.ifMissing))) {
-    const setup=await runCommand(location.dir,step.command[0],step.command.slice(1),600000,signal);
+  for(const step of repoConfig.setup||[]) if(strictWslChecks(repoConfig.stack)||!fs.existsSync(path.join(location.dir,step.ifMissing))) {
+    const setup=strictWslChecks(repoConfig.stack)?await prepareWslDependency(location.dir,step,signal):await runCommand(location.dir,step.command[0],step.command.slice(1),600000,signal);
     emit('dependencies',{step:step.ifMissing,ok:setup.ok,output:setup.output.slice(-2000)});
     if(!setup.ok) return {status:'FAILED',result:{error:'Dependency installation failed',step:step.ifMissing},verification:{ok:false,reason:setup.output.slice(-3000)}};
   }
@@ -76,11 +77,10 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
     if(project(task.project_id).design.adapter!=='momentory-expo-lab'||task.repo!==project(task.project_id).design.repo||selected?.status!=='SELECTED'||!selected.proposal?.exported||!task.dependsOn.includes(selected.task_id))
       return {status:'UNVERIFIED',result:{error:'Selected design lineage invalid'},verification:{ok:false,reason:'Selected design lineage invalid'}};
     if(!selected.screenshot) return {status:'UNVERIFIED',result:{candidateId:selected.id},verification:{ok:false,reason:'Visual screenshot comparison is missing'}};
-    const exportDir=path.join(path.dirname(location.dir),'..','..','data','design-exports');fs.mkdirSync(exportDir,{recursive:true});
-    const exportFile=path.join(exportDir,`${selected.id}.json`);fs.writeFileSync(exportFile,JSON.stringify(selected.proposal.exported));
-    const applied=await runCommand(location.dir,process.execPath,designApplyArgs(task.project_id,exportFile),30000,signal);
-    emit('design_applied',{ok:applied.ok,output:applied.output});
-    if(!applied.ok)return {status:'FAILED',result:{candidateId:selected.id,error:applied.output},verification:{ok:false,reason:'Design apply failed'}};
+    let applied;
+    try{applied=await applySelectedDesign(selected.proposal.exported,task.project_id,location.dir);}
+    catch(error){emit('design_applied',{ok:false,error:String(error)});return {status:'FAILED',result:{candidateId:selected.id,error:String(error)},verification:{ok:false,reason:'Design apply failed'}};}
+    emit('design_applied',{ok:true,changedKeys:applied.changedKeys});
     const diff=diffSummary(location.dir,location.baseHead);
     const verification=await verifyTask(task,location.dir,signal);
     const violations=await protectedViolations(task,diff.changedFiles);
@@ -151,7 +151,8 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   let review=null;
   if(task.mode==='REVIEW' && verification.ok && !signal?.aborted) {
     const other=provider==='claude'?'codex':'claude';
-    review=await run(other,`Independently review the current worktree diff for goal: ${task.goal}. Read only. Identify correctness, security and test gaps. Start answer with PASS or FIX_REQUIRED, followed by evidence. ${forbidden}`,true);
+    const reviewPatch=diffSummary(location.dir,location.baseHead).patch.slice(0,30000);
+    review=await run(other,`Independently review this current worktree patch for goal: ${task.goal}. The patch is supplied directly so review does not depend on Git metadata access. Read project files as needed. Read only. Identify correctness, security and test gaps. Start answer with PASS or FIX_REQUIRED, followed by evidence. ${forbidden}\nPatch:\n${reviewPatch}`,true);
     const verdict=review.ok?reviewVerdict(review.result):null;
     if(verdict==='FIX_REQUIRED') {
       execution=await run(provider,`${context(task)}\nIndependent review found issues. Address them: ${review.result.slice(0,8000)}`,false,execution.sessionId);

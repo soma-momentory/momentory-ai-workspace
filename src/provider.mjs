@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
+import {wslCodexLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
 
 export function stopTree(child) {
   if(!child?.pid || child.exitCode!==null) return;
@@ -26,17 +28,20 @@ export function providerArgs(provider, {readOnly=false,sessionId=null}={}) {
     '--disallowedTools','Bash(git commit*)','Bash(git push*)','Bash(git reset*)','Bash(git clean*)','Bash(git checkout*)','Bash(npm install*)','Bash(npx eas*)',
     ...(sessionId?['--resume',sessionId]:[])
   ];
-  if (provider==='codex') return ['-s',readOnly?'read-only':'workspace-write','-a','never','exec',...(sessionId?['resume']:[]),'--json',...(sessionId?[sessionId]:[]),'-'];
+  if (provider==='codex') return ['-p',codexProfileName(process.platform==='win32'?(readOnly?'wsl-readonly':'wsl'):(readOnly?'posix-readonly':'posix')),'-a','never','exec',...(sessionId?['resume']:[]),'--json',...(sessionId?[sessionId]:[]),'-'];
   throw new Error('Unknown provider');
 }
 export function runProvider({provider,cwd,prompt,readOnly=false,sessionId=null,timeoutMs=600000,onEvent=()=>{},signal}) {
   return new Promise((resolve,reject)=>{
-    const exe=process.platform==='win32'&&provider==='codex'?'codex.cmd':provider;
     const args=providerArgs(provider,{readOnly,sessionId});
-    const child=spawn(exe,args,{cwd,windowsHide:true,shell:process.platform==='win32',detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:childEnv()});
+    if(provider==='codex'&&process.platform!=='win32') verifyCodexProfile(readOnly?'posix-readonly':'posix');
+    const launch=provider==='codex'&&process.platform==='win32'?wslCodexLaunch(cwd,readOnly,args):null;
+    const exe=launch?.executable||provider;
+    const child=spawn(exe,launch?.args||args,{cwd,windowsHide:true,shell:process.platform==='win32'&&exe!=='wsl.exe',detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:childEnv()});
     let buffer='',stderr='',last='',threadId=sessionId,reportedThreadId=sessionId,usage=null,finished=false,timedOut=false;
-    const timer=setTimeout(()=>{ timedOut=true;stopTree(child); setTimeout(()=>{if(!finished)stopTree(child);},5000).unref(); },timeoutMs);
-    const abort=()=>stopTree(child); signal?.addEventListener('abort',abort,{once:true});
+    const stop=()=>{if(launch)stopWslCodex(launch);stopTree(child);};
+    const timer=setTimeout(()=>{ timedOut=true;stop(); setTimeout(()=>{if(!finished){if(launch)stopWslCodex(launch,'KILL');stopTree(child);}},5000).unref(); },timeoutMs);
+    const abort=()=>stop(); signal?.addEventListener('abort',abort,{once:true});
     child.stdout.on('data',chunk=>{
       buffer+=chunk.toString('utf8');
       let index;
@@ -56,9 +61,9 @@ export function runProvider({provider,cwd,prompt,readOnly=false,sessionId=null,t
       }
     });
     child.stderr.on('data',chunk=>{stderr+=chunk.toString('utf8'); if(stderr.length>20000) stderr=stderr.slice(-20000);});
-    child.on('error',error=>{finished=true;clearTimeout(timer);reject(error);});
+    child.on('error',error=>{finished=true;clearTimeout(timer);finishWslCodex(launch);reject(error);});
     child.on('close',code=>{
-      finished=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);
+      finished=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);finishWslCodex(launch);
       resolve({ok:code===0 && !signal?.aborted && !timedOut,code,timedOut,sessionId:threadId,result:redact(last).slice(0,20000),usage,stderr:redact(stderr).slice(-4000)});
     });
     child.stdin.end(prompt);

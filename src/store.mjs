@@ -45,6 +45,10 @@ export class Store {
         proposal TEXT NOT NULL, evaluation TEXT, screenshot TEXT,
         status TEXT NOT NULL DEFAULT 'PROPOSED', created_at TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS followup_requests (
+        parent_task_id TEXT NOT NULL, request_id TEXT NOT NULL, child_task_id TEXT NOT NULL,
+        PRIMARY KEY(parent_task_id,request_id)
+      );
     `);
     for(const [column,type] of [['base_head','TEXT'],['worktree_host','TEXT'],['design_candidate_id','TEXT'],['lease_nonce','TEXT'],['project_id',"TEXT NOT NULL DEFAULT 'momentory'"],['type',"TEXT NOT NULL DEFAULT 'AI_TASK'"],['owner',"TEXT NOT NULL DEFAULT 'ai'"],['completion_criteria',"TEXT NOT NULL DEFAULT ''"]]) {
       const columns=this.db.prepare('PRAGMA table_info(tasks)').all().map(x=>x.name);
@@ -63,18 +67,25 @@ export class Store {
     this.db.prepare('INSERT INTO events(task_id,kind,payload,created_at) VALUES(?,?,?,?)')
       .run(taskId, kind, json(payload), now());
   }
-  createTask(input, route) {
-    const id = randomUUID(); const time = now();
-    this.tx(() => {
+  createTask(input, route, followupRequest=null) {
+    const proposedId = randomUUID(); const time = now();
+    const id=this.tx(() => {
+      if(followupRequest){
+        const existing=this.db.prepare('SELECT child_task_id FROM followup_requests WHERE parent_task_id=? AND request_id=?').get(followupRequest.parentTaskId,followupRequest.requestId);
+        if(existing)return existing.child_task_id;
+      }
       this.db.prepare(`INSERT INTO tasks(id,project_id,goal,repo,mode,type,owner,completion_criteria,provider,priority,status,reason,depends_on,max_attempts,design_candidate_id,created_at,updated_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(id,input.projectId??projects().keys().next().value, input.goal, input.repo, route.mode, input.type ?? 'AI_TASK',
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(proposedId,input.projectId??projects().keys().next().value, input.goal, input.repo, route.mode, input.type ?? 'AI_TASK',
           input.owner ?? (input.type === 'HUMAN_TASK' ? 'human' : input.type === 'COLLABORATIVE_TASK' ? 'human+ai' : 'ai'), input.completionCriteria ?? '', route.provider,
           input.priority ?? 0, input.initialStatus ?? 'QUEUED', route.reason, json(input.dependsOn ?? []), input.maxAttempts ?? 2,input.designCandidateId??null,time,time);
-      this.event(id, 'created', { route });
+      this.event(proposedId, 'created', { route });
+      if(followupRequest)this.db.prepare('INSERT INTO followup_requests(parent_task_id,request_id,child_task_id) VALUES(?,?,?)').run(followupRequest.parentTaskId,followupRequest.requestId,proposedId);
+      return proposedId;
     });
     return this.getTask(id);
   }
   getTask(id) { const row = this.db.prepare('SELECT * FROM tasks WHERE id=?').get(id); return row && this.inflate(row); }
+  followupRequest(parentTaskId,requestId) {const row=this.db.prepare('SELECT child_task_id FROM followup_requests WHERE parent_task_id=? AND request_id=?').get(parentTaskId,requestId);return row?this.getTask(row.child_task_id):null;}
   listTasks(projectId=null) { return (projectId?this.db.prepare('SELECT * FROM tasks WHERE project_id=? ORDER BY priority DESC,created_at DESC LIMIT 200').all(projectId):this.db.prepare('SELECT * FROM tasks ORDER BY priority DESC,created_at DESC LIMIT 200').all()).map(x => this.inflate(x)); }
   inflate(row) { return { ...row, dependsOn: parse(row.depends_on), result: parse(row.result), verification: parse(row.verification), usage: parse(row.usage) }; }
   events(taskId, after = 0) { return this.db.prepare('SELECT * FROM events WHERE task_id=? AND id>? ORDER BY id LIMIT 500').all(taskId, after).map(x => ({...x,payload:parse(x.payload)})); }
@@ -118,7 +129,8 @@ export class Store {
     return this.tx(() => {
       const expired = this.db.prepare("SELECT * FROM tasks WHERE status='RUNNING' AND lease_until<?").all(Date.now());
       for (const row of expired) {
-        const status = row.worktree ? 'STALE' : row.attempts >= row.max_attempts ? 'FAILED' : 'QUEUED';
+        const hasCheckpointedOrPhysicalWorktree=!!row.worktree||fs.existsSync(path.join(root,'worktrees',row.project_id,row.id));
+        const status = hasCheckpointedOrPhysicalWorktree ? 'STALE' : row.attempts >= row.max_attempts ? 'FAILED' : 'QUEUED';
         this.db.prepare('UPDATE tasks SET status=?,lease_owner=NULL,lease_until=NULL,updated_at=? WHERE id=?').run(status,now(),row.id);
         this.event(row.id,'lease_expired',{status,attempts:row.attempts});
       }

@@ -1,0 +1,24 @@
+default_permissions = "workspace-locked-readonly"
+
+[permissions.workspace-locked-readonly.filesystem]
+":root" = "deny"
+":minimal" = "read"
+":tmpdir" = "write"
+"~/.local/node_modules/@openai/codex-linux-x64" = "read"
+"~/.local/node_modules/@openai/codex" = "read"
+"~/.local/node_modules/node" = "read"
+glob_scan_max_depth = 8
+
+[permissions.workspace-locked-readonly.filesystem.":workspace_roots"]
+"." = "read"
+"data" = "deny"
+".git" = "read"
+".agents" = "read"
+".codex" = "read"
+"**/.env*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/credentials.json" = "deny"
+
+[permissions.workspace-locked-readonly.network]
+enabled = false

@@ -37,7 +37,14 @@ test('390px browser manages Momentory and a separate project',async()=>{
     await page.locator('#decisions-now [role="button"]').first().click();
     await page.getByRole('button',{name:'승인',exact:true}).click();
     await page.waitForFunction(()=>document.querySelector('#task-content')?.textContent?.includes('APPROVED'));
-    await page.locator('#task-content form textarea').fill('Check the long text state');await page.getByRole('button',{name:'후속 작업 생성'}).click();
+    await page.locator('#task-content form textarea').fill('Check the long text state');await delay(3500);
+    assert.equal(await page.locator('#task-content form textarea').inputValue(),'Check the long text state','Periodic refresh lost an unsent mobile instruction');
+    await page.context().setOffline(true);
+    const failureDialog=page.waitForEvent('dialog').then(dialog=>dialog.accept());await page.getByRole('button',{name:'후속 작업 생성'}).click();await failureDialog;
+    const pending=await page.evaluate(id=>JSON.parse(localStorage.getItem(`workspace-followup-pending-${id}`)),task.id);assert.ok(pending?.requestId);
+    await page.context().setOffline(false);await page.getByRole('button',{name:'후속 작업 생성'}).click();
+    await page.waitForFunction(id=>localStorage.getItem(`workspace-followup-pending-${id}`)===null,task.id);
+    assert.equal(await page.evaluate(id=>localStorage.getItem(`workspace-followup-pending-${id}`),task.id),null);
     await page.getByRole('button',{name:'작업 취소'}).click();await page.waitForFunction(()=>document.querySelector('#task-content')?.textContent?.includes('CANCELLED'));
     await page.locator('#nav-dashboard').click();await page.locator('#goal').fill('Explore two distinct home screen design alternatives');await page.locator('#mode').selectOption('EXPLORE');await page.locator('#new-task button').click();
     const designTask=await page.evaluate(async()=>{const response=await fetch('/api/overview');return (await response.json()).tasks[0];});

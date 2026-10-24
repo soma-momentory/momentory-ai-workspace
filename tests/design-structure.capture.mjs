@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash,randomUUID} from 'node:crypto';
+import {root} from '../src/config.mjs';
+import {repository} from '../src/projects.mjs';
+import {validateExport,captureDesign} from '../src/design.mjs';
+
+const approved=JSON.parse(fs.readFileSync(path.join(repository('momentory','fe').path,'src','design','studioApproved.json'),'utf8'));
+assert.ok(Array.isArray(approved['home.hero.structure']),'Point WORKSPACE_REPO_MOMENTORY_FE at the structural FE branch');
+const structure=[{id:'group-one',kind:'group',children:[{id:'text-one',kind:'text',text:'오늘의 한 걸음'}]}];
+const exported=await validateExport({version:1,name:'Structural capture',design:{...approved,'home.hero.structure':structure}});
+await assert.rejects(validateExport({version:1,name:'Unchanged',design:approved}),/no changes/);
+const images=await captureDesign(randomUUID(),exported,'home-main');
+const dir=path.join(root,'data','screenshots');
+const digest=name=>createHash('sha256').update(fs.readFileSync(path.join(dir,name))).digest('hex');
+assert.notEqual(digest(images.baseline),digest(images.candidate),'Structural text must appear in matched screenshot');
+assert.deepEqual(Object.keys(images.matrix),['375','390','402','430']);
+assert.deepEqual(Object.keys(images.states),['many-375','long-375']);
+console.log(JSON.stringify({status:'PASS',candidate:images.candidate,baseline:images.baseline,visibleStructuralDifference:true,devices:Object.keys(images.matrix),states:Object.keys(images.states)}));

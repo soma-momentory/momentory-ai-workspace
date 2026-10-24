@@ -18,14 +18,15 @@
 - [x] Generate Claude/Codex editable Studio drafts, capture/evaluate them, select one, apply an isolated FE patch, and pass full FE checks up to the approval gate.
 - [x] Reproduce and reassess the intermittent `bodyRelease.test.tsx` timeout; pass full FE Jest on the selected design patch (126 suites, 1,664 tests). The precise intermittent cause remains unknown.
 - [x] Start Expo Lab automatically on loopback for capture and close the owned process after capture.
-- [ ] Expand the Studio's validated schema and actual shared app components to support distinct structural layouts and information hierarchy. Current editable proposals change style properties only.
-- [ ] Verify recovery of a partially edited worktree, process-orphan cleanup, and real network interruption.
+- [x] Implement validated add/delete/reorder/nest/unnest/text blocks in the shared RN home hero and Studio, with JSON export, immediate preview, schema rejection, Jest and Web visual regression. Preserved in Momentory FE branch `workspace/structural-design-p0` at `82572e4`; no main merge.
+- [x] Inject a partial Worktree write, force-kill the Worker, reap its orphan WSL scope, retain `STALE` without a duplicate claim, require a reviewed diff hash, then resume to verified approval. Browser-offline follow-up draft retention and server-restart idempotency also passed; a physical mobile network test remains below.
 - [ ] Complete Tailscale Serve setup, separate-network phone workflow, phone approval/rejection, and locked-screen execution test.
 - [ ] Verify macOS laptop operation and native iOS/Android app screens.
 - [x] Test Claude restricted Read/Edit denial and sandbox configured Windows verification commands, including the full FE checks.
 - [x] Re-run Momentory BE `gradlew.bat test --rerun-tasks` on Windows; compilation and tests executed successfully.
-- [ ] Apply tested OS-level read confinement to actual Codex AI sessions; direct MXC probes pass but this CLI's `codex exec` fails in the custom profile before execution.
-- [ ] Complete lease fencing and orphan cleanup, project-scoped human authorization, stronger secret masking, command audit, hard resource quotas, independent security review, and reliable backups.
+- [x] Apply root-deny WSL2 confinement to actual Windows Codex AI sessions; real AI allowed read/write and outside read/write denial passed. Missing WSL/profile fails closed. The native Windows MXC `SYSTEMROOT` failure remains a platform limitation, not an active fallback.
+- [x] Verify WSL Codex cancellation, orphan cleanup, CPU/memory/swap/task-count quotas and wall timeout. Sample Node and Momentory FE checks run in a stricter WSL profile; FE automatic pipeline recheck is recorded in `TEST_REPORT.md`.
+- [ ] Finish project-scoped human authorization, broader secret masking and command audit, Java/Gradle check read confinement, independent security review findings, and reliable backups.
 - [ ] Validate all FE/BE CI suites and inspect code integration conflicts before release.
 
 External setup required: Tailscale installation/sign-in on an authorized laptop and phone, HTTPS/tailnet policy, and access to a Mac/physical mobile devices for the stated tests. No cloud or paid infrastructure has been created. Release approval should be requested only after every required check passes.

@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {root} from './config.mjs';
 
-export const codexProfileName=mode=>mode==='check'?'ai-dev-workspace-check':mode===true?'ai-dev-workspace-readonly':'ai-dev-workspace-isolated';
+export const codexProfileName=mode=>mode==='check'?'ai-dev-workspace-check':mode==='wsl'?'ai-dev-workspace-wsl':mode==='wsl-readonly'?'ai-dev-workspace-wsl-readonly':mode==='wsl-setup'?'ai-dev-workspace-wsl-setup':mode==='posix'?'ai-dev-workspace-posix':mode==='posix-readonly'?'ai-dev-workspace-posix-readonly':mode===true?'ai-dev-workspace-readonly':'ai-dev-workspace-isolated';
 const codexHome=()=>process.env.CODEX_HOME || path.join(os.homedir(),'.codex');
 const locations=mode=>{
   const name=`${codexProfileName(mode)}.config.toml`;
@@ -20,10 +20,21 @@ const expectedProfile=(mode,source)=>{
 };
 export function installCodexProfiles() {
   fs.mkdirSync(codexHome(),{recursive:true});
-  for(const mode of [false,true,'check']) {
+  for(const mode of [false,true,'check','wsl','wsl-readonly','wsl-setup','posix','posix-readonly']) {
     const {source,target}=locations(mode),expected=expectedProfile(mode,source);
     if(fs.existsSync(target)) {
-      if(!fs.readFileSync(target).equals(expected)) throw new Error(`Codex profile differs from audited template: ${target}`);
+      const current=fs.readFileSync(target);
+      if(!current.equals(expected)) {
+        const beforeData=Buffer.from(expected.toString().replace('"data" = "deny"\n',''));
+        const beforeDns=Buffer.from(expected.toString().replace('"/etc/resolv.conf" = "read"\n','').replace('"/mnt/wsl/resolv.conf" = "read"\n',''));
+        const beforeBoth=Buffer.from(beforeDns.toString().replace('"data" = "deny"\n',''));
+        const beforeEtc=Buffer.from(expected.toString().replace('"/etc" = "read"\n','"/etc/resolv.conf" = "read"\n'));
+        const beforeReadonlyDeps=Buffer.from(expected.toString().replace('"node_modules" = "read"\n','').replace('"expo-lab/node_modules" = "read"\n',''));
+        const withInvalidNodePattern=Buffer.from(expected.toString().replace('"node_modules" = "read"\n"expo-lab/node_modules" = "read"\n','"**/node_modules/**" = "read"\n'));
+        const prior=Buffer.from(beforeData.toString().replace('"~/.local/node_modules/node" = "read"\n',''));
+        if((mode==='wsl'||mode==='wsl-readonly'||mode==='wsl-setup')&&(current.equals(prior)||current.equals(beforeData)||current.equals(beforeDns)||current.equals(beforeBoth)||current.equals(beforeEtc)||current.equals(beforeReadonlyDeps)||current.equals(withInvalidNodePattern)))fs.writeFileSync(target,expected);
+        else throw new Error(`Codex profile differs from audited template: ${target}`);
+      }
       continue;
     }
     fs.writeFileSync(target,expected,{flag:'wx',mode:0o600});

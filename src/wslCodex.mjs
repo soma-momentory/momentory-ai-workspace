@@ -1,0 +1,138 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {randomUUID} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {root} from './config.mjs';
+import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
+
+const checked=new Set();
+const requireResult=(args,{timeout=15000}={})=>{
+  const result=spawnSync('wsl.exe',args,{encoding:'utf8',timeout,windowsHide:true});
+  if(result.status!==0) throw new Error(`WSL Codex unavailable: ${(result.stderr||result.error||'command failed').toString().slice(-500)}`);
+  return result.stdout.trim();
+};
+const command=(distro,args,options)=>requireResult(['-d',distro,'--exec',...args],options);
+const translate=(distro,winPath)=>command(distro,['/usr/bin/wslpath','-u',path.resolve(winPath).replaceAll('\\','/')]);
+
+export function wslCodexConfig(cwd,readOnly=false) {
+  if(process.platform!=='win32')throw new Error('WSL Codex is available only on Windows');
+  if(process.env.WORKSPACE_CODEX_BACKEND && process.env.WORKSPACE_CODEX_BACKEND!=='wsl')
+    throw new Error('Codex requires the verified WSL backend on Windows');
+  const distro=process.env.WORKSPACE_WSL_DISTRO||'Ubuntu';
+  if(!/^[A-Za-z0-9._-]{1,60}$/.test(distro))throw new Error('Invalid WSL distribution name');
+  const mode=readOnly?'wsl-readonly':'wsl';
+  verifyCodexProfile(mode);
+  const home=command(distro,['/bin/sh','-c','printf %s "$HOME"']);
+  const binary=process.env.WORKSPACE_WSL_CODEX||`${home}/.local/node_modules/.bin/codex`;
+  if(!binary.startsWith('/')||!command(distro,['/bin/sh','-c','test -x "$1" && printf OK','probe',binary]))
+    throw new Error('Linux Codex binary missing in WSL');
+  const codexHome=translate(distro,process.env.CODEX_HOME||path.join(os.homedir(),'.codex'));
+  const worktree=translate(distro,cwd);
+  const runner=translate(distro,path.join(root,'scripts','wsl-codex.sh'));
+  return {distro,home,mode,profile:codexProfileName(mode),permission:readOnly?'workspace-locked-readonly':'workspace-locked',binary,codexHome,worktree,runner};
+}
+
+export function verifyWslCodexBoundary(cwd,readOnly=false) {
+  const config=wslCodexConfig(cwd,readOnly);
+  const key=`${config.distro}|${cwd}|${config.mode}`;
+  if(checked.has(key))return config;
+  const suffix=randomUUID(),allowed=path.join(cwd,`.workspace-isolation-${suffix}`);
+  const denied=path.join(root,'data',`isolation-canary-${suffix}`);
+  fs.mkdirSync(path.dirname(denied),{recursive:true});
+  fs.writeFileSync(allowed,'ALLOWED_BOUNDARY');
+  fs.writeFileSync(denied,'DENIED_BOUNDARY');
+  try {
+    const base=['/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,'sandbox','-p',config.profile,'-P',config.permission,'-C',config.worktree,'--'];
+    const probe=args=>spawnSync('wsl.exe',['-d',config.distro,'--exec',...base,...args],{encoding:'utf8',timeout:60000,windowsHide:true});
+    const linuxAllowed=translate(config.distro,allowed),linuxDenied=translate(config.distro,denied);
+    const inside=probe(['/bin/cat',linuxAllowed]);
+    if(inside.status!==0||inside.stdout.trim()!=='ALLOWED_BOUNDARY')throw new Error(`Codex isolation cannot read its task worktree: ${(inside.stderr||inside.stdout||'command failed').slice(-350)}`);
+    const outside=probe(['/bin/cat',linuxDenied]);
+    if(outside.status===0||outside.stdout.includes('DENIED_BOUNDARY'))throw new Error('Codex isolation leaked an outside file');
+    const change=probe(['/bin/sh','-c','printf ALLOWED_WRITE > "$1"','probe',linuxAllowed]);
+    if((change.status===0)!==!readOnly)throw new Error('Codex isolation write rule does not match task mode');
+    if(!readOnly&&fs.readFileSync(allowed,'utf8')!=='ALLOWED_WRITE')throw new Error('Codex isolation failed to write in task worktree');
+    const deniedWrite=probe(['/bin/sh','-c','printf BAD_WRITE > "$1"','probe',linuxDenied]);
+    if(deniedWrite.status===0||fs.readFileSync(denied,'utf8')!=='DENIED_BOUNDARY')throw new Error('Codex isolation wrote outside the task worktree');
+    checked.add(key);
+    return config;
+  } finally {
+    fs.rmSync(allowed,{force:true});
+    fs.rmSync(denied,{force:true});
+  }
+}
+
+const pidDir=path.join(root,'data','codex-processes');
+const bounded=(name,fallback,min,max)=>{
+  const value=Number(process.env[name]||fallback);
+  if(!Number.isInteger(value)||value<min||value>max)throw new Error(`Invalid ${name}`);
+  return value;
+};
+function launchWslScope(config,cwd,command){
+  fs.mkdirSync(pidDir,{recursive:true});
+  const id=randomUUID(),pidFile=path.join(pidDir,`${process.pid}-${id}.pid`),unit=`ai-dev-workspace-${id}.scope`;
+  const cpu=bounded('WORKSPACE_CODEX_CPU_SECONDS',600,30,1800);
+  const memory=bounded('WORKSPACE_CODEX_MEMORY_KIB',4194304,1048576,8388608);
+  fs.writeFileSync(`${pidFile}.json`,JSON.stringify({cwd:path.resolve(cwd),distro:config.distro,unit,owner:process.pid}),{flag:'wx'});
+  const launchArgs=['-d',config.distro,'--cd',cwd,'--exec','/usr/bin/systemd-run','--user','--scope',`--unit=${unit}`,
+    '-p',`MemoryMax=${memory*1024}`,'-p','MemorySwapMax=0','-p','TasksMax=128','-p','CPUQuota=200%','--',
+    '/usr/bin/setsid','--wait','/bin/bash',config.runner,
+    translate(config.distro,pidFile),String(cpu),'0','/usr/bin/env',`CODEX_HOME=${config.codexHome}`,
+    ...command];
+  return {executable:'wsl.exe',args:launchArgs,pidFile,distro:config.distro,unit};
+}
+export function wslCodexLaunch(cwd,readOnly,args) {
+  const config=verifyWslCodexBoundary(cwd,readOnly);
+  return launchWslScope(config,cwd,[config.binary,...args]);
+}
+export function wslTrustedCommandLaunch(cwd,command){
+  const config=wslCodexConfig(cwd);
+  return launchWslScope(config,cwd,command);
+}
+export function stopWslCodex(launch,signal='TERM') {
+  if(!launch?.pidFile||!launch.distro||!launch.unit)return false;
+  const stopped=spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','stop',launch.unit],
+    {encoding:'utf8',timeout:10000,windowsHide:true});
+  if(fs.existsSync(launch.pidFile)){
+    const pid=Number(fs.readFileSync(launch.pidFile,'utf8').trim());
+    if(Number.isInteger(pid)&&pid>=2)spawnSync('wsl.exe',['-d',launch.distro,'--exec','/bin/kill',`-${signal}`,'--',`-${pid}`],
+      {encoding:'utf8',timeout:10000,windowsHide:true});
+  }
+  const state=spawnSync('wsl.exe',['-d',launch.distro,'--exec','/usr/bin/systemctl','--user','is-active',launch.unit],
+    {encoding:'utf8',timeout:10000,windowsHide:true});
+  return !state.error&&state.status!==null&&state.status!==0&&/^(inactive|failed|unknown)$/m.test(state.stdout.trim())&&!stopped.error;
+}
+export function finishWslCodex(launch) {
+  if(!launch?.pidFile)return;
+  if(stopWslCodex(launch,'KILL')){fs.rmSync(launch.pidFile,{force:true});fs.rmSync(`${launch.pidFile}.json`,{force:true});}
+}
+export function activeWslCodexForWorktree(cwd) {
+  if(process.platform!=='win32'||!fs.existsSync(pidDir))return [];
+  const target=path.resolve(cwd).toLowerCase(),active=[];
+  for(const name of fs.readdirSync(pidDir).filter(item=>item.endsWith('.pid.json'))) {
+    try {
+      const meta=JSON.parse(fs.readFileSync(path.join(pidDir,name),'utf8'));
+      if(String(meta.cwd).toLowerCase()!==target)continue;
+      const state=spawnSync('wsl.exe',['-d',meta.distro,'--exec','/usr/bin/systemctl','--user','is-active',meta.unit],{encoding:'utf8',timeout:10000,windowsHide:true});
+      if(state.status===0||state.error||state.status===null||!/^(inactive|failed|unknown)$/m.test(state.stdout.trim()))active.push(meta.unit);
+    }catch{active.push(name);}
+  }
+  return active;
+}
+export function reapStaleWslCodex() {
+  if(process.platform!=='win32'||!fs.existsSync(pidDir))return [];
+  const reaped=[];
+  for(const metadata of fs.readdirSync(pidDir).filter(name=>name.endsWith('.pid.json'))) {
+    const name=metadata.slice(0,-5),match=/^(\d+)-[0-9a-f-]+\.pid$/.exec(name);
+    if(!match)continue;
+    const owner=Number(match[1]);
+    if(owner===process.pid)continue;
+    let alive=true;try{process.kill(owner,0);}catch(error){alive=error.code!=='ESRCH';}
+    if(alive)continue;
+    let meta;try{meta=JSON.parse(fs.readFileSync(path.join(pidDir,metadata),'utf8'));}catch{continue;}
+    const launch={pidFile:path.join(pidDir,name),distro:meta.distro,unit:meta.unit};
+    if(stopWslCodex(launch,'KILL')){reaped.push(name);fs.rmSync(launch.pidFile,{force:true});fs.rmSync(`${launch.pidFile}.json`,{force:true});}
+  }
+  return reaped;
+}
