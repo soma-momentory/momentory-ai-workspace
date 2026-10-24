@@ -24,6 +24,8 @@ npm run test:codex-boundary
 npm run test:wsl-check-boundary
 ```
 
+Claude must resolve to an actual `claude.exe` outside the Workspace and every task Worktree on Windows. The launcher starts that absolute executable without a shell, so a `claude.cmd`, `claude.bat`, or `claude.exe` placed inside a project cannot shadow it. WSL Codex must resolve to the reviewed `~/.local/node_modules/@openai/codex/bin/codex.js` package; `WORKSPACE_WSL_CODEX` overrides are rejected. Reinstall the official CLI under that location if the path check fails.
+
 The WSL Codex CLI uses the existing Windows Codex login through `CODEX_HOME`; do not copy credentials into the repository. If WSL, systemd, authentication, the profile, or a deny probe fails, Codex execution fails closed. Node/Expo checks install Linux dependencies with `npm ci --ignore-scripts` in each isolated Worktree; on Windows DrvFS this initial setup took about seven minutes for Momentory FE. Spring checks require WSL OpenJDK 21 and an isolated Gradle dependency cache. The setup fetches dependencies from a clean committed build; later tests run offline in a loopback-only network namespace. `npm run test:be-isolation` passed on the tested Windows/WSL host after configuring a bounded 384-task Gradle scope and startup Byte Buddy agent. See `TEST_REPORT.md` for the exact result and Docker-dependent test limitation.
 
 On an authorized Mac, run this manual acceptance sequence from a clone of the same commit. Set the repository path overrides in the local `.env` if Momentory is not beside the Workspace clone. Record `sw_vers`, `node --version`, `claude --version`, `codex --version`, command output and the resulting task IDs. No Mac result has been supplied yet.

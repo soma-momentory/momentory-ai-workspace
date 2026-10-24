@@ -28,9 +28,11 @@ test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=
     const task=(await request('/api/tasks','POST',{goal:'Improve the home screen card layout',repo:'fe',mode:'FAST'})).body.task;
     assert.equal(task.status,'QUEUED');
     assert.equal((await request('/api/tasks','POST',{projectId:'sample',goal:'Try a cross project dependency',repo:'app',dependsOn:[task.id]})).status,400);
-    const claimed=(await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe']},true)).body.task;
+    assert.equal((await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe']},true)).status,400);
+    assert.equal((await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe'],provider:'claudee'},true)).status,400);
+    const claimed=(await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe'],provider:task.provider},true)).body.task;
     assert.equal(claimed.id,task.id);
-    assert.equal((await request('/api/worker/claim','POST',{id:'other',capabilities:['momentory:fe']},true)).body.task,null);
+    assert.equal((await request('/api/worker/claim','POST',{id:'other',capabilities:['momentory:fe'],provider:task.provider},true)).body.task,null);
     assert.equal((await request('/api/worker/complete','POST',{id:'other',taskId:task.id,leaseNonce:claimed.lease_nonce,status:'AWAITING_APPROVAL'},true)).status,409);
     assert.equal((await request('/api/worker/complete','POST',{id:'test-worker',taskId:task.id,leaseNonce:'stale-generation',status:'AWAITING_APPROVAL'},true)).status,409);
     const complete=await request('/api/worker/complete','POST',{id:'test-worker',taskId:task.id,leaseNonce:claimed.lease_nonce,status:'AWAITING_APPROVAL',result:{diff:{changedFiles:['src/a.ts']}},verification:{ok:true}},true);
@@ -40,7 +42,7 @@ test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=
     assert.equal(accepted.body.task.status,'APPROVED');
     const risky=await request('/api/tasks','POST',{goal:'Deploy production changes after review',repo:'fe'});
     assert.equal(risky.body.task.status,'AWAITING_PREAPPROVAL');
-    assert.equal((await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe']},true)).body.task,null);
+    assert.equal((await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe'],provider:task.provider},true)).body.task,null);
     const packet=(await request(`/api/tasks/${risky.body.task.id}`)).body.decisions[0];
     assert.equal(packet.kind,'risk');assert.ok(packet.details.options.length===2);
     assert.equal((await request(`/api/decisions/${packet.id}`,'POST',{status:'REJECTED'})).body.task.status,'REJECTED');

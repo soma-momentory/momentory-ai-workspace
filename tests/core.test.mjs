@@ -6,7 +6,7 @@ import path from 'node:path';
 import { Store } from '../src/store.mjs';
 import { routeTask } from '../src/router.mjs';
 import { nextHumanActions } from '../src/router.mjs';
-import { providerArgs,createProviderLineParser } from '../src/provider.mjs';
+import { providerArgs,createProviderLineParser,resolveClaudeExecutable } from '../src/provider.mjs';
 import { reviewVerdict, parseDesignCandidates,selectedDesignApprovalReady,runCommand } from '../src/engine.mjs';
 import {root} from '../src/config.mjs';
 import {wslCodexLaunch} from '../src/wslCodex.mjs';
@@ -21,6 +21,21 @@ test('provider commands use supported structured streaming and an explicit isola
   const args=providerArgs('codex',{readOnly:true});
   assert.deepEqual(args.slice(0,4),['-p',process.platform==='win32'?'ai-dev-workspace-wsl-readonly':'ai-dev-workspace-posix-readonly','-a','never']);
   assert.ok(providerArgs('claude').includes('stream-json'));
+});
+test('Claude executable resolution ignores worktree shims',()=>{
+  const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-provider-shim-'));
+  const shim=path.join(cwd,process.platform==='win32'?'claude.exe':'claude');
+  const original=process.env.PATH;
+  try{
+    fs.writeFileSync(shim,'not a trusted CLI');
+    if(process.platform!=='win32')fs.chmodSync(shim,0o755);
+    process.env.PATH=cwd;
+    assert.throws(()=>resolveClaudeExecutable(cwd),/Trusted Claude executable missing/);
+    process.env.PATH=`${cwd}${path.delimiter}${original}`;
+    const resolved=resolveClaudeExecutable(cwd);
+    assert.ok(path.isAbsolute(resolved));
+    assert.ok(!resolved.startsWith(cwd+path.sep));
+  }finally{process.env.PATH=original;fs.rmSync(cwd,{recursive:true,force:true});}
 });
 test('WSL agent launch rejects unreviewed CLI overrides before starting a process',async()=>{
   await assert.rejects(wslCodexLaunch(process.cwd(),false,['-p','ai-dev-workspace-wsl','-a','never','exec','-c','sandbox_mode=danger-full-access','--json','-']),/Unexpected WSL Codex launch arguments/);

@@ -31,7 +31,7 @@ try{
   let uploaded=null;
   for(let i=0;i<900;i++){await delay(1000);uploaded=(await api(`/api/tasks/${task.id}`)).body.candidates.find(item=>item.id===upload.candidate.id);if(uploaded?.screenshot||uploaded?.status==='CAPTURE_FAILED')break;}
   assert.ok(uploaded?.screenshot,`Manual candidate did not render: ${uploaded?.status}; ${logs}`);
-  const claimed=(await api('/api/worker/claim','POST',{id:'design-fixture',capabilities:['momentory:fe']},true)).body.task;assert.equal(claimed.id,task.id);
+  const claimed=(await api('/api/worker/claim','POST',{id:'design-fixture',capabilities:['momentory:fe'],provider:task.provider},true)).body.task;assert.equal(claimed.id,task.id);
   const generated=(await api('/api/worker/candidate','POST',{id:'design-fixture',taskId:task.id,leaseNonce:claimed.lease_nonce,provider:'claude',proposal:{name:'Generated editable hero',screen:'home-main',studioPatch:{'home.hero.borderRadius':23,...(structured?{'home.hero.structure':heroStructure}:{})},exported:{version:1,name:'Generated editable hero',design:{...approved,'home.hero.borderRadius':23,...(structured?{'home.hero.structure':heroStructure}:{})}}}},true)).body;
   assert.equal(generated.pending,true);
   let generatedStatus=null;

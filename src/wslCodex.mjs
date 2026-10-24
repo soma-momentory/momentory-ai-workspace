@@ -61,8 +61,10 @@ export function wslCodexConfig(cwd,readOnly=false) {
   const checkMode=variant==='expo'?'wsl-check':`wsl-check-${variant}`;
   verifyCodexProfile(mode);
   const home=command(distro,['/bin/sh','-c','printf %s "$HOME"']);
-  const binary=process.env.WORKSPACE_WSL_CODEX||`${home}/.local/node_modules/.bin/codex`;
-  if(!binary.startsWith('/')||!command(distro,['/bin/sh','-c','test -x "$1" && printf OK','probe',binary]))
+  if(process.env.WORKSPACE_WSL_CODEX)throw new Error('Custom WSL Codex executable override is not allowed');
+  const binary=`${home}/.local/node_modules/.bin/codex`;
+  const resolved=command(distro,['/usr/bin/readlink','-f',binary]);
+  if(resolved!==`${home}/.local/node_modules/@openai/codex/bin/codex.js`||!command(distro,['/bin/sh','-c','test -x "$1" && printf OK','probe',binary]))
     throw new Error('Linux Codex binary missing in WSL');
   const codexHome=translate(distro,process.env.CODEX_HOME||path.join(os.homedir(),'.codex'));
   const worktree=translate(distro,cwd);

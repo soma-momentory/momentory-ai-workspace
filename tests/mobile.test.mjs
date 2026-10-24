@@ -30,7 +30,7 @@ test('390px browser manages Momentory and a separate project',async()=>{
     await page.locator('#task-detail h1').waitFor();
     const task=await page.evaluate(async()=>{const response=await fetch('/api/overview');return (await response.json()).tasks[0];});
     assert.equal(task.status,'QUEUED');
-    const taskClaim=(await worker('/api/worker/claim',{id:'mobile-test',capabilities:['momentory:fe']})).task;assert.equal(taskClaim.id,task.id);
+    const taskClaim=(await worker('/api/worker/claim',{id:'mobile-test',capabilities:['momentory:fe'],provider:task.provider})).task;assert.equal(taskClaim.id,task.id);
     await page.context().setOffline(true);
     await worker('/api/worker/complete',{id:'mobile-test',taskId:task.id,leaseNonce:taskClaim.lease_nonce,status:'AWAITING_APPROVAL',result:{diff:{changedFiles:['src/card.tsx']}},verification:{ok:true}});
     await page.context().setOffline(false);await page.reload();
@@ -62,7 +62,7 @@ test('390px browser manages Momentory and a separate project',async()=>{
     await page.evaluate(async id=>{const response=await fetch(`/api/tasks/${id}/control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'cancel'})});if(!response.ok)throw new Error('Fixture parent cancellation failed');},acceptedParent.id);
     await page.locator('#nav-dashboard').click();await page.locator('#goal').fill('Explore two distinct home screen design alternatives');await page.locator('#mode').selectOption('EXPLORE');await page.locator('#new-task button').click();
     const designTask=await page.evaluate(async()=>{const response=await fetch('/api/overview');return (await response.json()).tasks[0];});
-    const designClaim=(await worker('/api/worker/claim',{id:'mobile-test',capabilities:['momentory:fe']})).task;assert.equal(designClaim.id,designTask.id);
+    const designClaim=(await worker('/api/worker/claim',{id:'mobile-test',capabilities:['momentory:fe'],provider:designTask.provider})).task;assert.equal(designClaim.id,designTask.id);
     const created=await worker('/api/worker/candidate',{id:'mobile-test',taskId:designTask.id,leaseNonce:designClaim.lease_nonce,provider:'claude',proposal:{name:'Layout A',layout:'card first'}});
     fs.mkdirSync(shotDir,{recursive:true});const images={states:{'long-375':{}}};
     for(const qualifier of ['', 'long-375-'])for(const kind of ['baseline','candidate']){const name=`${created.id}-${qualifier}${kind}.png`,file=path.join(shotDir,name);fs.writeFileSync(file,Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lXcAAAAASUVORK5CYII=','base64'));shotFiles.push(file);if(qualifier)images.states['long-375'][kind]=name;else images[kind]=name;}

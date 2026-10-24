@@ -57,9 +57,18 @@ export function inheritApproved(task,dir,sourceStore=null) {
       const untracked=git(parent.worktree,'ls-files','--others','--exclude-standard').split(/\r?\n/).filter(Boolean);
       for(const file of untracked) {
         const source=path.resolve(parent.worktree,file),target=path.resolve(dir,file);
-        if(!source.startsWith(path.resolve(parent.worktree)+path.sep)||!target.startsWith(path.resolve(dir)+path.sep)||!fs.realpathSync(source).startsWith(fs.realpathSync(parent.worktree)+path.sep)||fs.lstatSync(source).isSymbolicLink()) throw new Error(`Unsafe inherited file: ${file}`);
-        if(fs.existsSync(target)){if(fs.lstatSync(target).isSymbolicLink()||!fs.readFileSync(target).equals(fs.readFileSync(source)))throw new Error(`Conflicting inherited file: ${file}`);continue;}
-        fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(source,target);
+        if(!source.startsWith(path.resolve(parent.worktree)+path.sep)||!target.startsWith(path.resolve(dir)+path.sep)||!fs.realpathSync(source).startsWith(fs.realpathSync(parent.worktree)+path.sep)||!fs.lstatSync(source).isFile()) throw new Error(`Unsafe inherited file: ${file}`);
+        let current=path.resolve(dir);
+        for(const segment of path.relative(current,path.dirname(target)).split(path.sep).filter(Boolean)){
+          current=path.join(current,segment);
+          const entry=fs.lstatSync(current,{throwIfNoEntry:false});
+          if(entry&&!entry.isDirectory())throw new Error(`Unsafe inherited destination directory: ${file}`);
+          if(!entry)fs.mkdirSync(current);
+          if(!fs.realpathSync(current).startsWith(fs.realpathSync(dir)+path.sep))throw new Error(`Inherited destination escaped worktree: ${file}`);
+        }
+        const existing=fs.lstatSync(target,{throwIfNoEntry:false});
+        if(existing){if(!existing.isFile()||!fs.readFileSync(target).equals(fs.readFileSync(source)))throw new Error(`Conflicting inherited file: ${file}`);continue;}
+        fs.copyFileSync(source,target,fs.constants.COPYFILE_EXCL);
       }
       if(recoveryFingerprint(parent.worktree,parent.base_head)!==approval.details.approvedDiffHash)throw new Error(`Approved worktree changed during inheritance: ${id}`);
     }

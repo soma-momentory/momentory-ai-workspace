@@ -120,7 +120,10 @@ async function handle(req,res) {
       store.heartbeat(input.id,String(input.name||input.id).slice(0,80),'local',input.capabilities,active?.id,active?.lease_nonce);
       return send(res,200,{ok:true,control:active?.cancel_requested?'cancel':active?.pause_requested?'pause':null});
     }
-    if(pathname==='/api/worker/claim') return send(res,200,{task:store.claim(input.id,Array.isArray(input.capabilities)?input.capabilities:[],30000,['claude','codex'].includes(input.provider)?input.provider:null)});
+    if(pathname==='/api/worker/claim') {
+      if(!['claude','codex'].includes(input.provider))return send(res,400,{error:'Worker provider must be claude or codex'});
+      return send(res,200,{task:store.claim(input.id,Array.isArray(input.capabilities)?input.capabilities:[],30000,input.provider)});
+    }
     if(pathname==='/api/worker/orphan-result') {
       const orphan=store.getTask(input.taskId);
       if(!orphan || orphan.worktree_host!==input.id || orphan.lease_nonce!==input.leaseNonce) return send(res,403,{error:'Worker mismatch'});

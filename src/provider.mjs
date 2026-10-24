@@ -1,4 +1,7 @@
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {wslCodexLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
 
@@ -48,14 +51,33 @@ export function providerArgs(provider, {readOnly=false,sessionId=null}={}) {
   if (provider==='codex') return ['-p',codexProfileName(process.platform==='win32'?(readOnly?'wsl-readonly':'wsl'):(readOnly?'posix-readonly':'posix')),'-a','never','exec',...(sessionId?['resume']:[]),'--json',...(sessionId?[sessionId]:[]),'-'];
   throw new Error('Unknown provider');
 }
+export function resolveClaudeExecutable(cwd) {
+  const inside=(candidate,parent)=>{
+    const value=process.platform==='win32'?candidate.toLowerCase():candidate;
+    const base=process.platform==='win32'?parent.toLowerCase():parent;
+    return value===base||value.startsWith(base+path.sep);
+  };
+  for(const entry of (process.env.PATH||process.env.Path||'').split(path.delimiter)){
+    if(!path.isAbsolute(entry)||process.platform==='win32'&&entry.startsWith('\\\\'))continue;
+    const candidate=path.join(entry,process.platform==='win32'?'claude.exe':'claude');
+    try{
+      const target=fs.realpathSync(candidate);
+      if(inside(target,path.resolve(cwd))||inside(target,path.resolve(root)))continue;
+      fs.accessSync(target,fs.constants.X_OK);
+      if(!fs.statSync(target).isFile())continue;
+      return target;
+    }catch{}
+  }
+  throw new Error('Trusted Claude executable missing outside Workspace and task worktree');
+}
 export async function runProvider({provider,cwd,prompt,readOnly=false,sessionId=null,timeoutMs=600000,onEvent=()=>{},signal}) {
   const args=providerArgs(provider,{readOnly,sessionId});
   if(provider==='codex'&&process.platform!=='win32') verifyCodexProfile(readOnly?'posix-readonly':'posix');
   const launch=provider==='codex'&&process.platform==='win32'?await wslCodexLaunch(cwd,readOnly,args):null;
   if(signal?.aborted){finishWslCodex(launch);return {ok:false,code:null,timedOut:false,sessionId,result:'',usage:null,stderr:'Cancelled before provider start'};}
   return new Promise(resolve=>{
-    const exe=launch?.executable||provider;
-    const child=spawn(exe,launch?.args||args,{cwd,windowsHide:true,shell:process.platform==='win32'&&exe!=='wsl.exe',detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:childEnv()});
+    const exe=launch?.executable||(provider==='claude'?resolveClaudeExecutable(cwd):provider);
+    const child=spawn(exe,launch?.args||args,{cwd,windowsHide:true,shell:false,detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:childEnv()});
     let stderr='',last='',threadId=sessionId,reportedThreadId=sessionId,usage=null,finished=false,timedOut=false,watchdog=null;
     const stop=()=>{if(launch)stopWslCodex(launch);stopTree(child);};
     const armWatchdog=()=>{if(!watchdog){watchdog=setTimeout(()=>{if(!finished){if(launch)stopWslCodex(launch,'KILL');stopTree(child);complete(null,'Provider wrapper did not exit after termination');}},5000);watchdog.unref();}};

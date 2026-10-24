@@ -32,7 +32,7 @@
 - [x] Bind approval to the verified Worktree fingerprint, reject changed bytes at the API gate, and prevent changed approved parents from being inherited by dependent tasks.
 - [x] Pass the latest structural design selection, isolated apply, full FE typecheck, lint, and Jest, then reach the final approval gate. The recovered run rendered two candidates and changed only src/design/studioApproved.json. Native screens remain unchecked below.
 - [x] Pass Spring/Gradle checks inside root-deny WSL with loopback-only network. `test:be-isolation` completed `BUILD SUCCESSFUL` and left its BE Worktree clean; `test:wsl-loopback` denied external egress. Docker-dependent tests still require separate integration evidence if Docker is needed.
-- [ ] Clear independent Claude and Codex review findings on the final revision, including project-scoped human authorization, broader secret masking/command audit, and reliable backups. Focused re-reviews are running.
+- [ ] Clear independent Claude and Codex review findings on the final revision, including project-scoped human authorization, broader secret masking/command audit, and reliable backups. Their `1ab5b4e` reviews found four issues, fixed afterward; final follow-up verdicts remain pending.
 - [ ] Validate all FE/BE CI suites and inspect code integration conflicts before release.
 
 External setup required: Tailscale installation/sign-in on an authorized laptop and phone, HTTPS/tailnet policy, and access to a Mac/physical mobile devices for the stated tests. No cloud or paid infrastructure has been created. Release approval should be requested only after every required check passes.
