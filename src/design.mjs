@@ -40,6 +40,19 @@ export async function captureDesign(candidateId,exported,screen='home-main',proj
       await page.getByTestId('studio-preview-B').locator(':scope > div').last().screenshot({path:path.join(dir,candidate),animations:'disabled'});
       matrix[width]={baseline,candidate,overflowPx:measure.scrollWidth-measure.clientWidth};
     }
-    return {baseline:matrix[390].baseline,candidate:matrix[390].candidate,matrix,screen,viewport:'1440x1200'};
+    const states={};
+    if(screen==='home-main') for(const [key,label,largeText] of [['many-375','일정 10개 · 접기/펼치기',false],['long-375','긴 일정 제목',true]]) {
+      await page.getByRole('button',{name:label,exact:true}).click();
+      if(largeText) await page.getByRole('button',{name:/1\.5/}).first().click();
+      await page.getByRole('button',{name:'375pt'}).click();
+      const measure=await page.getByTestId('studio-preview-B').getByTestId(screenRoots[screen]).evaluate(element=>({clientWidth:element.clientWidth,scrollWidth:element.scrollWidth}));
+      if(measure.scrollWidth-measure.clientWidth>2) throw new Error(`Horizontal overflow in ${key}`);
+      for(const side of ['A','B']) await page.getByTestId(`studio-preview-${side}`).evaluate(root=>{const scroller=[root,...root.querySelectorAll('*')].find(element=>getComputedStyle(element).overflowY==='auto'&&element.scrollHeight>element.clientHeight+20);if(scroller)scroller.scrollTop=scroller.scrollHeight-scroller.clientHeight;});
+      const baseline=`${candidateId}-${key}-baseline.png`,candidate=`${candidateId}-${key}-candidate.png`;
+      await page.getByTestId('studio-preview-A').locator(':scope > div').last().screenshot({path:path.join(dir,baseline),animations:'disabled'});
+      await page.getByTestId('studio-preview-B').locator(':scope > div').last().screenshot({path:path.join(dir,candidate),animations:'disabled'});
+      states[key]={baseline,candidate,overflowPx:measure.scrollWidth-measure.clientWidth,scenario:label,fontScale:largeText?1.5:1};
+    }
+    return {baseline:matrix[390].baseline,candidate:matrix[390].candidate,matrix,states,screen,viewport:'1440x1200'};
   } finally {await browser.close();}
 }

@@ -43,11 +43,13 @@ test('390px browser manages Momentory and a separate project',async()=>{
     const designTask=await page.evaluate(async()=>{const response=await fetch('/api/overview');return (await response.json()).tasks[0];});
     const designClaim=(await worker('/api/worker/claim',{id:'mobile-test',capabilities:['momentory:fe']})).task;assert.equal(designClaim.id,designTask.id);
     const created=await worker('/api/worker/candidate',{id:'mobile-test',taskId:designTask.id,leaseNonce:designClaim.lease_nonce,provider:'claude',proposal:{name:'Layout A',layout:'card first'}});
-    fs.mkdirSync(shotDir,{recursive:true});const images={};
-    for(const kind of ['baseline','candidate']){const name=`${created.id}-${kind}.png`,file=path.join(shotDir,name);fs.writeFileSync(file,Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lXcAAAAASUVORK5CYII=','base64'));shotFiles.push(file);images[kind]=name;}
+    fs.mkdirSync(shotDir,{recursive:true});const images={states:{'long-375':{}}};
+    for(const qualifier of ['', 'long-375-'])for(const kind of ['baseline','candidate']){const name=`${created.id}-${qualifier}${kind}.png`,file=path.join(shotDir,name);fs.writeFileSync(file,Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lXcAAAAASUVORK5CYII=','base64'));shotFiles.push(file);if(qualifier)images.states['long-375'][kind]=name;else images[kind]=name;}
     const db=new Store(path.join(dir,'db.sqlite'));db.setCandidateScreenshot(created.id,images);db.close();
     await worker('/api/worker/complete',{id:'mobile-test',taskId:designTask.id,leaseNonce:designClaim.lease_nonce,status:'AWAITING_DESIGN_SELECTION',result:{},verification:{ok:false}});
-    await page.locator('#nav-design').click();await page.getByRole('button',{name:'이 시안 선택'}).click();await page.locator('#nav-task').click();
+    await page.locator('#nav-design').click();await page.locator('#design-content img').first().waitFor();assert.equal(await page.locator('#design-content img').count(),4);
+    assert.equal(await page.evaluate(async id=>(await fetch(`/api/candidates/${id}/long-375-candidate.png`)).status,created.id),200);
+    await page.getByRole('button',{name:'이 시안 선택'}).click();await page.locator('#nav-task').click();
     await page.waitForFunction(()=>document.querySelector('#task-content')?.textContent?.includes('SELECTED'));
     const width=await page.evaluate(()=>({content:document.documentElement.scrollWidth,viewport:innerWidth}));assert.ok(width.content<=width.viewport+2,JSON.stringify(width));
     await page.locator('#nav-dashboard').click();await page.locator('#project').selectOption('sample');await page.locator('#goal').fill('Plan the sample project release notes');await page.locator('#task-type').selectOption('HUMAN_TASK');await page.locator('#new-task button').click();

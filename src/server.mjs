@@ -118,11 +118,12 @@ async function handle(req,res) {
       return;
     }
     if(pathname==='/api/overview') {const projectId=url.searchParams.get('project')||publicProjects()[0].id;if(!publicProjects().some(item=>item.id===projectId))return send(res,404,{error:'Project not found'});const tasks=store.listTasks(projectId);return send(res,200,{tasks,workers:store.workers(),humanActions:nextHumanActions(tasks),metrics:store.metrics(projectId),projects:publicProjects()});}
-    const shot=/^\/api\/candidates\/([0-9a-f-]{36})\/(?:(375|390|402|430)-)?(baseline|candidate)\.png$/.exec(pathname);
+    const shot=/^\/api\/candidates\/([0-9a-f-]{36})\/(?:(375|390|402|430|many-375|long-375)-)?(baseline|candidate)\.png$/.exec(pathname);
     if(shot && req.method==='GET') {
       const candidate=store.candidate(shot[1]);
-      const file=shot[2]?candidate?.screenshot?.matrix?.[shot[2]]?.[shot[3]]:candidate?.screenshot?.[shot[3]];
-      if(!file || !/^[0-9a-f-]{36}-(?:(?:375|390|402|430)-)?(?:baseline|candidate)\.png$/.test(file)) return send(res,404,{error:'Screenshot unavailable'});
+      const qualifier=shot[2],kind=shot[3];
+      const file=!qualifier?candidate?.screenshot?.[kind]:qualifier.includes('-')?candidate?.screenshot?.states?.[qualifier]?.[kind]:candidate?.screenshot?.matrix?.[qualifier]?.[kind];
+      if(!file || !/^[0-9a-f-]{36}-(?:(?:375|390|402|430|many-375|long-375)-)?(?:baseline|candidate)\.png$/.test(file)) return send(res,404,{error:'Screenshot unavailable'});
       const screenshotPath=path.join(publicDir,'..','data','screenshots',file);if(!fs.existsSync(screenshotPath))return send(res,404,{error:'Screenshot missing'});
       res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
       return fs.createReadStream(screenshotPath).pipe(res);

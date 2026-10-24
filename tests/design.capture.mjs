@@ -10,6 +10,8 @@ const exported=await validateExport({version:1,name:'Workspace Capture Test',des
 const id=randomUUID(),screenshots=await captureDesign(id,exported,'home-main');
 assert.deepEqual(Object.keys(screenshots.matrix),['375','390','402','430']);
 assert.ok(Object.values(screenshots.matrix).every(item=>item.overflowPx<=2));
+assert.deepEqual(Object.keys(screenshots.states),['many-375','long-375']);
+assert.ok(Object.values(screenshots.states).every(item=>item.overflowPx<=2));
 const dir=path.join(root,'data','screenshots');
 const hashes=Object.fromEntries(['baseline','candidate'].map(key=>[key,createHash('sha256').update(fs.readFileSync(path.join(dir,screenshots[key]))).digest('hex')]));
 assert.notEqual(hashes.baseline,hashes.candidate,'Candidate should differ visually from baseline');

@@ -9,7 +9,7 @@ import net from 'node:net';
 import http from 'node:http';
 
 async function freePort(){return new Promise(resolve=>{const server=net.createServer();server.listen(0,'127.0.0.1',()=>{const port=server.address().port;server.close(()=>resolve(port));});});}
-test('HTTP auth, mobile task API, duplicate claim, completion and approval',async()=>{
+test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'momentory-http-'));
   const port=await freePort(),token=randomBytes(32).toString('hex'),workerToken=randomBytes(32).toString('hex');
   const child=spawn(process.execPath,['src/server.mjs'],{cwd:path.resolve(import.meta.dirname,'..'),env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_PUBLIC_URL:'https://laptop.tail.ts.net',WORKSPACE_DATA_FILE:path.join(dir,'db.sqlite')},stdio:'ignore'});
@@ -44,5 +44,12 @@ test('HTTP auth, mobile task API, duplicate claim, completion and approval',asyn
     const packet=(await request(`/api/tasks/${risky.body.task.id}`)).body.decisions[0];
     assert.equal(packet.kind,'risk');assert.ok(packet.details.options.length===2);
     assert.equal((await request(`/api/decisions/${packet.id}`,'POST',{status:'REJECTED'})).body.task.status,'REJECTED');
+    const retry=(await request('/api/tasks','POST',{projectId:'sample',goal:'Fix a failing sample function with bounded retries',repo:'app',provider:'codex',mode:'FAST',maxAttempts:2})).body.task;
+    const first=(await request('/api/worker/claim','POST',{id:'retry-worker',capabilities:['sample:app'],provider:'codex'},true)).body.task;assert.equal(first.id,retry.id);
+    assert.equal((await request('/api/worker/complete','POST',{id:'retry-worker',taskId:retry.id,leaseNonce:first.lease_nonce,status:'FAILED',verification:{ok:false,reason:'same failure'}},true)).body.task.status,'QUEUED');
+    const second=(await request('/api/worker/claim','POST',{id:'retry-worker',capabilities:['sample:app'],provider:'codex'},true)).body.task;assert.equal(second.id,retry.id);
+    assert.notEqual(second.lease_nonce,first.lease_nonce);
+    assert.equal((await request('/api/worker/complete','POST',{id:'retry-worker',taskId:retry.id,leaseNonce:second.lease_nonce,status:'FAILED',verification:{ok:false,reason:'same failure'}},true)).body.task.status,'FAILED');
+    assert.equal((await request(`/api/tasks/${retry.id}`)).body.task.attempts,2);
   } finally {const exited=new Promise(resolve=>child.once('exit',resolve));child.kill();await exited;fs.rmSync(dir,{recursive:true,force:true});}
 });
