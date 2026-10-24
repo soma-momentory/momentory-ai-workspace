@@ -57,12 +57,13 @@ export function resolveClaudeExecutable(cwd) {
     const base=process.platform==='win32'?parent.toLowerCase():parent;
     return value===base||value.startsWith(base+path.sep);
   };
+  const taskRoot=fs.realpathSync(cwd),workspaceRoot=fs.realpathSync(root);
   for(const entry of (process.env.PATH||process.env.Path||'').split(path.delimiter)){
     if(!path.isAbsolute(entry)||process.platform==='win32'&&entry.startsWith('\\\\'))continue;
     const candidate=path.join(entry,process.platform==='win32'?'claude.exe':'claude');
     try{
       const target=fs.realpathSync(candidate);
-      if(inside(target,path.resolve(cwd))||inside(target,path.resolve(root)))continue;
+      if(inside(target,taskRoot)||inside(target,workspaceRoot))continue;
       fs.accessSync(target,fs.constants.X_OK);
       if(!fs.statSync(target).isFile())continue;
       return target;

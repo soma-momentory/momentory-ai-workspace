@@ -25,6 +25,9 @@ try{
   fs.writeFileSync(path.join(dir,'.gitignore'),'node_modules/\n');
   fs.mkdirSync(path.join(dir,'node_modules'));fs.writeFileSync(path.join(dir,'node_modules','trusted.js'),'module.exports=1');
   fs.mkdirSync(path.join(dir,'app','node_modules'),{recursive:true});fs.writeFileSync(path.join(dir,'app','node_modules','poison.js'),'module.exports=0');
+  fs.mkdirSync(path.join(dir,'expo-lab','node_modules'),{recursive:true});
   assert.deepEqual(ignoredWorktreeViolations(dir,['node_modules/']),['app/node_modules/'],'Nested ignored dependency replacement must block verification');
-  console.log(JSON.stringify({status:'PASS',smallPatchReviewable:true,truncatedDenied:true,largeDenied:true,redactedDenied:true,nestedIgnoredDenied:true}));
+  fs.writeFileSync(path.join(dir,'expo-lab','node_modules','poison.js'),'module.exports=0');
+  assert.deepEqual(ignoredWorktreeViolations(dir,['node_modules/']),['app/node_modules/','expo-lab/node_modules/'],'A nonempty Expo mount must block verification');
+  console.log(JSON.stringify({status:'PASS',smallPatchReviewable:true,truncatedDenied:true,largeDenied:true,redactedDenied:true,nestedIgnoredDenied:true,emptyExpoMountAllowed:true,populatedExpoMountDenied:true}));
 }finally{fs.rmSync(dir,{recursive:true,force:true});}

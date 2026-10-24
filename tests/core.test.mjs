@@ -9,7 +9,7 @@ import { nextHumanActions } from '../src/router.mjs';
 import { providerArgs,createProviderLineParser,resolveClaudeExecutable } from '../src/provider.mjs';
 import { reviewVerdict, parseDesignCandidates,selectedDesignApprovalReady,runCommand } from '../src/engine.mjs';
 import {root} from '../src/config.mjs';
-import {wslCodexLaunch} from '../src/wslCodex.mjs';
+import {wslCodexLaunch,trustedCodexPackagePath} from '../src/wslCodex.mjs';
 
 test('automatic routing avoids multiple agents for tiny edits and explores design alternatives',()=>{
   assert.equal(routeTask({goal:'문구 오타 수정',repo:'fe'}).mode,'FAST');
@@ -24,18 +24,28 @@ test('provider commands use supported structured streaming and an explicit isola
 });
 test('Claude executable resolution ignores worktree shims',()=>{
   const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-provider-shim-'));
+  const trusted=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-provider-trusted-'));
   const shim=path.join(cwd,process.platform==='win32'?'claude.exe':'claude');
+  const trustedExecutable=path.join(trusted,path.basename(shim));
   const original=process.env.PATH;
   try{
     fs.writeFileSync(shim,'not a trusted CLI');
-    if(process.platform!=='win32')fs.chmodSync(shim,0o755);
+    fs.writeFileSync(trustedExecutable,'test trusted CLI');
+    if(process.platform!=='win32'){fs.chmodSync(shim,0o755);fs.chmodSync(trustedExecutable,0o755);}
     process.env.PATH=cwd;
     assert.throws(()=>resolveClaudeExecutable(cwd),/Trusted Claude executable missing/);
-    process.env.PATH=`${cwd}${path.delimiter}${original}`;
+    const alias=path.join(trusted,'worktree-alias');
+    fs.symlinkSync(cwd,alias,process.platform==='win32'?'junction':'dir');
+    assert.throws(()=>resolveClaudeExecutable(alias),/Trusted Claude executable missing/);
+    process.env.PATH=`${cwd}${path.delimiter}${trusted}`;
     const resolved=resolveClaudeExecutable(cwd);
-    assert.ok(path.isAbsolute(resolved));
-    assert.ok(!resolved.startsWith(cwd+path.sep));
-  }finally{process.env.PATH=original;fs.rmSync(cwd,{recursive:true,force:true});}
+    assert.equal(resolved,fs.realpathSync(trustedExecutable));
+  }finally{process.env.PATH=original;fs.rmSync(cwd,{recursive:true,force:true});fs.rmSync(trusted,{recursive:true,force:true});}
+});
+test('WSL Codex package path rejects an unreviewed link target',()=>{
+  assert.equal(trustedCodexPackagePath('/home/user','/home/user/.local/node_modules/@openai/codex/bin/codex.js'),true);
+  assert.equal(trustedCodexPackagePath('/home/user','/mnt/c/worktree/fake-codex'),false);
+  assert.equal(trustedCodexPackagePath('/home/user','/home/user/.local/node_modules/other/bin/codex.js'),false);
 });
 test('WSL agent launch rejects unreviewed CLI overrides before starting a process',async()=>{
   await assert.rejects(wslCodexLaunch(process.cwd(),false,['-p','ai-dev-workspace-wsl','-a','never','exec','-c','sandbox_mode=danger-full-access','--json','-']),/Unexpected WSL Codex launch arguments/);

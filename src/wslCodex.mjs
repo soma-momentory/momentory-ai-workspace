@@ -24,6 +24,7 @@ const userSystemctl=(distro,args,knownRuntimeDir)=>{
   if(!/^\/run\/user\/\d{1,8}$/.test(runtime))return {status:null,error:new Error('Invalid WSL runtime directory'),stdout:'',stderr:''};
   return spawnSync('wsl.exe',['-d',distro,'--exec','/usr/bin/env',`XDG_RUNTIME_DIR=${runtime}`,'/usr/bin/systemctl','--user',...args],{encoding:'utf8',timeout:10000,windowsHide:true});
 };
+export const trustedCodexPackagePath=(home,resolved)=>resolved===`${home}/.local/node_modules/@openai/codex/bin/codex.js`;
 function assertBoundedWorktreeDepth(cwd){
   const pending=[[path.resolve(cwd),0]];
   let directories=0;
@@ -62,9 +63,9 @@ export function wslCodexConfig(cwd,readOnly=false) {
   verifyCodexProfile(mode);
   const home=command(distro,['/bin/sh','-c','printf %s "$HOME"']);
   if(process.env.WORKSPACE_WSL_CODEX)throw new Error('Custom WSL Codex executable override is not allowed');
-  const binary=`${home}/.local/node_modules/.bin/codex`;
-  const resolved=command(distro,['/usr/bin/readlink','-f',binary]);
-  if(resolved!==`${home}/.local/node_modules/@openai/codex/bin/codex.js`||!command(distro,['/bin/sh','-c','test -x "$1" && printf OK','probe',binary]))
+  const link=`${home}/.local/node_modules/.bin/codex`;
+  const binary=command(distro,['/usr/bin/readlink','-f',link]);
+  if(!trustedCodexPackagePath(home,binary)||!command(distro,['/bin/sh','-c','test -x "$1" && printf OK','probe',binary]))
     throw new Error('Linux Codex binary missing in WSL');
   const codexHome=translate(distro,process.env.CODEX_HOME||path.join(os.homedir(),'.codex'));
   const worktree=translate(distro,cwd);
