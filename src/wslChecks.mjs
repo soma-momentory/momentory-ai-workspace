@@ -5,7 +5,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {childEnv,redact,stopTree} from './provider.mjs';
-import {wslCodexConfig,wslCodexLaunch,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex,asynchronousProbe,activeWslCodexForWorktree} from './wslCodex.mjs';
+import {wslCodexConfig,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex,asynchronousProbe,activeWslCodexForWorktree} from './wslCodex.mjs';
 
 export const strictWslChecks=stack=>process.platform==='win32'&&['node','react-native-expo','spring'].includes(stack);
 const checkedSetup=new Set();
@@ -200,6 +200,8 @@ export async function runWslCheck(cwd,command,args,timeoutMs,signal){
   }
   const executable=command==='npm'||command==='npm.cmd'?'/usr/bin/npm':command==='node'||command==='node.exe'?`${config.bin}/node`:null;
   if(!executable)throw new Error(`Unsupported isolated WSL check command: ${command}`);
+  for(const relative of ['caches/modules-2/files-2.1','wrapper/dists'])fs.mkdirSync(path.join(cwd,'.gradle','workspace-home',relative),{recursive:true});
+  await verifyWslSetupBoundary(cwd,'wsl-check');
   const sandbox=['sandbox','-p',config.profile,'-P',config.permission,'-C',config.worktree,'--','/usr/bin/env',`PATH=${config.searchPath}`,executable,...args];
-  return run(await wslCodexLaunch(cwd,false,sandbox),cwd,timeoutMs,signal);
+  return run(wslTrustedCommandLaunch(cwd,['/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,...sandbox]),cwd,timeoutMs,signal);
 }

@@ -98,7 +98,8 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
     const ignored=ignoredWorktreeViolations(location.dir,new Set(['node_modules/','design-lab/node_modules/']));
     const onlySelectedOutput=diff.changedFiles.length===1&&diff.changedFiles[0]===outputPath;
     const status=signal?.aborted?'CANCELLED':selectedDesignApprovalReady({verification,diff,outputPath,checksChangedSource,headMoved,ignored,violations})?'AWAITING_APPROVAL':'UNVERIFIED';
-    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,protectedViolations:violations,checksChangedSource,headMoved,ignored,onlySelectedOutput},verification,usage:{automation:true}};
+    const verifiedDiffHash=status==='AWAITING_APPROVAL'?recoveryFingerprint(location.dir,location.baseHead):null;
+    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,protectedViolations:violations,checksChangedSource,headMoved,ignored,onlySelectedOutput,verifiedDiffHash},verification,usage:{automation:true}};
   }
   const provider=task.provider;
   const run=async (which,prompt,readOnly=false,sessionId=null)=>{
@@ -201,5 +202,6 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   const headMoved=git(location.dir,'rev-parse','HEAD')!==location.baseHead;
   const finalVerdict=review?.ok?reviewVerdict(review.result):null;
   const status=signal?.aborted?'CANCELLED':!verification.ok?'FAILED':violations.length||headMoved||checksChangedSource||!diff.reviewable||reviewIncomplete?'UNVERIFIED':review && finalVerdict!=='PASS'?'UNVERIFIED':'AWAITING_APPROVAL';
-  return {status,result:{execution,review,diff,baseHead:location.baseHead,dirtySource:location.dirtySource,protectedViolations:violations,headMoved,checksChangedSource,reviewIncomplete},verification,usage:{primary:execution.usage,review:review?.usage}};
+  const verifiedDiffHash=status==='AWAITING_APPROVAL'?recoveryFingerprint(location.dir,location.baseHead):null;
+  return {status,result:{execution,review,diff,baseHead:location.baseHead,dirtySource:location.dirtySource,protectedViolations:violations,headMoved,checksChangedSource,reviewIncomplete,verifiedDiffHash},verification,usage:{primary:execution.usage,review:review?.usage}};
 }

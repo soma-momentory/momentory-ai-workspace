@@ -27,6 +27,9 @@
 - [x] Apply root-deny WSL2 confinement to actual Windows Codex AI sessions; real AI allowed read/write and outside read/write denial passed. Missing WSL/profile fails closed. The native Windows MXC `SYSTEMROOT` failure remains a platform limitation, not an active fallback.
 - [x] Verify WSL Codex cancellation, orphan cleanup, CPU/memory/swap/task-count quotas and wall timeout. Sample Node and Momentory FE checks run in a stricter WSL profile; FE automatic pipeline recheck is recorded in `TEST_REPORT.md`.
 - [x] Deny real Codex AI writes to installed Node and Gradle dependencies, fail closed when WSL status is unknown, and keep heartbeat active during WSL boundary probes.
+- [x] Close the observed depth-10 secret-file read: audited scan depth 32, fail-closed Worktree depth bound, depth-10/23 denial and depth-40 launch rejection.
+- [x] Deny tested WSL Windows interop routes, nested Design Lab dependency writes, and unreviewed Codex launch arguments.
+- [x] Bind approval to the verified Worktree fingerprint, reject changed bytes at the API gate, and prevent changed approved parents from being inherited by dependent tasks.
 - [x] Pass the latest structural design selection, isolated apply, full FE typecheck, lint, and Jest, then reach the final approval gate. The recovered run rendered two candidates and changed only src/design/studioApproved.json. Native screens remain unchecked below.
 - [x] Pass Spring/Gradle checks inside root-deny WSL with loopback-only network. `test:be-isolation` completed `BUILD SUCCESSFUL` and left its BE Worktree clean; `test:wsl-loopback` denied external egress. Docker-dependent tests still require separate integration evidence if Docker is needed.
 - [ ] Clear independent Claude and Codex review findings on the final revision, including project-scoped human authorization, broader secret masking/command audit, and reliable backups. Focused re-reviews are running.

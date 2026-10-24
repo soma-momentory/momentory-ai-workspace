@@ -9,7 +9,7 @@ default_permissions = "workspace-lab"
 "~/.local/node_modules/node" = "read"
 "/etc" = "read"
 "/mnt/wsl/resolv.conf" = "read"
-glob_scan_max_depth = 8
+glob_scan_max_depth = 32
 
 [permissions.workspace-lab.filesystem.":workspace_roots"]
 "." = "write"

@@ -15,7 +15,7 @@ sandbox = "mxc"
 "~/.npmrc" = "deny"
 "__WORKSPACE_DATA__" = "deny"
 "__WORKSPACE_ENV__" = "deny"
-glob_scan_max_depth = 8
+glob_scan_max_depth = 32
 
 [permissions.workspace-check.filesystem.":workspace_roots"]
 "." = "write"

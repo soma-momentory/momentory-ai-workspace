@@ -7,7 +7,7 @@ default_permissions = "workspace-check-locked"
 "~/.local/node_modules/@openai/codex-linux-x64" = "read"
 "~/.local/node_modules/@openai/codex" = "read"
 "~/.local/node_modules/node" = "read"
-glob_scan_max_depth = 8
+glob_scan_max_depth = 32
 
 [permissions.workspace-check-locked.filesystem.":workspace_roots"]
 "." = "write"

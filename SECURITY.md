@@ -20,4 +20,7 @@ Provider and check subprocesses do not inherit Workspace tokens or environment v
 
 ## Release limitation
 
+The previous sandbox secret-file glob stopped scanning after eight directory levels; an actual depth-10 `.env.local` read was possible. The installed audited profiles now scan to depth 32, and Windows WSL launches reject trees beyond the tested bound before provider or check execution. Real sandbox probes denied depth-10 and depth-23 reads, and a depth-40 fixture blocked execution. WSL interop probes denied direct `cmd.exe` and `/init` execution. Nested Design Lab dependency mounts are created and read-only even before packages are installed. Provider launch accepts only the reviewed `exec --json` argument forms. Approval and dependent-task inheritance compare a persisted fingerprint of the verified Worktree; changing reviewed bytes returns HTTP 409 or blocks inheritance. These controls do not make the host or Windows account untrusted.
+
+
 The MXC failure is bypassed only through the verified WSL backend; a missing or changed WSL boundary blocks Windows Codex jobs. Project-specific human roles are not implemented. Physical Tailscale phone access, locked-screen operation, macOS isolation, and native app screens remain unverified. Do not use this build with unknown users or highly sensitive repositories. Tailscale Serve and a phone on another network have not been tested because Tailscale is not installed on the available laptop. No local development port is intentionally exposed to the public internet.

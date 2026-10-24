@@ -27,6 +27,11 @@ try {
   assert.ok(done.result.diff.changedFiles.includes('index.mjs'));assert.equal(done.verification.ok,true);
   assert.ok(!done.result.diff.changedFiles.some(name=>['data','node_modules','.gradle','build','out','expo-lab'].includes(name)),'Sandbox mount placeholders leaked into the reviewable diff');
   const details=(await api(`/api/tasks/${task.id}`)).data;
+  const verifiedFile=path.join(done.worktree,'index.mjs'),verifiedBytes=fs.readFileSync(verifiedFile);
+  fs.appendFileSync(verifiedFile,'\n// POST_VERIFICATION_TAMPER\n');
+  const tamperedApproval=await fetch(base+`/api/decisions/${details.decisions[0].id}`,{method:'POST',headers:{Origin:base,Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({status:'APPROVED'})});
+  assert.equal(tamperedApproval.status,409,'A source edit after verification must block approval');
+  fs.writeFileSync(verifiedFile,verifiedBytes);
   await api(`/api/decisions/${details.decisions[0].id}`,'POST',{status:'APPROVED'});
   assert.equal((await api(`/api/tasks/${task.id}`)).data.task.status,'APPROVED');
   fs.writeFileSync(path.join(repo,'sentinel.txt'),'BASELINE\n');

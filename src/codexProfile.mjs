@@ -35,9 +35,10 @@ export function installCodexProfiles() {
         const beforeGradleCache=Buffer.from(expected.toString().replace('".gradle/workspace-home/caches/modules-2/files-2.1" = "read"\n','').replace('".gradle/workspace-setup.init.gradle" = "read"\n',''));
         const withReadonlyGradleHome=Buffer.from(expected.toString().replace('".gradle/workspace-home/caches/modules-2/files-2.1" = "read"\n','".gradle/workspace-home" = "read"\n'));
         const beforeReadonlyWrapper=Buffer.from(expected.toString().replace('".gradle/workspace-home/wrapper/dists" = "read"\n',''));
+        const beforeDeepGlob=Buffer.from(expected.toString().replace('glob_scan_max_depth = 32','glob_scan_max_depth = 8'));
         const beforeLoopback=Buffer.from(expected.toString().replace('enabled = true\n','enabled = false\n'));
         const prior=Buffer.from(beforeData.toString().replace('"~/.local/node_modules/node" = "read"\n',''));
-        if(((mode==='wsl'||mode==='wsl-readonly'||mode==='wsl-setup')&&(current.equals(prior)||current.equals(beforeData)||current.equals(beforeDns)||current.equals(beforeBoth)||current.equals(beforeEtc)||current.equals(beforeReadonlyDeps)||current.equals(withInvalidNodePattern)||current.equals(beforeReadonlyBuild)))||(mode==='wsl-check'&&current.equals(beforeLoopback))||(mode==='wsl-check-generic'&&(current.equals(beforeGradleCache)||current.equals(withReadonlyGradleHome)||current.equals(beforeReadonlyWrapper))))fs.writeFileSync(target,expected);
+        if(current.equals(beforeDeepGlob)||((mode==='wsl'||mode==='wsl-readonly'||mode==='wsl-setup')&&(current.equals(prior)||current.equals(beforeData)||current.equals(beforeDns)||current.equals(beforeBoth)||current.equals(beforeEtc)||current.equals(beforeReadonlyDeps)||current.equals(withInvalidNodePattern)||current.equals(beforeReadonlyBuild)))||(mode==='wsl-check'&&current.equals(beforeLoopback))||(mode==='wsl-check-generic'&&(current.equals(beforeGradleCache)||current.equals(withReadonlyGradleHome)||current.equals(beforeReadonlyWrapper))))fs.writeFileSync(target,expected);
         else throw new Error(`Codex profile differs from audited template: ${target}`);
       }
       continue;

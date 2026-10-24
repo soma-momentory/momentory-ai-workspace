@@ -37,15 +37,18 @@ export function createWorktree(task) {
   git(info.dir,'worktree','add','-b',branch,dir,info.head);
   return {dir,branch,baseHead:info.head,dirtySource:!!info.dirty};
 }
-export function inheritApproved(task,dir) {
+export function inheritApproved(task,dir,sourceStore=null) {
   if(!task.dependsOn?.length) return;
-  const store=new Store();
+  const store=sourceStore||new Store();
   try {
     for(const id of task.dependsOn) {
       const parent=store.getTask(id);
       if(!parent||parent.project_id!==task.project_id) throw new Error('Cross-project dependency denied');
       if(parent.status!=='APPROVED'||parent.repo!==task.repo) continue;
       if(!parent.worktree||!fs.existsSync(parent.worktree)) throw new Error(`Approved worktree unavailable: ${id}`);
+      const approval=store.decisions(id).find(item=>item.kind==='result'&&item.status==='APPROVED');
+      if(!/^[0-9a-f]{64}$/.test(approval?.details?.approvedDiffHash||'')||git(parent.worktree,'rev-parse','HEAD')!==parent.base_head||recoveryFingerprint(parent.worktree,parent.base_head)!==approval.details.approvedDiffHash)
+        throw new Error(`Approved worktree changed after human review or lacks a frozen fingerprint: ${id}`);
       const patch=execFileSync('git',['diff','--binary',parent.base_head],{cwd:parent.worktree,encoding:'utf8',maxBuffer:10*1024*1024,timeout:30000});
       if(patch) {
         const already=(()=>{try{execFileSync('git',['apply','--reverse','--check','--binary','-'],{cwd:dir,input:patch,timeout:30000,stdio:'ignore'});return true;}catch{return false;}})();
@@ -58,8 +61,9 @@ export function inheritApproved(task,dir) {
         if(fs.existsSync(target)){if(fs.lstatSync(target).isSymbolicLink()||!fs.readFileSync(target).equals(fs.readFileSync(source)))throw new Error(`Conflicting inherited file: ${file}`);continue;}
         fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(source,target);
       }
+      if(recoveryFingerprint(parent.worktree,parent.base_head)!==approval.details.approvedDiffHash)throw new Error(`Approved worktree changed during inheritance: ${id}`);
     }
-  } finally {store.close();}
+  } finally {if(!sourceStore)store.close();}
 }
 export function diffSummary(dir,baseHead) {
   const status=git(dir,'status','--porcelain');

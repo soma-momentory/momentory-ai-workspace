@@ -271,7 +271,20 @@ async function handle(req,res) {
       const input=await body(req);
       if(!['APPROVED','REJECTED'].includes(input.status)) return send(res,400,{error:'Invalid decision'});
       if(input.rationale!=null&&(typeof input.rationale!=='string'||input.rationale.length>2000))return send(res,400,{error:'Invalid rationale'});
-      const task=store.resolveDecision(decision[1],input.status,input.selectedCandidateId,input.rationale||'');
+      const pending=store.decision(decision[1]);
+      let approvedDiffHash=null;
+      if(input.status==='APPROVED'&&pending?.kind==='result'){
+        const candidate=store.getTask(pending.task_id);
+        if(candidate?.worktree){
+          try{
+            const verified=candidate.result?.verifiedDiffHash;
+            if(!/^[0-9a-f]{64}$/.test(verified||'')||git(candidate.worktree,'rev-parse','HEAD')!==candidate.base_head||!diffSummary(candidate.worktree,candidate.base_head).reviewable)return send(res,409,{error:'Verified worktree changed or has no approval fingerprint; rerun verification'});
+            approvedDiffHash=recoveryFingerprint(candidate.worktree,candidate.base_head);
+            if(approvedDiffHash!==verified)return send(res,409,{error:'Verified worktree changed before approval; rerun verification'});
+          }catch{return send(res,409,{error:'Verified worktree unavailable; rerun verification'});}
+        }
+      }
+      const task=store.resolveDecision(decision[1],input.status,input.selectedCandidateId,input.rationale||'',approvedDiffHash);
       if(!task)return send(res,409,{error:'Decision unavailable'});
       let followup=null;
       const chosen=input.selectedCandidateId&&store.candidate(input.selectedCandidateId);

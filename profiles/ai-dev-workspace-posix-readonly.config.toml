@@ -4,7 +4,7 @@ default_permissions = "workspace-locked-readonly"
 ":root" = "deny"
 ":minimal" = "read"
 ":tmpdir" = "write"
-glob_scan_max_depth = 8
+glob_scan_max_depth = 32
 
 [permissions.workspace-locked-readonly.filesystem.":workspace_roots"]
 "." = "read"

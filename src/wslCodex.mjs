@@ -24,6 +24,15 @@ const userSystemctl=(distro,args,knownRuntimeDir)=>{
   if(!/^\/run\/user\/\d{1,8}$/.test(runtime))return {status:null,error:new Error('Invalid WSL runtime directory'),stdout:'',stderr:''};
   return spawnSync('wsl.exe',['-d',distro,'--exec','/usr/bin/env',`XDG_RUNTIME_DIR=${runtime}`,'/usr/bin/systemctl','--user',...args],{encoding:'utf8',timeout:10000,windowsHide:true});
 };
+function assertBoundedWorktreeDepth(cwd){
+  const pending=[[path.resolve(cwd),0]];
+  let directories=0;
+  while(pending.length){
+    const [directory,depth]=pending.pop();
+    if(depth>24||++directories>100000)throw new Error('Worktree path depth exceeds the audited secret-file sandbox scan boundary');
+    for(const entry of fs.readdirSync(directory,{withFileTypes:true}))if(entry.isDirectory())pending.push([path.join(directory,entry.name),depth+1]);
+  }
+}
 
 export function wslCodexConfig(cwd,readOnly=false) {
   if(process.platform!=='win32')throw new Error('WSL Codex is available only on Windows');
@@ -31,12 +40,15 @@ export function wslCodexConfig(cwd,readOnly=false) {
     throw new Error('Codex requires the verified WSL backend on Windows');
   const distro=process.env.WORKSPACE_WSL_DISTRO||'Ubuntu';
   if(!/^[A-Za-z0-9._-]{1,60}$/.test(distro))throw new Error('Invalid WSL distribution name');
+  assertBoundedWorktreeDepth(cwd);
   const dependencyDirectory=lab=>{
     const labRoot=fs.lstatSync(path.join(cwd,lab),{throwIfNoEntry:false});
     if(labRoot?.isSymbolicLink())throw new Error(`${lab} symlink is not allowed in an isolated worktree`);
     const stat=fs.lstatSync(path.join(cwd,lab,'node_modules'),{throwIfNoEntry:false});
     if(stat?.isSymbolicLink())throw new Error(`${lab} dependencies symlink is not allowed in an isolated worktree`);
-    return Boolean(stat?.isDirectory());
+    if(stat&&!stat.isDirectory())throw new Error(`${lab} dependencies must be a directory`);
+    if(labRoot?.isDirectory()&&!stat)fs.mkdirSync(path.join(cwd,lab,'node_modules'));
+    return Boolean(labRoot?.isDirectory());
   };
   const hasExpoDependencies=dependencyDirectory('expo-lab'),hasDesignDependencies=dependencyDirectory('design-lab');
   for(const name of ['data','node_modules','.gradle','build','out']){
@@ -120,12 +132,14 @@ function launchWslScope(config,cwd,command,tasksMax=128){
   return {executable:'wsl.exe',args:launchArgs,pidFile,distro:config.distro,runtimeDir:config.runtimeDir,unit};
 }
 export async function wslCodexLaunch(cwd,readOnly,args) {
+  const profile=codexProfileName(readOnly?'wsl-readonly':'wsl');
+  const fixed=args[0]==='-p'&&args[1]===profile&&args[2]==='-a'&&args[3]==='never'&&args[4]==='exec';
+  const fresh=args.length===7&&args[5]==='--json'&&args[6]==='-';
+  const resumed=args.length===9&&args[5]==='resume'&&args[6]==='--json'&&/^[A-Za-z0-9_-]{8,120}$/.test(args[7])&&args[8]==='-';
+  if(!fixed||!fresh&&!resumed)throw new Error('Unexpected WSL Codex launch arguments');
   const config=await verifyWslCodexBoundary(cwd,readOnly);
   const providerArgs=[...args];
-  if(providerArgs[0]==='-p'){
-    if(!providerArgs[1]?.startsWith('ai-dev-workspace-wsl'))throw new Error('Unexpected WSL Codex profile arguments');
-    providerArgs[1]=config.profile;
-  }else if(providerArgs[0]!=='sandbox')throw new Error('Unexpected WSL Codex launch arguments');
+  providerArgs[1]=config.profile;
   return launchWslScope(config,cwd,[config.binary,...providerArgs]);
 }
 export function wslTrustedCommandLaunch(cwd,command){

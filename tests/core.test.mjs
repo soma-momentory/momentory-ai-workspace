@@ -9,6 +9,7 @@ import { nextHumanActions } from '../src/router.mjs';
 import { providerArgs,createProviderLineParser } from '../src/provider.mjs';
 import { reviewVerdict, parseDesignCandidates,selectedDesignApprovalReady,runCommand } from '../src/engine.mjs';
 import {root} from '../src/config.mjs';
+import {wslCodexLaunch} from '../src/wslCodex.mjs';
 
 test('automatic routing avoids multiple agents for tiny edits and explores design alternatives',()=>{
   assert.equal(routeTask({goal:'문구 오타 수정',repo:'fe'}).mode,'FAST');
@@ -20,6 +21,9 @@ test('provider commands use supported structured streaming and an explicit isola
   const args=providerArgs('codex',{readOnly:true});
   assert.deepEqual(args.slice(0,4),['-p',process.platform==='win32'?'ai-dev-workspace-wsl-readonly':'ai-dev-workspace-posix-readonly','-a','never']);
   assert.ok(providerArgs('claude').includes('stream-json'));
+});
+test('WSL agent launch rejects unreviewed CLI overrides before starting a process',async()=>{
+  await assert.rejects(wslCodexLaunch(process.cwd(),false,['-p','ai-dev-workspace-wsl','-a','never','exec','-c','sandbox_mode=danger-full-access','--json','-']),/Unexpected WSL Codex launch arguments/);
 });
 test('provider stream discards an oversized line without losing later events',()=>{
   const lines=[];let oversized=0;
@@ -97,7 +101,7 @@ test('persistent queue claims once, recovers lease, limits attempts and records 
     const reopened=new Store(file);
     assert.equal(reopened.getTask(task.id).status,'AWAITING_APPROVAL');
     assert.equal(reopened.events(task.id).length>0,true);
-    assert.equal(reopened.resolveDecision(decision,'APPROVED').status,'APPROVED');
+    assert.equal(reopened.resolveDecision(decision,'APPROVED',null,'','a'.repeat(64)).status,'APPROVED');
     reopened.close();
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });

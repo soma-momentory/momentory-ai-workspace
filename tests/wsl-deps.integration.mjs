@@ -5,6 +5,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {root} from '../src/config.mjs';
 import {prepareWslDependency,preparedNpmDependency} from '../src/wslChecks.mjs';
+import {wslCodexConfig,wslTrustedCommandLaunch,asynchronousProbe} from '../src/wslCodex.mjs';
 
 if(process.platform!=='win32')throw new Error('Windows WSL2 required');
 const base=path.join(root,'data'),dir=path.join(base,`wsl-deps-${randomUUID()}`);
@@ -41,5 +42,13 @@ try{
   fs.writeFileSync(path.join(dir,'package-lock.json'),JSON.stringify(unsafe));
   git('add','package-lock.json');git('-c','user.name=Workspace Test','-c','user.email=workspace@example.invalid','commit','-m','unsafe fixture');
   await assert.rejects(prepareWslDependency(dir,step),/unapproved remote registry/);
+  fs.mkdirSync(path.join(dir,'design-lab'));
+  const config=wslCodexConfig(dir);
+  assert.equal(config.mode,'wsl-design','An existing lab must select the protected design profile before dependencies are installed');
+  assert.ok(fs.statSync(path.join(dir,'design-lab','node_modules')).isDirectory());
+  const nested=path.join(dir,'design-lab','node_modules','workspace-denied.txt');
+  const denied=await asynchronousProbe(wslTrustedCommandLaunch(dir,['/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,'sandbox','-p',config.profile,'-P',config.permission,'-C',config.worktree,'--','/bin/sh','-c','printf BAD > "$1"','probe',`${config.worktree}/design-lab/node_modules/workspace-denied.txt`]),60000);
+  assert.notEqual(denied.status,0,'An empty nested dependency mount must already be read-only to the agent');
+  assert.equal(fs.existsSync(nested),false);
   console.log(JSON.stringify({status:'PASS',boundedSetup:true,lockedManifest:true,markerOutsideWorktree:true}));
 }finally{fs.rmSync(path.join(root,'data','check-deps',`${createHash('sha256').update(path.resolve(dir)+'|node_modules').digest('hex')}.json`),{force:true});if(path.resolve(dir).startsWith(path.resolve(base)+path.sep))fs.rmSync(dir,{recursive:true,force:true});}

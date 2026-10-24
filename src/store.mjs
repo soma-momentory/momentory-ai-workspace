@@ -190,15 +190,18 @@ export class Store {
     return id;
   }
   decisions(taskId) { return this.db.prepare('SELECT * FROM decisions WHERE task_id=? ORDER BY created_at').all(taskId).map(x=>({...x,details:parse(x.details)})); }
-  resolveDecision(id, status, selectedCandidateId=null, rationale='') {
+  decision(id){const row=this.db.prepare('SELECT * FROM decisions WHERE id=?').get(id);return row&&{...row,details:parse(row.details)};}
+  resolveDecision(id, status, selectedCandidateId=null, rationale='',approvedDiffHash=null) {
     const item=this.db.prepare('SELECT * FROM decisions WHERE id=?').get(id);
     if (!item || item.status!=='PENDING') return null;
+    const approvalTask=this.getTask(item.task_id);
+    if(item.kind==='result'&&status==='APPROVED'&&approvalTask?.worktree&&!/^[0-9a-f]{64}$/.test(approvedDiffHash||''))return null;
     if(item.kind==='design' && status==='APPROVED') {
       const selected=this.db.prepare('SELECT screenshot FROM design_candidates WHERE id=? AND task_id=?').get(selectedCandidateId,item.task_id);
       if(!selected || (project(this.getTask(item.task_id).project_id).design.adapter==='momentory-expo-lab'&&!selected.screenshot)) return null;
     }
     this.tx(() => {
-      this.db.prepare('UPDATE decisions SET status=?,resolved_at=?,details=? WHERE id=?').run(status,now(),json({...parse(item.details),rationale,selectedCandidateId}),id);
+      this.db.prepare('UPDATE decisions SET status=?,resolved_at=?,details=? WHERE id=?').run(status,now(),json({...parse(item.details),rationale,selectedCandidateId,...(item.kind==='result'&&status==='APPROVED'?{approvedDiffHash}: {})}),id);
       if (item.kind==='result') this.db.prepare('UPDATE tasks SET status=?,updated_at=? WHERE id=?').run(status==='APPROVED'?'APPROVED':'REJECTED',now(),item.task_id);
       if (item.kind==='risk') this.db.prepare('UPDATE tasks SET status=?,updated_at=? WHERE id=?').run(status==='APPROVED'?'QUEUED':'REJECTED',now(),item.task_id);
       if (item.kind==='design') {
