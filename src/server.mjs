@@ -10,7 +10,7 @@ import { routeTask, nextHumanActions, TASK_TYPES } from './router.mjs';
 import { validateExport, captureDesign } from './design.mjs';
 import { repoStatus, createWorktree, inheritApproved, diffSummary, recoveryFingerprint, ignoredWorktreeViolations, git } from './git.mjs';
 import { activeWslCodexForWorktree, reapStaleWslCodex } from './wslCodex.mjs';
-import {preparedNpmDependency} from './wslChecks.mjs';
+import {approvedIgnoredMounts} from './wslChecks.mjs';
 
 const config=settings();
 const store=new Store();
@@ -54,7 +54,7 @@ function recoveryDiff(task){
   try{
     const diff=diffSummary(task.worktree,task.base_head);
     if(!diff.reviewable)return {...diff,error:diff.reviewError};
-    const safeIgnored=(repository(task.project_id,task.repo).setup||[]).filter(step=>preparedNpmDependency(task.worktree,step)).map(step=>`${step.ifMissing}/`);
+    const safeIgnored=approvedIgnoredMounts(task.worktree,repository(task.project_id,task.repo));
     const opaqueIgnored=ignoredWorktreeViolations(task.worktree,safeIgnored);
     if(opaqueIgnored.length)return {...diff,error:`Ignored worktree content needs local recovery: ${opaqueIgnored.slice(0,8).join(', ')}`};
     return {...diff,hash:recoveryFingerprint(task.worktree,task.base_head)};

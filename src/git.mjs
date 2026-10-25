@@ -11,12 +11,12 @@ export function git(cwd,...args) { return execFileSync('git',args,{cwd,encoding:
 export function ignoredWorktreeViolations(dir,allowed=[]){
   const safe=new Set(allowed);
   const visible=new Set(git(dir,'ls-files','--others','--exclude-standard','--directory').split(/\r?\n/).filter(Boolean));
-  const emptyLabMount=file=>{
-    if(!['expo-lab/node_modules/','design-lab/node_modules/'].includes(file))return false;
+  const emptyDependencyMount=file=>{
+    if(!['node_modules/','expo-lab/node_modules/','design-lab/node_modules/'].includes(file))return false;
     const target=path.join(dir,file),stat=fs.lstatSync(target,{throwIfNoEntry:false});
     return Boolean(stat?.isDirectory()&&fs.readdirSync(target).length===0);
   };
-  return git(dir,'ls-files','--others','--ignored','--exclude-standard','--directory').split(/\r?\n/).filter(file=>file&&!visible.has(file)&&!safe.has(file)&&!emptyLabMount(file));
+  return git(dir,'ls-files','--others','--ignored','--exclude-standard','--directory').split(/\r?\n/).filter(file=>file&&!visible.has(file)&&!safe.has(file)&&!emptyDependencyMount(file));
 }
 const samePath=(a,b)=>{const left=fs.realpathSync(a),right=fs.realpathSync(b);return process.platform==='win32'?left.toLowerCase()===right.toLowerCase():left===right;};
 export function repoStatus(projectId,repoId) {

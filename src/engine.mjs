@@ -9,7 +9,7 @@ import { project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
 import { applySelectedDesign, validateExport } from './design.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
-import {strictWslChecks,prepareWslDependency,runWslCheck,cleanupStaleBoundaryCanaries} from './wslChecks.mjs';
+import {strictWslChecks,prepareWslDependency,runWslCheck,cleanupStaleBoundaryCanaries,approvedIgnoredMounts} from './wslChecks.mjs';
 
 const forbidden = 'Do not commit, push, merge, deploy, delete user files, read secrets, modify .env files, or change files outside this worktree. Keep changes scoped to the goal.';
 export function reviewVerdict(text) { return /^\s*\W*(PASS|FIX_REQUIRED)\b/i.exec(text)?.[1]?.toUpperCase() || null; }
@@ -95,7 +95,7 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
     const violations=await protectedViolations(task,diff.changedFiles);
     const outputPath=project(task.project_id).design.outputPath.replace(/\\/g,'/');
     const headMoved=git(location.dir,'rev-parse','HEAD')!==location.baseHead;
-    const ignored=ignoredWorktreeViolations(location.dir,new Set(['node_modules/','design-lab/node_modules/']));
+    const ignored=ignoredWorktreeViolations(location.dir,approvedIgnoredMounts(location.dir,repoConfig));
     const onlySelectedOutput=diff.changedFiles.length===1&&diff.changedFiles[0]===outputPath;
     const status=signal?.aborted?'CANCELLED':selectedDesignApprovalReady({verification,diff,outputPath,checksChangedSource,headMoved,ignored,violations})?'AWAITING_APPROVAL':'UNVERIFIED';
     const verifiedDiffHash=status==='AWAITING_APPROVAL'?recoveryFingerprint(location.dir,location.baseHead):null;
@@ -153,9 +153,7 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   let diff=diffSummary(location.dir,location.baseHead);
   if(diff.changedFiles.length===0) return {status:'UNVERIFIED',result:execution,verification:{ok:false,reason:'No code changes detected'},usage:execution.usage};
   let checksChangedSource=false;
-  const hasDesignDependencies=(repoConfig.setup||[]).some(step=>step.ifMissing==='design-lab/node_modules');
-  const allowedIgnored=new Set(repoConfig.stack==='spring'?['.gradle/','build/','out/']:['node_modules/',...(hasDesignDependencies?['design-lab/node_modules/']:[])]);
-  const unsafeIgnored=()=>ignoredWorktreeViolations(location.dir,allowedIgnored);
+  const unsafeIgnored=()=>ignoredWorktreeViolations(location.dir,approvedIgnoredMounts(location.dir,repoConfig));
   const verifyWithoutMutation=async()=>{
     const hidden=unsafeIgnored();
     if(hidden.length)return {ok:false,checks:[],unsafeIgnored:hidden};

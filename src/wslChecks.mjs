@@ -49,6 +49,13 @@ export function preparedNpmDependency(cwd,step){
     return JSON.parse(fs.readFileSync(marker,'utf8')).digest===digest&&complete&&required.every(([name])=>Object.hasOwn(installed.packages,name));
   }catch{return false;}
 }
+export function approvedIgnoredMounts(cwd,repoConfig){
+  if(repoConfig.stack==='spring')return new Set(['.gradle/','build/','out/']);
+  return new Set((repoConfig.setup||[])
+    .filter(step=>['node_modules','design-lab/node_modules'].includes(step.ifMissing))
+    .filter(step=>strictWslChecks(repoConfig.stack)?preparedNpmDependency(cwd,step):fs.existsSync(path.join(cwd,step.ifMissing)))
+    .map(step=>`${step.ifMissing}/`));
+}
 export async function verifyWslSetupBoundary(cwd,mode='wsl-setup'){
   if(!['wsl-setup','wsl-check','wsl-check-generic','wsl-lab'].includes(mode))throw new Error('Invalid WSL check boundary mode');
   const config=wslCodexConfig(cwd),profileMode=mode==='wsl-check'?config.checkMode:mode;
