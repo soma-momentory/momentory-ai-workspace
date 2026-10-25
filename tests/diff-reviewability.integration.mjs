@@ -34,12 +34,10 @@ try{
   assert.deepEqual(ignoredWorktreeViolations(dir,['node_modules/']),['app/node_modules/','expo-lab/node_modules/'],'A nonempty Expo mount must block verification');
   fs.writeFileSync(path.join(dir,'design-lab','node_modules','poison.js'),'module.exports=0');
   assert.deepEqual(ignoredWorktreeViolations(dir,['node_modules/']),['app/node_modules/','design-lab/node_modules/','expo-lab/node_modules/'],'A nonempty Design Lab mount must block verification');
-  if(process.platform==='win32'){
-    const configured={stack:'react-native-expo',setup:[{ifMissing:'node_modules',command:['npm','ci']},{ifMissing:'design-lab/node_modules',command:['npm','ci','--prefix','design-lab']}]};
-    const allowed=approvedIgnoredMounts(dir,configured);
-    assert.equal(allowed.has('design-lab/node_modules/'),false,'Configuration alone must not approve an unprepared dependency mount');
-    assert.ok(ignoredWorktreeViolations(dir,allowed).includes('design-lab/node_modules/'));
-  }
+  const configured={stack:'react-native-expo',setup:[{ifMissing:'node_modules',command:['npm','ci']},{ifMissing:'design-lab/node_modules',command:['npm','ci','--prefix','design-lab']}]};
+  const allowed=approvedIgnoredMounts(dir,configured);
+  assert.equal(allowed.has('design-lab/node_modules/'),false,'Configuration alone must not approve an unprepared dependency mount on any OS');
+  assert.ok(ignoredWorktreeViolations(dir,allowed).includes('design-lab/node_modules/'));
   fs.writeFileSync(path.join(dir,'index.txt'),'baseline\n');
   const mount=path.join(dir,'design-lab','node_modules'),linkTarget=path.join(dir,'link-target');
   assert.ok(path.resolve(mount).startsWith(path.resolve(dir)+path.sep));

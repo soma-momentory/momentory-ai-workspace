@@ -15,6 +15,8 @@ These checks require equipment unavailable in the 2026-10-25 Windows run. Record
 
 ## macOS laptop — BLOCKED until a Mac is available
 
+The current Mac setup path does not issue the validated dependency marker required for populated Node and Design Lab directories. Those tasks must fail closed until a trusted setup path is implemented and verified on a Mac. The commands below gather diagnostic evidence; they do not establish Mac release acceptance by themselves.
+
 On an authorized Mac with Xcode command-line tools, Node 22.14+, Git, Claude Code, Codex CLI, and Tailscale installed, clone this Workspace commit and the registered project repositories. Set `WORKSPACE_REPO_MOMENTORY_FE` and `WORKSPACE_REPO_MOMENTORY_BE` in the ignored `.env` if their paths differ. Record the outputs of:
 
 ```sh

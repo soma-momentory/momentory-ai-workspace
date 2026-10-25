@@ -53,7 +53,7 @@ export function approvedIgnoredMounts(cwd,repoConfig){
   if(repoConfig.stack==='spring')return new Set(['.gradle/','build/','out/']);
   return new Set((repoConfig.setup||[])
     .filter(step=>['node_modules','design-lab/node_modules'].includes(step.ifMissing))
-    .filter(step=>strictWslChecks(repoConfig.stack)?preparedNpmDependency(cwd,step):fs.existsSync(path.join(cwd,step.ifMissing)))
+    .filter(step=>preparedNpmDependency(cwd,step))
     .map(step=>`${step.ifMissing}/`));
 }
 export async function verifyWslSetupBoundary(cwd,mode='wsl-setup'){

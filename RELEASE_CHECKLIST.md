@@ -22,6 +22,7 @@
 - [x] Inject a partial Worktree write, force-kill the Worker, reap its orphan WSL scope, retain `STALE` without a duplicate claim, require a reviewed diff hash, then resume to verified approval. Browser-offline follow-up draft retention and server-restart idempotency also passed; a physical mobile network test remains below.
 - [ ] Complete Tailscale Serve setup, separate-network phone workflow, phone approval/rejection, and locked-screen execution test.
 - [ ] Verify macOS laptop operation and native iOS/Android app screens.
+- [ ] Implement and validate trusted macOS dependency preparation with the marker required by approval; the current Mac path fails closed for populated Node/Design Lab dependencies.
 - [x] Test Claude restricted Read/Edit denial and sandbox configured Windows verification commands, including the full FE checks.
 - [x] Re-run Momentory BE `gradlew.bat test --rerun-tasks` on Windows; compilation and tests executed successfully.
 - [x] Apply root-deny WSL2 confinement to actual Windows Codex AI sessions; real AI allowed read/write and outside read/write denial passed. Missing WSL/profile fails closed. The native Windows MXC `SYSTEMROOT` failure remains a platform limitation, not an active fallback.
