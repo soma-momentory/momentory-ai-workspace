@@ -36,7 +36,8 @@
 - [x] Capture Web screenshots on the latest checked WSL Codex package path at 375/390/402/430pt and many/long-content states; all recorded overflow was zero and baseline/candidate hashes differed. Native screens remain pending.
 - [x] Allow exact empty Expo/Design Lab mounts and verified installed dependencies; reject unprepared populated or linked fixtures (`test:diff-reviewability`).
 - [x] Pass Spring/Gradle checks inside root-deny WSL with loopback-only network. `test:be-isolation` completed `BUILD SUCCESSFUL` and left its BE Worktree clean; `test:wsl-loopback` denied external egress. Docker-dependent tests still require separate integration evidence if Docker is needed.
-- [ ] Clear independent Claude and Codex review findings on the final revision, including project-scoped human authorization, broader secret masking/command audit, and reliable backups. Their `1ab5b4e` reviews found four issues, fixed afterward; final follow-up verdicts remain pending.
+- [x] Resolve the concrete Claude and Codex release-boundary findings; focused static re-reviews of `ad2ad53` returned PASS, with separate host execution tests recorded in `TEST_REPORT.md`.
+- [ ] Assess project-scoped human authorization, broader secret masking/command audit, and reliable backups before release. The current owner token reaches every configured project and backups are manual.
 - [ ] Validate all FE/BE CI suites and inspect code integration conflicts before release.
 
 External setup required: Tailscale installation/sign-in on an authorized laptop and phone, HTTPS/tailnet policy, and access to a Mac/physical mobile devices for the stated tests. No cloud or paid infrastructure has been created. Release approval should be requested only after every required check passes.
