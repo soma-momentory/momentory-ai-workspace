@@ -20,7 +20,7 @@
 | Independent design drafts, rendering, evaluation, selection and isolated FE apply | VERIFIED | Earlier full pipeline on FE `ba34e0d` reached `AWAITING_APPROVAL` after typecheck, lint and 127 Jest suites; no merge. |
 | Lease loss, Worker kill, orphan cleanup, partial file review and safe resume | VERIFIED | Current recovery and worker-kill/resume tests. |
 | Duplicate follow-up/approval and storage write failure consistency | VERIFIED | Current recovery, HTTP and storage-failure tests. |
-| Installer, provider login, isolation setup and Windows update | IMPLEMENTED_NOT_VERIFIED | Current launcher and integrations run; fresh-machine installation and update preservation are untested. |
+| Installer, provider login, isolation setup and Windows update | VERIFIED | Clean same-host clone at old `0e585e9` was set up, updated to `f9898f5`, started/stopped, migrated schema 0 to 1, and preserved/restored its task. Different hardware remains untested. |
 | Full CI stability and cross-repository integration conflicts | IMPLEMENTED_NOT_VERIFIED | Current checks pass, but one transient `npm test` failure had truncated diagnostics; FE/BE full suites and integration conflicts were last checked on recorded earlier revisions. |
 | Trusted macOS populated dependency preparation and Mac sandbox | NOT_IMPLEMENTED | Mac path fails closed; implementation and real Mac acceptance needed. |
 | Physical phone/Tailscale separate network, locked screen, network loss/recovery | BLOCKED_EXTERNAL | Follow `MANUAL_VALIDATION.md` on a phone and tailnet. |
@@ -65,7 +65,8 @@ No latest repeat is `FAILED`; the transient test failure remains an open stabili
 - [x] Allow exact empty Expo/Design Lab mounts and verified installed dependencies; reject unprepared populated or linked fixtures (`test:diff-reviewability`).
 - [x] Pass Spring/Gradle checks inside root-deny WSL with loopback-only network. `test:be-isolation` completed `BUILD SUCCESSFUL` and left its BE Worktree clean; `test:wsl-loopback` denied external egress. Docker-dependent tests still require separate integration evidence if Docker is needed.
 - [x] Resolve the concrete Claude and Codex release-boundary findings; focused static re-reviews of `ad2ad53` returned PASS, with separate host execution tests recorded in `TEST_REPORT.md`.
-- [ ] Assess project-scoped human authorization, broader secret masking/command audit, and reliable backups before release. The current owner token reaches every configured project and backups are manual.
+- [x] Define the local single-owner authorization boundary and verify authenticated APIs, CSRF checks, separate Worker credential, project path isolation, and encrypted Workspace data backup/restore.
+- [ ] Assess broader secret masking and command audit before handling highly sensitive repositories. The owner token intentionally reaches every configured project; it is not a multi-user role system.
 - [ ] Validate all FE/BE CI suites and inspect code integration conflicts before release.
 
 External setup required: Tailscale installation/sign-in on an authorized laptop and phone, HTTPS/tailnet policy, and access to a Mac/physical mobile devices for the stated tests. No cloud or paid infrastructure has been created. Release approval should be requested only after every required check passes.
