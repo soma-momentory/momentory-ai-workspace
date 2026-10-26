@@ -17,7 +17,7 @@ Open `http://127.0.0.1:4178` and log in with `WORKSPACE_TOKEN`. The launcher sup
 
 ## Start on macOS
 
-Install Node 22.13+, Git, and authenticated official CLIs. Clone this repository and each target project. Set each repository path in `projects.json` or use `WORKSPACE_REPO_<PROJECT>_<REPO>` environment variables. Run `npm run setup`, `npm run isolation:setup`, then `npm run local`. macOS parity has not yet been tested on a Mac.
+Use Node 22.x (22.13+), Git, and authenticated official CLIs. Clone this repository and each target project. Set each repository path in `projects.json` or use `WORKSPACE_REPO_<PROJECT>_<REPO>` environment variables. Run `npm run setup`, configure the canonical executable paths and SHA-256 pins in [OPERATIONS.md](OPERATIONS.md), then run `npm run isolation:setup` and `npm run local`. Actual macOS npm/sample/CLI validation is recorded in [T7_MAC_REPORT.md](T7_MAC_REPORT.md); Gradle remains blocked and full release parity is incomplete.
 
 ## Projects and tasks
 

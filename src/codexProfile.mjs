@@ -39,6 +39,7 @@ export function installCodexProfiles() {
         const beforeReadonlyDeps=Buffer.from(expected.toString().replace('"node_modules" = "read"\n','').replace('"expo-lab/node_modules" = "read"\n',''));
         const withInvalidNodePattern=Buffer.from(expected.toString().replace('"node_modules" = "read"\n"expo-lab/node_modules" = "read"\n','"**/node_modules/**" = "read"\n'));
         const beforeReadonlyBuild=Buffer.from(expected.toString().replace('".gradle" = "read"\n','').replace('"build" = "read"\n','').replace('"out" = "read"\n',''));
+        if((mode==='posix'||mode==='posix-readonly')&&current.equals(beforeReadonlyBuild)){fs.writeFileSync(target,expected);continue;}
         const beforeGradleCache=Buffer.from(expected.toString().replace('".gradle/workspace-home/caches/modules-2/files-2.1" = "read"\n','').replace('".gradle/workspace-setup.init.gradle" = "read"\n',''));
         const withReadonlyGradleHome=Buffer.from(expected.toString().replace('".gradle/workspace-home/caches/modules-2/files-2.1" = "read"\n','".gradle/workspace-home" = "read"\n'));
         const beforeReadonlyWrapper=Buffer.from(expected.toString().replace('".gradle/workspace-home/wrapper/dists" = "read"\n',''));

@@ -1,0 +1,1 @@
+{"status":"PASS","platform":"darwin","results":[{"trial":"cancel","sessionId":"01a177a5-7cb7-7ab1-b0c7-ee0b81145d82","pids":[69833,69834],"descendantsStopped":true,"timedOut":false},{"trial":"timeout","sessionId":"01a177a5-9f26-7160-87a3-86f31abfe557","pids":[69920,69921],"descendantsStopped":true,"timedOut":true}]}

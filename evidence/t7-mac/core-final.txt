@@ -1,0 +1,126 @@
+TAP version 13
+# (node:69975) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: automatic routing avoids multiple agents for tiny edits and explores design alternatives
+ok 1 - automatic routing avoids multiple agents for tiny edits and explores design alternatives
+  ---
+  duration_ms: 0.513459
+  type: 'test'
+  ...
+# Subtest: provider commands use supported structured streaming and an explicit isolation profile
+ok 2 - provider commands use supported structured streaming and an explicit isolation profile
+  ---
+  duration_ms: 0.262333
+  type: 'test'
+  ...
+# Subtest: Claude executable resolution ignores worktree shims
+ok 3 - Claude executable resolution ignores worktree shims
+  ---
+  duration_ms: 0.24025
+  type: 'test'
+  ...
+# Subtest: WSL Codex package path rejects an unreviewed link target
+ok 4 - WSL Codex package path rejects an unreviewed link target
+  ---
+  duration_ms: 0.037334
+  type: 'test'
+  ...
+# Subtest: WSL agent launch rejects unreviewed CLI overrides before starting a process
+ok 5 - WSL agent launch rejects unreviewed CLI overrides before starting a process
+  ---
+  duration_ms: 0.08675
+  type: 'test'
+  ...
+# Subtest: provider stream discards an oversized line without losing later events
+ok 6 - provider stream discards an oversized line without losing later events
+  ---
+  duration_ms: 0.278125
+  type: 'test'
+  ...
+# Subtest: non-WSL verification command has a finite timeout
+ok 7 - non-WSL verification command has a finite timeout
+  ---
+  duration_ms: 597.745125
+  type: 'test'
+  ...
+# Subtest: an already cancelled verification command never starts
+ok 8 - an already cancelled verification command never starts
+  ---
+  duration_ms: 0.189625
+  type: 'test'
+  ...
+# Subtest: macOS timeout kills a detached child that ignores SIGTERM
+ok 9 - macOS timeout kills a detached child that ignores SIGTERM
+  ---
+  duration_ms: 1094.706792
+  type: 'test'
+  ...
+# Subtest: review cannot silently pass an ambiguous or fix-required answer
+ok 10 - review cannot silently pass an ambiguous or fix-required answer
+  ---
+  duration_ms: 0.309209
+  type: 'test'
+  ...
+# Subtest: selected design approval excludes unrelated edits, moved commits, and ignored files
+ok 11 - selected design approval excludes unrelated edits, moved commits, and ignored files
+  ---
+  duration_ms: 0.103542
+  type: 'test'
+  ...
+# Subtest: design proposals require structured, distinct candidates before evaluation
+ok 12 - design proposals require structured, distinct candidates before evaluation
+  ---
+  duration_ms: 0.095125
+  type: 'test'
+  ...
+# Subtest: design capture status survives a process restart and gates selection
+ok 13 - design capture status survives a process restart and gates selection
+  ---
+  duration_ms: 5.417083
+  type: 'test'
+  ...
+# Subtest: persistent queue claims once, recovers lease, limits attempts and records approval
+ok 14 - persistent queue claims once, recovers lease, limits attempts and records approval
+  ---
+  duration_ms: 5.08575
+  type: 'test'
+  ...
+# Subtest: a stale worktree is preserved and never automatically claimed by another worker
+ok 15 - a stale worktree is preserved and never automatically claimed by another worker
+  ---
+  duration_ms: 2.693417
+  type: 'test'
+  ...
+# Subtest: an uncheckpointed physical worktree is not automatically claimed after lease loss
+ok 16 - an uncheckpointed physical worktree is not automatically claimed after lease loss
+  ---
+  duration_ms: 2.767666
+  type: 'test'
+  ...
+# Subtest: human work stays out of AI claims and completion unlocks a dependent task
+ok 17 - human work stays out of AI claims and completion unlocks a dependent task
+  ---
+  duration_ms: 2.75475
+  type: 'test'
+  ...
+# Subtest: failed or rejected parents block queued dependents until the dependency is resolved
+ok 18 - failed or rejected parents block queued dependents until the dependency is resolved
+  ---
+  duration_ms: 3.518917
+  type: 'test'
+  ...
+# Subtest: Momentory design selection requires a rendered candidate
+ok 19 - Momentory design selection requires a rendered candidate
+  ---
+  duration_ms: 2.816834
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1760.62125

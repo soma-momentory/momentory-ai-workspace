@@ -1,0 +1,26 @@
+COMMAND node tests/approved-inheritance.integration.mjs
+{"status":"PASS","approvedPatchInherited":true,"postApprovalTamperDenied":true,"linkedDestinationDenied":true}
+ Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/data/approved-inheritance-ff362881-da23-499f-bbae-915ffa78fb0e/child'...
+done.
+Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/data/approved-inheritance-ff362881-da23-499f-bbae-915ffa78fb0e/tampered-child'...
+done.
+Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/data/approved-inheritance-ff362881-da23-499f-bbae-915ffa78fb0e/linked-child'...
+done.
+(node:64893) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ EXIT 0
+COMMAND node tests/diff-reviewability.integration.mjs
+{"status":"PASS","smallPatchReviewable":true,"truncatedDenied":true,"largeDenied":true,"redactedDenied":true,"nestedIgnoredDenied":true,"emptyLabMountsAllowed":true,"populatedLabMountsDenied":true,"unpreparedMountDenied":true,"linkedLabMountDenied":true}
+ (node:64966) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ EXIT 0
+COMMAND node tests/recovery.integration.mjs
+{"status":"PASS","firstTask":"89a1ed2f-41ac-4878-8605-03d130337df2","oldNonceRejected":true,"newNonceAccepted":true,"followupAfterReconnect":"cbeda2fa-029f-447f-881e-326b09c557f6","duplicateFollowupPrevented":true,"secondTask":"fd9d8e28-af6c-4c2c-8024-320d6d8383b3","preservedStatus":"STALE","opaqueRecoveryDenied":true,"ignoredRecoveryDenied":true}
+ (node:65048) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ EXIT 0
+COMMAND node tests/sandbox-check.integration.mjs
+{"status":"PASS","cwd":"t7-mac-sample","checks":[{"command":"node --check index.mjs","ok":true},{"command":"node --test","ok":true}]}
+ (node:65415) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ EXIT 0

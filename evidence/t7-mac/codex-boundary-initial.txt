@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'ALLOWED_WRITTEN\n'
+- 'ALLOWED_WRITTEN'
+                  ^
+
+    at file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/codex-boundary.integration.mjs:33:10
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'ALLOWED_WRITTEN\n',
+  expected: 'ALLOWED_WRITTEN',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.2

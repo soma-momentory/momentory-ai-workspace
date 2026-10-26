@@ -10,7 +10,7 @@ import { createRequire } from 'node:module';
 import { repository } from '../src/projects.mjs';
 import { Store } from '../src/store.mjs';
 
-const requireFe=createRequire(path.join(repository('momentory','fe').path,'package.json'));
+const requireFe=createRequire(process.env.WORKSPACE_TEST_PLAYWRIGHT_PACKAGE_JSON||path.join(repository('momentory','fe').path,'package.json'));
 const {chromium}=requireFe('playwright');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function freePort(){return new Promise(resolve=>{const server=net.createServer();server.listen(0,'127.0.0.1',()=>{const port=server.address().port;server.close(()=>resolve(port));});});}

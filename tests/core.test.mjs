@@ -9,6 +9,7 @@ import { nextHumanActions } from '../src/router.mjs';
 import { providerArgs,createProviderLineParser,resolveClaudeExecutable } from '../src/provider.mjs';
 import { reviewVerdict, parseDesignCandidates,selectedDesignApprovalReady,runCommand } from '../src/engine.mjs';
 import {root} from '../src/config.mjs';
+import {spawnSync} from 'node:child_process';
 import {wslCodexLaunch,trustedCodexPackagePath} from '../src/wslCodex.mjs';
 
 test('automatic routing avoids multiple agents for tiny edits and explores design alternatives',()=>{
@@ -23,6 +24,13 @@ test('provider commands use supported structured streaming and an explicit isola
   assert.ok(providerArgs('claude').includes('stream-json'));
 });
 test('Claude executable resolution ignores worktree shims',()=>{
+  if(process.platform==='darwin'){
+    // macOS uses an explicit checksum pin and never searches PATH.
+    const original=process.env.WORKSPACE_MAC_CLAUDE;
+    try{delete process.env.WORKSPACE_MAC_CLAUDE;assert.throws(()=>resolveClaudeExecutable(process.cwd()),/must be configured/);}
+    finally{if(original===undefined)delete process.env.WORKSPACE_MAC_CLAUDE;else process.env.WORKSPACE_MAC_CLAUDE=original;}
+    return;
+  }
   const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-provider-shim-'));
   const trusted=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-provider-trusted-'));
   const shim=path.join(cwd,process.platform==='win32'?'claude.exe':'claude');
@@ -65,6 +73,22 @@ test('non-WSL verification command has a finite timeout',async()=>{
   assert.equal(result.ok,false);
   assert.equal(result.timedOut,true);
   assert.ok(Date.now()-started<10000);
+});
+test('an already cancelled verification command never starts',async()=>{
+  const controller=new AbortController();controller.abort();
+  const result=await runCommand(process.cwd(),'/missing-command',[],500,controller.signal);
+  assert.equal(result.ok,false);assert.match(result.output,/Cancelled before command start/);
+});
+test('macOS timeout kills a detached child that ignores SIGTERM',{skip:process.platform!=='darwin'},async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-mac-process-')),pidFile=path.join(dir,'child.pid');
+  let pid;
+  try{
+    const script=`const {spawn}=require('node:child_process');const fs=require('node:fs');const child=spawn(process.execPath,['-e','process.on("SIGTERM",()=>{});setInterval(()=>{},1000)'],{detached:true,stdio:'ignore'});fs.writeFileSync(${JSON.stringify(pidFile)},String(child.pid));setInterval(()=>{},1000);`;
+    const result=await runCommand(dir,process.execPath,['-e',script],1000);assert.equal(result.timedOut,true);
+    pid=Number(fs.readFileSync(pidFile,'utf8'));assert.ok(pid>1);
+    const state=spawnSync('/bin/ps',['-p',String(pid),'-o','stat='],{encoding:'utf8'});
+    assert.ok(state.status!==0||!state.stdout.trim()||state.stdout.trim().startsWith('Z'),'Detached child survived forced cleanup');
+  }finally{if(pid)try{process.kill(pid,'SIGKILL');}catch{}fs.rmSync(dir,{recursive:true,force:true});}
 });
 test('review cannot silently pass an ambiguous or fix-required answer',()=>{
   assert.equal(reviewVerdict('**FIX_REQUIRED**\nIssue'), 'FIX_REQUIRED');

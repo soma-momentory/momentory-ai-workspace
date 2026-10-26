@@ -1,0 +1,40 @@
+Fixture /Users/kjh/Momentory/momentory-ai-workspace-t7-mac/data/t7-mac-npm-E88gbl
+Exit prior to config file resolving
+cause
+double-loading config "/dev/null" as "global", previously loaded as "user"
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node /Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/npm/bin/npm-cli.js install --package-lock-only --ignore-scripts --no-audit --no-fund
+Exit prior to config file resolving
+cause
+double-loading config "/dev/null" as "global", previously loaded as "user"
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:916:11)
+    at execFileSync (node:child_process:952:15)
+    at file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/[eval1]:6:40
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:282:26)
+    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:278:20)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    'Exit prior to config file resolving\n' +
+      'cause\n' +
+      'double-loading config "/dev/null" as "global", previously loaded as "user"\n'
+  ],
+  pid: 64446,
+  stdout: '',
+  stderr: 'Exit prior to config file resolving\n' +
+    'cause\n' +
+    'double-loading config "/dev/null" as "global", previously loaded as "user"\n'
+}
+
+Node.js v22.23.2

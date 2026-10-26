@@ -1,5 +1,9 @@
 # Test Report
 
+## T7-Mac actual validation — 2026-10-26 KST
+
+**T7-Mac: PARTIAL. Workspace Release: NOT READY.** On macOS 26.6.2 arm64, `workspace/t7-macos-validation` reuses T7 `10d835a` in a separate worktree. Node 22.23.2, npm 10.9.8, Codex 0.163.0 and Claude Code 2.1.296 were exercised. The latest full test suite passed **34, failed 0, skipped 1**, with actual provider and Mac dependency integration enabled. Real sample tasks, both CLIs, trusted locked npm preparation, outside-project/data boundaries, cancellation with descendant cleanup, timeout, pause/resume, approval/follow-up controls, redaction and encrypted fixture backup/restore passed. Initial failures and evidence remain recorded. Mac Gradle is still **NOT_IMPLEMENTED/BLOCKED**; actual mount replacement, Mac Worker SIGKILL orphan recovery, full Momentory FE/Design Lab and physical-device conditions are unverified. See [T7_MAC_REPORT.md](T7_MAC_REPORT.md) and [commands/results](evidence/t7-mac/COMMANDS.md). Earlier sections below are historical Windows evidence, not current Mac claims.
+
 ## T7 macOS release hardening candidate — 2026-10-26 KST
 
 The isolated `workspace/t7-macos-hardening` candidate starts from clean Workspace `dev` at `fd9cdcc`. The host is Windows; the configured SSH host did not answer within five seconds. **macOS execution is NOT_RUN/BLOCKED, and Workspace release remains NOT READY.** No FE checkout, pending design decision, protected branch, or deployment was changed.

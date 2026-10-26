@@ -1,0 +1,2 @@
+/Users/kjh/.local/share/claude/versions/2.1.296: valid on disk
+/Users/kjh/.local/share/claude/versions/2.1.296: satisfies its Designated Requirement

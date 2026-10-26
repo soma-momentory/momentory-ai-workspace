@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "code": 0,
+  "timedOut": false,
+  "sessionId": "01a1778f-4fc6-7c51-9a3e-1ce746436169",
+  "result": "MOMENTORY_PROVIDER_OK",
+  "usage": {
+    "input_tokens": 14838,
+    "cached_input_tokens": 12288,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 10,
+    "reasoning_output_tokens": 0
+  },
+  "stderr": ""
+}

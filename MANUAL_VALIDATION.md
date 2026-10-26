@@ -13,9 +13,9 @@ These checks require equipment unavailable in the 2026-10-25 Windows run. Record
 7. Disconnect the phone network during an unsent instruction and after a submitted instruction whose response has not arrived. Reconnect, retry the same instruction, and verify exactly one dependent task was created. Reopen task history after closing the phone browser.
 8. Check that the URL is unavailable when Tailscale is off on the phone, that an unauthenticated request is denied, and that an invalid Workspace token is rejected. Run `tailscale serve off` after testing.
 
-## macOS laptop — BLOCKED until a Mac is available
+## macOS laptop — PARTIAL, actual local validation available
 
-The T7 candidate has a reviewed npm preparation path, but no actual Mac result. Follow [OPERATIONS.md](OPERATIONS.md) to pin canonical Node, npm CLI, Codex and Claude paths plus SHA-256 digests in the ignored `.env`; first use `npm run setup` to create that file. Windows unit tests and WSL results do not count as Mac passes.
+Actual macOS npm fixture, Codex/Claude sample workflows and boundary/recovery evidence is in [T7_MAC_REPORT.md](T7_MAC_REPORT.md). Gradle, full FE/Design Lab, actual mount replacement and Worker SIGKILL orphan recovery remain open. Follow [OPERATIONS.md](OPERATIONS.md) to pin canonical Node, npm CLI, Codex and Claude paths plus SHA-256 digests in the ignored `.env`; first use `npm run setup` to create that file. Windows unit tests and WSL results do not count as Mac passes.
 
 On an authorized Mac with Node 22.13+, Git and the official AI CLIs, clone this Workspace commit and the registered project repositories. Set `WORKSPACE_REPO_MOMENTORY_FE` and `WORKSPACE_REPO_MOMENTORY_BE` in the ignored `.env` if their paths differ. Save OS version, Workspace and FE commits, command output, task IDs and timestamps:
 

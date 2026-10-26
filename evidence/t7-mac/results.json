@@ -1,0 +1,158 @@
+{
+  "date": "2026-10-26",
+  "timezone": "Asia/Seoul",
+  "baseCommit": "10d835a744734a0a9ed83c2956fde863887bc473",
+  "branch": "workspace/t7-macos-validation",
+  "t7Mac": "PARTIAL",
+  "workspaceRelease": "NOT READY",
+  "results": [
+    {
+      "id": "suite",
+      "status": "PASS",
+      "counts": {
+        "pass": 34,
+        "fail": 0,
+        "skip": 1,
+        "total": 35
+      },
+      "command": "Pinned Node --test tests/*.test.mjs; RUN_PROVIDER_INTEGRATION=1 RUN_MAC_DEPENDENCY_INTEGRATION=1; complete command in COMMANDS.md",
+      "log": "unit-final.txt"
+    },
+    {
+      "id": "setup-boundary",
+      "status": "PASS",
+      "command": "verifyMacSetupBoundary(fixture, trustedMacRuntime(fixture))",
+      "log": "setup-boundary-initial.txt"
+    },
+    {
+      "id": "mac-dependency",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --input-type=module -e 'import fs from \"node:fs\";Object.assign(process.env,JSON.parse(fs.readFileSync(\"data/t7-mac-evidence/environment.json\")));await import(\"./tests/mac-dependency.test.mjs\");' [RUN_MAC_DEPENDENCY_INTEGRATION=1]",
+      "log": "mac-dependency.txt"
+    },
+    {
+      "id": "profile-integrity",
+      "status": "PASS",
+      "command": "verifyCodexProfile(\"posix-setup\"): exact bytes / altered bytes / restored bytes; COMMANDS.md",
+      "log": "profile-integrity.txt"
+    },
+    {
+      "id": "codex-boundary",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --input-type=module -e 'import fs from \"node:fs\";Object.assign(process.env,JSON.parse(fs.readFileSync(\"data/t7-mac-evidence/environment.json\")));await import(\"./tests/codex-boundary.integration.mjs\");'",
+      "log": "codex-boundary-final.txt",
+      "scope": "Real AI allowed read/write; denied operations separately exercised directly in identical sandbox profile. Cross-project fixture is a second Git repository outside Workspace."
+    },
+    {
+      "id": "claude-boundary",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --input-type=module -e 'import fs from \"node:fs\";Object.assign(process.env,JSON.parse(fs.readFileSync(\"data/t7-mac-evidence/environment.json\")));await import(\"./tests/provider-boundary.integration.mjs\");'",
+      "log": "claude-boundary-final.txt",
+      "scope": "CLI restricted tool policy: allowed Read/Edit, outside Read/Edit denied, Bash unavailable."
+    },
+    {
+      "id": "command-boundary",
+      "status": "PASS",
+      "command": "Native codex sandbox -p ai-dev-workspace-posix -P workspace-locked -C SAMPLE -- COMMAND; complete executable/argv arrays in log and COMMANDS.md",
+      "log": "command-boundary.txt"
+    },
+    {
+      "id": "codex-cancel-timeout",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --input-type=module -e 'import fs from \"node:fs\";Object.assign(process.env,JSON.parse(fs.readFileSync(\"data/t7-mac-evidence/environment.json\")));await import(\"./tests/codex-cancel.integration.mjs\");'",
+      "log": "codex-cancel.txt"
+    },
+    {
+      "id": "claude-cancel-startup-timeout",
+      "status": "PASS",
+      "command": "runProvider claude AbortController at session event; 1ms startup timeout; probeProvider; exact arguments in COMMANDS.md",
+      "log": "claude-lifecycle.txt"
+    },
+    {
+      "id": "invalid-session-recovery",
+      "status": "PASS",
+      "command": "runProvider for codex and claude with nonexistent session UUID, then probeProvider; exact arguments in COMMANDS.md",
+      "log": "invalid-session-recovery.txt"
+    },
+    {
+      "id": "local-workflow",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --input-type=module -e 'import fs from \"node:fs\";Object.assign(process.env,JSON.parse(fs.readFileSync(\"data/t7-mac-evidence/environment.json\")));await import(\"./tests/local.integration.mjs\");'",
+      "log": "local-integration-final.txt"
+    },
+    {
+      "id": "collaboration-followup",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --input-type=module -e 'import fs from \"node:fs\";Object.assign(process.env,JSON.parse(fs.readFileSync(\"data/t7-mac-evidence/environment.json\")));await import(\"./tests/collaboration.integration.mjs\");'",
+      "log": "collaboration.txt",
+      "scope": "Synthetic sample database only. No product design decision was approved."
+    },
+    {
+      "id": "pause-resume",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --input-type=module -e 'import fs from \"node:fs\";Object.assign(process.env,JSON.parse(fs.readFileSync(\"data/t7-mac-evidence/environment.json\")));await import(\"./tests/pause.integration.mjs\");'",
+      "log": "pause.txt"
+    },
+    {
+      "id": "four-existing-integrations",
+      "status": "PASS",
+      "command": [
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node tests/approved-inheritance.integration.mjs",
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node tests/diff-reviewability.integration.mjs",
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node tests/recovery.integration.mjs",
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node tests/sandbox-check.integration.mjs"
+      ],
+      "log": "regression-integration.txt"
+    },
+    {
+      "id": "gradle",
+      "status": "BLOCKED",
+      "implementation": "NOT_IMPLEMENTED",
+      "command": "prepareMacDependency(repository(\"momentory\",\"be\").path, repository(\"momentory\",\"be\").setup[0])",
+      "log": "gradle-blocked.txt",
+      "reason": "Required BE task setup; no JDK, wrapper distribution SHA256 and dependency verification metadata absent. Existing rejection guard retained."
+    },
+    {
+      "id": "actual-mount-replacement",
+      "status": "SKIP",
+      "command": null,
+      "log": null,
+      "reason": "No disk/volume mount scenario executed. Device-check code is not counted as a real mount PASS."
+    },
+    {
+      "id": "mac-worker-sigkill-orphans",
+      "status": "SKIP",
+      "command": null,
+      "log": null,
+      "reason": "Existing worker-kill/orphan integrations target Windows. Mac descendant tracking is in-memory; persistent restart cleanup remains unverified."
+    },
+    {
+      "id": "full-fe-design-lab",
+      "status": "SKIP",
+      "command": null,
+      "log": null,
+      "reason": "Only fixed npm fixture and sample project were run. No FE source or main change."
+    },
+    {
+      "id": "physical-phone-native-24h",
+      "status": "SKIP",
+      "command": null,
+      "log": null,
+      "reason": "Physical devices/Tailscale/locked-screen/24-hour backup cadence outside this run."
+    },
+    {
+      "id": "windows-rerun",
+      "status": "SKIP",
+      "command": null,
+      "log": null,
+      "reason": "Prior Windows results remain historical; this run used macOS only."
+    },
+    {
+      "id": "final-process-helper-check",
+      "status": "PASS",
+      "command": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node --test tests/core.test.mjs",
+      "log": "core-final.txt",
+      "scope": "Targeted rerun after the last process-table format guard; includes real detached SIGTERM-resistant process timeout."
+    }
+  ]
+}

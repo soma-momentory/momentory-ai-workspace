@@ -6,8 +6,42 @@ import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {wslCodexLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
 import {trustedMacFile,trustedMacRuntime} from './macTrust.mjs';
 
+const macProcessTrees=new WeakMap();
+function macProcessTable(){
+  const result=spawnSync('/bin/ps',['-axo','pid=,ppid=,pgid=,lstart=,comm='],{encoding:'utf8',timeout:3000,maxBuffer:4*1024*1024});
+  if(result.status!==0)throw new Error('Cannot inspect macOS child process tree');
+  const rows=new Map();
+  for(const line of result.stdout.split('\n')){
+    const match=/^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\S+\s+\S+\s+\d+\s+[\d:]+\s+\d+)\s+(.+)$/.exec(line);
+    if(match)rows.set(Number(match[1]),{pid:Number(match[1]),parent:Number(match[2]),identity:`${match[3]}|${match[4]}|${match[5]}`});
+  }
+  if(!rows.has(process.pid))throw new Error('Unrecognized macOS process table');
+  return rows;
+}
 export function stopTree(child,signal='SIGTERM') {
-  if(!child?.pid || child.exitCode!==null) return;
+  if(!child?.pid)return;
+  if(process.platform==='darwin'){
+    // Codex commands can create their own process groups. Capture descendants
+    // before terminating the CLI, and retain identities for forced cleanup after
+    // the parent exits. Never signal a PID whose identity has since changed.
+    let current;
+    try{current=macProcessTable();}catch{
+      // A failed inspection must not crash the supervisor or report cleanup.
+      if(child.exitCode===null)try{process.kill(-child.pid,signal);}catch{child.kill(signal);}
+      return false;
+    }
+    const tracked=macProcessTrees.get(child)||new Map();
+    if(child.exitCode===null){
+      const descendants=new Set([child.pid]);let changed=true;
+      while(changed){changed=false;for(const row of current.values())if(descendants.has(row.parent)&&!descendants.has(row.pid)){descendants.add(row.pid);changed=true;}}
+      for(const pid of descendants){const row=current.get(pid);if(row&&!tracked.has(pid))tracked.set(pid,row.identity);}
+      macProcessTrees.set(child,tracked);
+    }
+    let stopped=true;
+    for(const [pid,identity] of [...tracked].reverse())if(current.get(pid)?.identity===identity){try{process.kill(pid,signal);}catch(error){if(error.code!=='ESRCH')stopped=false;}}
+    return stopped;
+  }
+  if(child.exitCode!==null)return;
   if(process.platform==='win32') {
     const killer=spawn('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});
     killer.on('error',()=>child.kill());
@@ -24,8 +58,9 @@ export const redact = (value) => {
 export function childEnv() {return {...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/(?:TOKEN|KEY|SECRET|PASSWORD|CREDENTIAL|AUTH|^WORKSPACE_)/i.test(key))),CI:'1'};}
 export function macChildEnv(searchPath,overrides={}){
   const env=childEnv();
-  for(const name of Object.keys(env))if(/^(?:NODE_OPTIONS|NODE_PATH|BASH_ENV|ENV|PYTHONPATH|GIT_CONFIG.*|npm_config_.*|NPM_CONFIG_.*|DYLD_.*|LD_.*)$/i.test(name))delete env[name];
-  return {...env,PATH:searchPath,...overrides};
+  for(const name of Object.keys(env))if(/^(?:NODE_OPTIONS|NODE_PATH|NODE_EXTRA_CA_CERTS|OPENSSL_.*|SSL_CERT_FILE|SSL_CERT_DIR|BASH_ENV|ENV|PYTHONPATH|GIT_.*|npm_config_.*|NPM_CONFIG_.*|DYLD_.*|LD_.*)$/i.test(name))delete env[name];
+  // Do not load host OpenSSL engines/configuration. TLS verification remains on.
+  return {...env,PATH:searchPath,OPENSSL_CONF:'/dev/null',...overrides};
 }
 export function createProviderLineParser(onLine,onOversized,maxLength=1_000_000){
   let pending='',discarding=false;
@@ -92,12 +127,12 @@ export async function runProvider({provider,cwd,prompt,readOnly=false,sessionId=
   return new Promise(resolve=>{
     const exe=launch?.executable||macExecutable||(provider==='claude'?resolveClaudeExecutable(cwd):provider);
     const child=spawn(exe,launch?.args||args,{cwd,windowsHide:true,shell:false,detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:mac?macChildEnv(mac.path):childEnv()});
-    let stderr='',last='',threadId=sessionId,reportedThreadId=sessionId,usage=null,finished=false,timedOut=false,watchdog=null;
-    const stop=()=>{if(launch)stopWslCodex(launch);stopTree(child);};
-    const armWatchdog=()=>{if(!watchdog){watchdog=setTimeout(()=>{if(!finished){if(launch)stopWslCodex(launch,'KILL');stopTree(child);complete(null,'Provider wrapper did not exit after termination');}},5000);watchdog.unref();}};
+    let stderr='',last='',threadId=sessionId,reportedThreadId=sessionId,usage=null,finished=false,timedOut=false,watchdog=null,cleanupFailed=false;
+    const stop=()=>{if(launch)stopWslCodex(launch);if(stopTree(child)===false)cleanupFailed=true;};
+    const armWatchdog=()=>{if(!watchdog){watchdog=setTimeout(()=>{if(!finished){if(launch)stopWslCodex(launch,'KILL');stopTree(child,'SIGKILL');complete(null,'Provider wrapper did not exit after termination');}},5000);watchdog.unref();}};
     const timer=setTimeout(()=>{timedOut=true;stop();armWatchdog();},timeoutMs);
     const abort=()=>{stop();armWatchdog();}; signal?.addEventListener('abort',abort,{once:true});
-    const complete=(code,error)=>{if(finished)return;finished=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);const scopeStopped=finishWslCodex(launch);resolve({ok:code===0&&!signal?.aborted&&!timedOut&&!error&&scopeStopped,code,timedOut,sessionId:threadId,result:redact(last).slice(0,20000),usage,stderr:redact([stderr,error,scopeStopped?'':'WSL process scope remained active'].filter(Boolean).join('\n')).slice(-4000)});};
+    const complete=(code,error)=>{if(finished)return;if((signal?.aborted||timedOut)&&stopTree(child,'SIGKILL')===false)cleanupFailed=true;finished=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);const scopeStopped=finishWslCodex(launch);resolve({ok:code===0&&!signal?.aborted&&!timedOut&&!error&&scopeStopped&&!cleanupFailed,code,timedOut,sessionId:threadId,result:redact(last).slice(0,20000),usage,stderr:redact([stderr,error,cleanupFailed?'macOS descendant cleanup could not be verified':'',scopeStopped?'':'WSL process scope remained active'].filter(Boolean).join('\n')).slice(-4000)});};
     const parser=createProviderLineParser(line=>{
       try {
         const event=JSON.parse(line);
@@ -108,7 +143,11 @@ export async function runProvider({provider,cwd,prompt,readOnly=false,sessionId=
         if(event.type==='result') {last=event.result || last; usage=event.usage || usage;}
         if(event.type==='item.completed' && event.item?.type==='agent_message') last=event.item.text || last;
         if(event.type==='assistant' && event.message?.content) last=event.message.content.filter(x=>x.type==='text').map(x=>x.text).join('\n') || last;
-        onEvent({type:event.type || 'message',summary:redact(JSON.stringify(event)).slice(0,4000)});
+        const commandExecution=event.item?.type==='command_execution'?{
+          command:redact(event.item.command||'').slice(0,4000),exitCode:event.item.exit_code,
+          output:redact(event.item.aggregated_output||'').slice(-4000)
+        }:undefined;
+        onEvent({type:event.type || 'message',summary:redact(JSON.stringify(event)).slice(0,4000),...(commandExecution?{commandExecution}:{})});
       } catch { onEvent({type:'raw',summary:redact(line).slice(0,1000)}); }
     },()=>onEvent({type:'raw',summary:'Oversized provider event discarded'}));
     child.stdout.setEncoding('utf8');child.stderr.setEncoding('utf8');

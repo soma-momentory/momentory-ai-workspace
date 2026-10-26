@@ -4,7 +4,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
-import {childEnv,redact,stopTree} from './provider.mjs';
+import {childEnv,macChildEnv,redact,stopTree} from './provider.mjs';
 import {wslCodexConfig,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex,asynchronousProbe,activeWslCodexForWorktree} from './wslCodex.mjs';
 
 export const strictWslChecks=stack=>process.platform==='win32'&&['node','react-native-expo','spring'].includes(stack);
@@ -13,12 +13,15 @@ export function dependencyLinksSafe(mount){
   try{
     const base=fs.realpathSync(mount),stack=[base];
     if(base!==path.resolve(mount))return false;
+    const device=fs.statSync(base).dev;
+    if(device!==fs.statSync(path.dirname(base)).dev)return false;
     let visited=0;
     while(stack.length){
       const directory=stack.pop();
       for(const entry of fs.readdirSync(directory,{withFileTypes:true})){
         if(++visited>500000)return false;
         const location=path.join(directory,entry.name);
+        if(fs.statSync(location).dev!==device)return false;
         if(entry.isSymbolicLink()){
           const target=fs.realpathSync(location);
           if(!target.startsWith(base+path.sep))return false;
@@ -62,6 +65,10 @@ export function preparedNpmDependency(cwd,step,platform=process.platform){
     if(fs.lstatSync(mount).isSymbolicLink()||fs.realpathSync(mount)!==path.resolve(mount))return false;
     const complete=entries.length>0&&entries.every(([relative,meta])=>{
       if(!relative||relative.split(/[\\/]/).includes('..'))return false;
+      if(platform==='darwin'){
+        const reviewed=locked.packages?.[relative];
+        if(!reviewed||['version','resolved','integrity','link'].some(key=>reviewed[key]!==meta[key]))return false;
+      }
       const location=path.resolve(base,relative);
       if(!location.startsWith(base+path.sep))return false;
       const target=meta?.link?path.resolve(base,String(meta.resolved||'')):location;
@@ -189,9 +196,10 @@ export function validateReviewedNpmSetup(cwd,step){
   const expected=['npm','ci',...(prefix?['--prefix',prefix]:[]),'--ignore-scripts','--no-audit','--no-fund'];
   if(!prefix&&step.ifMissing!=='node_modules'||JSON.stringify(step.command)!==JSON.stringify(expected))throw new Error('Only the reviewed npm ci --ignore-scripts setup is allowed');
   const protectedFiles=['package.json','package-lock.json','.npmrc',...(prefix?[`${prefix}/package.json`,`${prefix}/package-lock.json`,`${prefix}/.npmrc`]:[])];
-  const changed=spawnSync('git',['diff','--name-only','HEAD','--',...protectedFiles],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
-  const untracked=spawnSync('git',['ls-files','--others','--exclude-standard','--',...protectedFiles],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
-  const ignoredConfig=spawnSync('git',['ls-files','--others','--ignored','--exclude-standard','--','.npmrc',...(prefix?[`${prefix}/.npmrc`]:[])],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
+  const reviewGit=args=>spawnSync(process.platform==='darwin'?'/usr/bin/git':'git',process.platform==='darwin'?['-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null',...args]:args,{cwd,encoding:'utf8',timeout:10000,windowsHide:true,...(process.platform==='darwin'?{env:macChildEnv('/usr/bin:/bin',{GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'})}:{})});
+  const changed=reviewGit(['diff','--no-ext-diff','--no-textconv','--name-only','HEAD','--',...protectedFiles]);
+  const untracked=reviewGit(['ls-files','--others','--exclude-standard','--',...protectedFiles]);
+  const ignoredConfig=reviewGit(['ls-files','--others','--ignored','--exclude-standard','--','.npmrc',...(prefix?[`${prefix}/.npmrc`]:[])]);
   if(changed.status!==0||untracked.status!==0||ignoredConfig.status!==0||changed.stdout.trim()||untracked.stdout.trim()||ignoredConfig.stdout.trim())throw new Error('Dependency manifest or npm configuration changed in the task worktree');
   const lock=path.join(cwd,prefix||'.','package-lock.json'),manifest=path.join(cwd,prefix||'.','package.json');
   if([lock,manifest].some(file=>fs.realpathSync(file)!==path.resolve(file)||!fs.statSync(file).isFile()))throw new Error('Dependency manifest or lockfile crosses a symbolic link');

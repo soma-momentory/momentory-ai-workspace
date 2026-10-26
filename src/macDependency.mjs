@@ -15,7 +15,7 @@ function sandboxRun(cwd,command,args,environment,signal,timeoutMs=900000){
     const child=spawn(command,args,{cwd,env:environment,detached:true,stdio:['ignore','pipe','pipe']});
     let output='',done=false,timedOut=false,watchdog;
     for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{output=(output+chunk.toString()).slice(-12000);});
-    const finish=(code,error)=>{if(done)return;done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error,code,timedOut,output:redact([output,error].filter(Boolean).join('\n'))});};
+    const finish=(code,error)=>{if(done)return;if(signal?.aborted||timedOut)stopTree(child,'SIGKILL');done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error,code,timedOut,output:redact([output,error].filter(Boolean).join('\n'))});};
     const stop=()=>{stopTree(child);watchdog??=setTimeout(()=>{stopTree(child,'SIGKILL');finish(null,'macOS setup process did not exit');},5000);watchdog.unref();};
     const timer=setTimeout(()=>{timedOut=true;stop();},timeoutMs);
     const abort=()=>stop();signal?.addEventListener('abort',abort,{once:true});
@@ -50,16 +50,20 @@ export async function prepareMacDependency(cwd,step,signal){
   if(step?.ifMissing==='.gradle/workspace-home')throw new Error('Trusted macOS Gradle dependency preparation is not implemented');
   const {digest,marker}=validateReviewedNpmSetup(cwd,step);
   const runtime=trustedMacRuntime(cwd),npm=trustedMacFile('npm',cwd);
-  const environment=macChildEnv(runtime.path,{npm_config_userconfig:'/dev/null',npm_config_globalconfig:'/dev/null',npm_config_registry:'https://registry.npmjs.org/'});
-  version(runtime.node,['--version'],cwd,environment,/^v22\./,'Node');
-  version(runtime.node,[npm,'--version'],cwd,environment,/^(?:10|11)\./,'npm');
-  version(runtime.codex,['--version'],cwd,environment,/\d+\.\d+/,'Codex');
-  if(preparedNpmDependency(cwd,step))return {ok:true,output:'Previously prepared macOS dependencies match the locked manifest and installed package index'};
-  const mount=path.join(cwd,step.ifMissing);
-  if(fs.lstatSync(mount,{throwIfNoEntry:false})||fs.lstatSync(marker,{throwIfNoEntry:false}))throw new Error('Unverified dependency mount or marker exists; use a fresh isolated worktree');
-  await verifyMacSetupBoundary(cwd,runtime,signal);
   const cache=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-mac-npm-'));
   try{
+    // npm rejects loading the same file as both its user and global config.
+    // Keep a distinct, empty per-run user config, never the host's .npmrc.
+    const userConfig=path.join(cache,'user.npmrc');
+    fs.writeFileSync(userConfig,'',{flag:'wx',mode:0o600});
+    const environment=macChildEnv(runtime.path,{npm_config_userconfig:userConfig,npm_config_globalconfig:'/dev/null',npm_config_registry:'https://registry.npmjs.org/'});
+    version(runtime.node,['--version'],cwd,environment,/^v22\./,'Node');
+    version(runtime.node,[npm,'--version'],cwd,environment,/^(?:10|11)\./,'npm');
+    version(runtime.codex,['--version'],cwd,environment,/\d+\.\d+/,'Codex');
+    if(preparedNpmDependency(cwd,step))return {ok:true,output:'Previously prepared macOS dependencies match the locked manifest and installed package index'};
+    const mount=path.join(cwd,step.ifMissing);
+    if(fs.lstatSync(mount,{throwIfNoEntry:false})||fs.lstatSync(marker,{throwIfNoEntry:false}))throw new Error('Unverified dependency mount or marker exists; use a fresh isolated worktree');
+    await verifyMacSetupBoundary(cwd,runtime,signal);
     const args=['sandbox','-p',codexProfileName('posix-setup'),'-P','workspace-setup','-C',cwd,'--',runtime.node,npm,...step.command.slice(1)];
     const result=await sandboxRun(cwd,runtime.codex,args,{...environment,npm_config_cache:cache},signal);
     if(!result.ok)return result;

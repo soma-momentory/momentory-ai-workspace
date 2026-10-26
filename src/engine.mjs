@@ -26,6 +26,7 @@ const context = (task) => `${project(task.project_id).name} development task. Go
 
 export function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
   return new Promise(resolve=>{
+    if(signal?.aborted){resolve({ok:false,code:null,timedOut:false,output:'Cancelled before command start'});return;}
     if(isolate) verifyCodexProfile(process.platform==='darwin'?'posix-check':'check');
     const mac=isolate&&process.platform==='darwin'?trustedMacRuntime(cwd):null;
     const actualCommand=mac&&command==='npm'?mac.node:mac&&command==='node'?mac.node:command;
@@ -37,7 +38,7 @@ export function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={})
     const child=spawn(executable,commandArgs,{cwd,windowsHide:true,shell:process.platform==='win32'&&executable!==process.execPath,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env});
     let output='',timedOut=false,done=false,watchdog=null;
     for(const stream of [child.stdout,child.stderr]) stream.on('data',chunk=>{output=(output+chunk.toString('utf8')).slice(-12000);});
-    const finish=(code,error)=>{if(done)return;done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error,code,timedOut,output:redact([output,error].filter(Boolean).join('\n'))});};
+    const finish=(code,error)=>{if(done)return;if(signal?.aborted||timedOut)stopTree(child,'SIGKILL');done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error,code,timedOut,output:redact([output,error].filter(Boolean).join('\n'))});};
     const stop=()=>{stopTree(child);if(!watchdog){watchdog=setTimeout(()=>{stopTree(child,'SIGKILL');finish(null,'Command wrapper did not exit after termination');},5000);watchdog.unref();}};
     const timer=setTimeout(()=>{timedOut=true;stop();},timeoutMs);
     const abort=()=>stop(); signal?.addEventListener('abort',abort,{once:true});
