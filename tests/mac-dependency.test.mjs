@@ -204,6 +204,8 @@ test('real macOS isolated Gradle workers and malicious input regression',{
     const target=path.join(cwd,'attack-targets.txt'),targets=fs.readFileSync(target,'utf8').trim().split('\n');targets[0]=String(server.address().port);fs.writeFileSync(target,targets.join('\n')+'\n');
     assert.equal(await(await fetch(`http://127.0.0.1:${server.address().port}`)).text(),'SYNTHETIC_OTHER_PROJECT_SERVICE');
     const prepared=await prepareMacDependency(cwd,{ifMissing:'.gradle/workspace-home',command:['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']});assert.equal(prepared.ok,true,prepared.output);
+    const reused=await prepareMacDependency(cwd,{ifMissing:'.gradle/workspace-home',command:['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']});
+    assert.equal(reused.ok,true);assert.match(reused.output,/Previously prepared reviewed macOS Gradle materials/);
     const check=await runMacGradleCheck(cwd,['clean','check'],120000);assert.equal(check.ok,true,check.output);
     assert.match(check.output,/WORKSPACE_TEST_COUNTS tests=5 failed=0 skipped=0/);assert.match(check.output,/WORKER_API_IPC_OK/);assert.match(check.output,/MALICIOUS_BUILD_INPUTS_DENIED/);
     assert.equal(check.isolation.network,'none');assert.equal(check.isolation.user,'65532:65532');assert.ok(check.isolation.mounts.every(mount=>!mount.writable));
@@ -214,6 +216,11 @@ test('real macOS isolated Gradle workers and malicious input regression',{
     await assert.rejects(runMacGradleCheck(cwd,['test'],1000),/Gradle build inputs changed/);fs.writeFileSync(verification,original);
     const policy=JSON.parse(fs.readFileSync(process.env.WORKSPACE_MAC_GRADLE_POLICY)),artifact=path.join(policy.repository,'org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar'),bytes=fs.readFileSync(artifact);
     try{fs.appendFileSync(artifact,'TAMPER');await assert.rejects(verifyMacGradleMaterials(cwd),/artifact checksum/);}finally{fs.writeFileSync(artifact,bytes);}
+    const addedArtifact=path.join(policy.repository,`unapproved-${randomUUID()}.jar`);fs.writeFileSync(addedArtifact,'UNAPPROVED_ARTIFACT',{flag:'wx'});
+    try{
+      await assert.rejects(verifyMacGradleMaterials(cwd),/Unreviewed Gradle artifact exists/);
+      await assert.rejects(runMacGradleCheck(cwd,['test'],1000),/Unreviewed Gradle artifact exists/);
+    }finally{fs.unlinkSync(addedArtifact);}
     const oldPolicy=process.env.WORKSPACE_MAC_GRADLE_POLICY,oldSha=process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256,unapproved=path.join(fs.realpathSync(os.tmpdir()),`gradle-policy-${randomUUID()}.json`);
     try{
       const changed=structuredClone(policy);changed.artifacts[0].url='https://unapproved.example.invalid/artifact';fs.writeFileSync(unapproved,JSON.stringify(changed),{mode:0o600});process.env.WORKSPACE_MAC_GRADLE_POLICY=unapproved;process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256=createHash('sha256').update(fs.readFileSync(unapproved)).digest('hex');
@@ -240,7 +247,7 @@ test('real macOS isolated Gradle workers and malicious input regression',{
     const timeout=await runMacGradleCheck(cwd,['test'],1000);assert.equal(timeout.ok,false);assert.equal(timeout.timedOut,true);assert.deepEqual(activeMacProcessesForWorktree(cwd),[]);
     fs.unlinkSync(crashMode);const recovered=await runMacGradleCheck(cwd,['test'],120000);assert.equal(recovered.ok,true,recovered.output);assert.match(recovered.output,/WORKSPACE_TEST_COUNTS tests=5 failed=0 skipped=0/);
     assert.equal((await verifyMacGradleMaterials(cwd)).ok,true);assert.deepEqual(activeMacProcessesForWorktree(cwd),[]);
-    console.log(JSON.stringify({gradle:'PASS',testWorkerTests:5,workerApi:'PASS',networkNone:'PASS',hostLoopbackDenied:true,sourceSecretAndArtifactDenial:true,oversizedSource:'DENIED',metadataTamper:'DENIED',artifactTamper:'DENIED',unapprovedCache:'DENIED',markerTamper:'DENIED',wrongContainerOwner:'DENIED',cancelledDescendantsReaped:true,timeoutNamespaceReaped:true,freshCheckRecovery:true}));
+    console.log(JSON.stringify({gradle:'PASS',testWorkerTests:5,workerApi:'PASS',networkNone:'PASS',hostLoopbackDenied:true,sourceSecretAndArtifactDenial:true,oversizedSource:'DENIED',metadataTamper:'DENIED',artifactTamper:'DENIED',unapprovedArtifact:'DENIED',reviewedMaterialReuse:true,unapprovedCache:'DENIED',markerTamper:'DENIED',wrongContainerOwner:'DENIED',cancelledDescendantsReaped:true,timeoutNamespaceReaped:true,freshCheckRecovery:true}));
   }finally{
     await new Promise(resolve=>server.close(resolve));
     if(!activeMacProcessesForWorktree(cwd).length){fs.rmSync(marker,{force:true});fs.rmSync(cwd,{recursive:true,force:true});}

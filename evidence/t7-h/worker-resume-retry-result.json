@@ -1,0 +1,8 @@
+{
+  "command": "pinned-node tests/resume-killed.integration.mjs /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/worker-kill-e3e04b01-5610-4551-9555-094c7fa24f6c.sqlite",
+  "flag": "WORKSPACE_TEST_GRADLE_CRASH=1",
+  "startedAt": "2026-10-26T16:17:38.865Z",
+  "code": 0,
+  "signal": null,
+  "priorInvocation": "Missing required database argument; product recovery did not run"
+}

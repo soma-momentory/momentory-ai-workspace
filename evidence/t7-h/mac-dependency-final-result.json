@@ -1,0 +1,11 @@
+{
+  "command": "pinned-node --test tests/mac-dependency.test.mjs",
+  "flags": [
+    "RUN_MAC_DEPENDENCY_INTEGRATION=1",
+    "RUN_MAC_MOUNT_INTEGRATION=1",
+    "RUN_MAC_GRADLE_INTEGRATION=1"
+  ],
+  "checkedAt": "2026-10-26T16:33:23.738Z",
+  "code": 0,
+  "signal": null
+}

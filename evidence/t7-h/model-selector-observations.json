@@ -1,0 +1,5 @@
+{
+  "note": "Raw POM declarations, not proof of selected graph mutability. Property interpolation is handled by Gradle.",
+  "literal_mutable_declarations": [],
+  "property_expression_occurrences": 2951
+}

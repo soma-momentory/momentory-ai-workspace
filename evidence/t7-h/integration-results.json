@@ -1,0 +1,62 @@
+[
+  {
+    "command": "pinned-node tests/codex-boundary.integration.mjs",
+    "startedAt": "2026-10-26T16:09:11.468Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/provider-boundary.integration.mjs",
+    "startedAt": "2026-10-26T16:09:32.587Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/codex-cancel.integration.mjs",
+    "startedAt": "2026-10-26T16:10:12.742Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/local.integration.mjs",
+    "startedAt": "2026-10-26T16:10:50.444Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/recovery.integration.mjs",
+    "startedAt": "2026-10-26T16:12:10.460Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/diff-reviewability.integration.mjs",
+    "startedAt": "2026-10-26T16:12:21.710Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/approved-inheritance.integration.mjs",
+    "startedAt": "2026-10-26T16:12:22.091Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/sandbox-check.integration.mjs",
+    "startedAt": "2026-10-26T16:12:22.440Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/pause.integration.mjs",
+    "startedAt": "2026-10-26T16:12:23.250Z",
+    "code": 0,
+    "signal": null
+  },
+  {
+    "command": "pinned-node tests/wsl-orphan.integration.mjs",
+    "startedAt": "2026-10-26T16:13:27.047Z",
+    "code": 0,
+    "signal": null
+  }
+]

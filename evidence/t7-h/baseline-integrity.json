@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-26T15:54:37.720Z",
+  "files": 626,
+  "uniqueGavs": 387,
+  "types": {
+    "jar": 207,
+    "pom": 275,
+    "module": 144
+  },
+  "sha256AllMatch": true,
+  "metadataSha256": "57c771118bc6cb167f2ea35de1794a7a73991603c208c903de87dcf0adaa3fb2",
+  "approvalIssued": false
+}

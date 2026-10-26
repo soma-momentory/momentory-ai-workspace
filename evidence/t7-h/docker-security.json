@@ -1,0 +1,1 @@
+{"serverVersion":"29.5.2","os":"linux","architecture":"aarch64","kernel":"6.8.0-117-generic","security":["name=apparmor","name=seccomp,profile=builtin","name=cgroupns"]}

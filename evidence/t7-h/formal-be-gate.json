@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-26T16:07:19.062Z",
+  "approvalIssued": false,
+  "results": [
+    {
+      "name": "prepare",
+      "status": "BLOCKED",
+      "reason": "Unapproved Gradle review proposal cannot authorize setup or checks"
+    },
+    {
+      "name": "check",
+      "status": "BLOCKED",
+      "reason": "Unapproved Gradle review proposal cannot authorize setup or checks"
+    }
+  ]
+}

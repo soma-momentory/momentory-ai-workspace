@@ -1,0 +1,53 @@
+{
+  "t7h": "DONE_APPROVAL_PREPARATION_ONLY",
+  "workspaceRelease": "NOT_READY",
+  "approvalIssued": false,
+  "grades": {
+    "A": 278,
+    "B": 287,
+    "C": 61,
+    "D": 0
+  },
+  "automated": {
+    "PASS": 38,
+    "FAIL": 0,
+    "NOT_RUN": 1
+  },
+  "finalMacDependencySubset": {
+    "PASS": 10,
+    "FAIL": 0,
+    "NOT_RUN": 1,
+    "overlapsAutomated": true
+  },
+  "existingIntegrationModules": {
+    "PASS": 10,
+    "FAIL": 0
+  },
+  "workerCrashCleanup": "PASS",
+  "reviewedPartialDiffRecovery": "PASS",
+  "formalBePreparation": "BLOCKED",
+  "formalBeChecks": "NOT_RUN",
+  "unapprovedBeDiagnostic": {
+    "executedSuccessfully": 266,
+    "FAIL": 0,
+    "NOT_RUN": 237,
+    "formalPassIssued": false
+  },
+  "artifactSha256Mismatches": 0,
+  "detachedSignatureStatuses": {
+    "VALID": 623,
+    "KEY_MISSING": 1,
+    "ABSENT": 2
+  },
+  "signaturePositiveAndTamperControls": "PASS",
+  "dependencyLocking": "RECOMMENDED_NOT_APPLIED_PENDING_REVIEW",
+  "osvExactGavQueries": 387,
+  "osvMatchedGavs": 12,
+  "osvDistinctAdvisories": 22,
+  "tomcatProductApplicabilityCandidates": 31,
+  "priorCollectionIssues": [
+    "legacy KEYS header encoding corrected",
+    "compressed PGP signature container decoded with size limit",
+    "first resume invocation lacked required database argument; corrected retry passed"
+  ]
+}
