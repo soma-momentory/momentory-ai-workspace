@@ -39,8 +39,28 @@ export function createWorktree(task) {
   }
   fs.mkdirSync(path.dirname(dir),{recursive:true});
   const branch=`workspace/${task.id}`;
-  git(info.dir,'worktree','add','-b',branch,dir,info.head);
+  if(process.platform==='win32'&&task.provider==='codex') createIsolatedCodexClone(info.dir,dir,info.head,branch);
+  else git(info.dir,'worktree','add','-b',branch,dir,info.head);
   return {dir,branch,baseHead:info.head,dirtySource:!!info.dirty};
+}
+// Windows worktree .git files point at a C:/... gitdir. Linux Git and Codex's
+// sandbox cannot resolve that pointer without exposing the source repository.
+// A local transport clone gives Codex self-contained metadata inside its task
+// boundary. --no-local prevents hardlinks or object alternates to the source.
+export function createIsolatedCodexClone(source,dir,head,branch){
+  execFileSync('git',['clone','--no-local','--no-checkout','--single-branch',source,dir],{timeout:120000,windowsHide:true,stdio:'pipe'});
+  try{
+    git(dir,'remote','remove','origin');
+    git(dir,'config','core.autocrlf','false');
+    if(fs.lstatSync(path.join(dir,'.git')).isSymbolicLink()||!fs.statSync(path.join(dir,'.git')).isDirectory()||fs.existsSync(path.join(dir,'.git','objects','info','alternates')))
+      throw new Error('Codex clone Git metadata is not isolated');
+    git(dir,'cat-file','-e',`${head}^{commit}`);
+    git(dir,'checkout','-b',branch,head);
+    if(git(dir,'rev-parse','HEAD')!==head||git(dir,'status','--porcelain'))throw new Error('Codex clone did not start clean at the source HEAD');
+  }catch(error){
+    // Keep the failed clone for local inspection; createWorktree rejects it on retry.
+    throw error;
+  }
 }
 export function inheritApproved(task,dir,sourceStore=null) {
   if(!task.dependsOn?.length) return;
