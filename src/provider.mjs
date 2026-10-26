@@ -6,6 +6,7 @@ import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {wslCodexLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
 import {trustedMacFile,trustedMacRuntime,validateMacWorktree} from './macTrust.mjs';
+import {validMacGradleContainer,cleanupMacGradleContainer} from './macGradleContainer.mjs';
 
 const macProcessTrees=new WeakMap();
 const macRegistry=()=>path.join(root,'data','mac-processes');
@@ -38,6 +39,7 @@ function readMacProcessRecords(){
     if(!stat.isFile()||stat.uid!==process.getuid()||stat.mode&0o077||stat.size>1000000)throw new Error('Untrusted macOS process checkpoint');
     const record=JSON.parse(fs.readFileSync(file,'utf8'));
     if(record.version!==2||record.workspace!==root||!path.isAbsolute(record.cwd)||!Number.isInteger(record.owner?.pid)||record.owner.pid<=1||!/^\d+:\d+$/.test(record.owner.identity)||!Number.isInteger(record.pid)||record.pid<=1||!Array.isArray(record.processes)||record.processes.some(([pid,identity])=>!Number.isInteger(pid)||pid<=1||pid===process.pid||!/^\d+:\d+$/.test(identity)))throw new Error('Invalid macOS process checkpoint; local recovery required');
+    if(record.container&&!validMacGradleContainer(record.container))throw new Error('Invalid macOS Gradle container checkpoint');
     return {file,record};
   });
 }
@@ -56,9 +58,19 @@ export function reapStaleMacProcesses(){
     for(const [pid,identity] of [...tracked].reverse())if(current.get(pid)?.identity===identity)try{process.kill(pid,'SIGKILL');}catch(error){if(error.code!=='ESRCH')throw error;}
     const after=macProcessTable();
     if([...tracked].some(([pid,identity])=>after.get(pid)?.identity===identity))throw new Error('macOS orphan cleanup incomplete; worktree remains blocked');
+    if(record.container)cleanupMacGradleContainer(record.container,record.cwd);
     fs.rmSync(file);removed.push(path.basename(file));
   }
   return removed;
+}
+export function registerMacGradleContainer(cwd,container){
+  if(process.platform!=='darwin'||!validMacGradleContainer(container))throw new Error('Invalid macOS Gradle resource');
+  fs.mkdirSync(macRegistry(),{recursive:true,mode:0o700});readMacProcessRecords();
+  const table=macProcessTable(),file=path.join(macRegistry(),`${process.pid}-${randomUUID()}.json`);
+  const record={version:2,workspace:root,cwd:path.resolve(cwd),owner:{pid:process.pid,identity:table.get(process.pid).identity},pid:process.pid,processes:[],container};
+  // Persist before Docker create/start, including the creation-before-start crash window.
+  const temporary=file+'.tmp';fs.writeFileSync(temporary,JSON.stringify(record),{flag:'wx',mode:0o600});fs.renameSync(temporary,file);
+  return {finish:()=>{cleanupMacGradleContainer(container,cwd);fs.rmSync(file);}};
 }
 export function trackMacProcess(child,cwd){
   if(process.platform!=='darwin')return {finish:()=>true};

@@ -1,0 +1,7 @@
+Error: Isolated Gradle Docker control failed: Error response from daemon: invalid mount config for type "bind": stat /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/gradle-runs/momentory-gradle-0c67582c-58cd-4c1e-9e74-e7f97213a7a6/denied-file: permission denied
+
+    at command (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradleContainer.mjs:29:30)
+    at Object.create (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradleContainer.mjs:86:5)
+    at invoke (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradle.mjs:136:31)
+    at Module.prepareMacGradle (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradle.mjs:157:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

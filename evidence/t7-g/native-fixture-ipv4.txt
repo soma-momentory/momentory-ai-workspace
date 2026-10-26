@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+    "sandbox",
+    "-p",
+    "ai-dev-workspace-t7-g-probe",
+    "-P",
+    "gradle-ipc",
+    "-C",
+    "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture",
+    "--",
+    "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0/bin/gradle",
+    "test",
+    "--offline",
+    "--no-daemon",
+    "--max-workers=2",
+    "-Dorg.gradle.jvmargs=",
+    "-Djava.net.preferIPv4Stack=true",
+    "--init-script",
+    "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/repositories.init.gradle",
+    "--info",
+    "--rerun-tasks"
+  ],
+  "JAVA_TOOL_OPTIONS": "-Djava.net.preferIPv4Stack=true",
+  "ok": false,
+  "code": 1,
+  "timedOut": false,
+  "output": "NOTE: Picked up JDK_JAVA_OPTIONS: \nPicked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true\nPicked up _JAVA_OPTIONS: \nInitialized native services in: /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/.gradle/workspace-home/native\nInitialized jansi services in: /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/.gradle/workspace-home/native\nTo honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nStarting process 'Gradle build daemon'. Working directory: /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/.gradle/workspace-home/daemon/9.1.0 Command: /Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED -Dfile.encoding=UTF-8 -Duser.country=KR -Duser.language=ko -Duser.variant -cp /Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0/lib/gradle-daemon-main-9.1.0.jar -javaagent:/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0/lib/agents/gradle-instrumentation-agent-9.1.0.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.1.0\nSuccessfully started process 'Gradle build daemon'\nAn attempt to start the daemon took 0.342 secs.\nThe client will now receive all logging from the daemon (pid: 88805). The daemon log file: /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/.gradle/workspace-home/daemon/9.1.0/daemon-88805.out.log\nDaemon will be stopped at the end of the build \nUsing 2 worker leases.\nReceived JVM installation metadata from '/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home': {JAVA_HOME=/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home, JAVA_VERSION=21.0.13, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=21.0.13+9-LTS, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=21.0.13+9-LTS, VM_VENDOR=Eclipse Adoptium, OS_ARCH=aarch64}\nWatching the file system is configured to be enabled if available\nNow considering [/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture] as hierarchies to watch\nFile system watching is active\nCaching disabled for Groovy DSL script compilation (cp_init) because:\n  Build cache is disabled\n  Not worth caching.\nCompiling initialization script '/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/repositories.init.gradle' using SubsetScriptTransformer.\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nFailed to create directory /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/.gradle/workspace-home/caches/9.1.0/groovy-dsl/d05fa65eb80bb69fa3d49afd7db24588-addefac4-a3de-4bae-86a9-d14ce44724eb/instrumented/cp_init.\n> java.nio.file.FileSystemException: /Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/fixture/.gradle/workspace-home/.tmp/cp_init7072535451735860223.tmp: Operation not permitted\n\n* Try:\n> Run with --stacktrace option to get the stack trace.\n> Run with --debug option to get more log output.\n> Run with --scan to generate a Build Scan (Powered by Develocity).\n> Get more help at https://help.gradle.org.\n\nBUILD FAILED in 1s\nWatched directory hierarchies: []\n"
+}

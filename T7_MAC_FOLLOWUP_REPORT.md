@@ -1,5 +1,7 @@
 # T7-Mac 후속 검증 — 2026-10-26 KST
 
+후속 Gradle 결과는 [T7_G_REPORT.md](T7_G_REPORT.md)에 있다. 아래는 `5372d41`의 당시 결과이며, T7-G의 VM 실행 증거와 구분한다.
+
 **T7-Mac: PARTIAL. 정식 Workspace Release: NOT READY.**
 
 Workspace `2eeff69`의 기존 엔진·테스트를 재사용했다. 구현 브랜치는 `workspace/t7-macos-release-blockers`, worktree는 `/Users/kjh/Momentory/momentory-ai-workspace-t7-followup`이다. 원본 Workspace `main=10d835a`와 이전 검증 브랜치 `2eeff69`는 깨끗한 상태로 보존했다. main/dev 병합, push, 운영 배포, 제품 구조 디자인 승인은 하지 않았다.

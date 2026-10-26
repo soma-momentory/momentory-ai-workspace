@@ -10,6 +10,8 @@ const root=path.resolve(import.meta.dirname,'..'),db=path.resolve(process.argv[2
 if(!db.startsWith(path.join(root,'data')+path.sep)||!/worker-kill-[0-9a-f-]+\.sqlite$/.test(path.basename(db))||!fs.existsSync(db))throw new Error('Pass the database path printed by test:worker-kill');
 const store=new Store(db),task=store.listTasks('sample').find(item=>item.status==='STALE'&&item.worktree);store.close();
 if(!task||!fs.existsSync(task.worktree))throw new Error('No preserved stale worktree');
+const gradle=process.platform==='darwin'&&process.env.WORKSPACE_TEST_GRADLE_CRASH==='1';
+if(gradle&&fs.existsSync(path.join(task.worktree,'crash-mode')))fs.unlinkSync(path.join(task.worktree,'crash-mode'));
 assert.ok(execFileSync('git',['status','--porcelain'],{cwd:task.worktree,encoding:'utf8'}).includes('partial-change.txt'),'Failure injection must preserve its partial file');
 const port=await new Promise(resolve=>{const socket=net.createServer();socket.listen(0,'127.0.0.1',()=>{const value=socket.address().port;socket.close(()=>resolve(value));});});
 const token=randomBytes(32).toString('hex'),workerToken=randomBytes(32).toString('hex'),base=`http://127.0.0.1:${port}`;
@@ -25,7 +27,7 @@ try{
   const unreviewed=await fetch(base+`/api/tasks/${task.id}/control`,{method:'POST',headers:{Origin:base,Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({action:'resume'})});
   assert.equal(unreviewed.status,409,'Partial edit must require a reviewed diff hash');
   assert.equal((await api(`/api/tasks/${task.id}/control`,'POST',{action:'resume',reviewedDiffHash:recovery.hash})).task.status,'QUEUED');
-  await api(`/api/tasks/${task.id}`,'PATCH',{goal:'Add a passing edge-case test for greeting with an empty name; preserve the existing greeting test and partial-change.txt.'});
+  await api(`/api/tasks/${task.id}`,'PATCH',{goal:gradle?'Add a short README-recovery.txt explaining the controlled recovery; preserve the reviewed partial-change.txt and removed crash-mode. Do not change Gradle files, dependencies or tests.':'Add a passing edge-case test for greeting with an empty name; preserve the existing greeting test and partial-change.txt.'});
   worker=spawn(process.execPath,['src/worker.mjs'],{cwd:root,env,stdio:['ignore','ignore','ignore','ipc']});
   let result=null;for(let i=0;i<900;i++){await delay(1000);result=(await api(`/api/tasks/${task.id}`)).task;if(['AWAITING_APPROVAL','FAILED','UNVERIFIED','STALE'].includes(result.status))break;}
   assert.equal(result.status,'AWAITING_APPROVAL',JSON.stringify(result.verification));

@@ -1,0 +1,118 @@
+{
+  "workspace": {
+    "base": "5372d41c9e74048a9ebc0a8f7e06d11c8c25c52a",
+    "branch": "workspace/t7-g-secure-gradle",
+    "files": [
+      {
+        "file": "OPERATIONS.md",
+        "sha256": "4a93cfd4d9c72a72f1bce4530d2113bbd2463e6f26b5a170f8958924f1a6495e"
+      },
+      {
+        "file": "README.md",
+        "sha256": "e8ed2683869800891c08ca2b4ef0e7c2905aa82129d31993b9e127df22257200"
+      },
+      {
+        "file": "RELEASE_CHECKLIST.md",
+        "sha256": "64d9cde3ec2914d5e10309d93359d50b98751d46488b98b866035761e061f6b8"
+      },
+      {
+        "file": "SECURITY.md",
+        "sha256": "f4965968c39471e26036313d59bcd1cb4616fd174c68469e7c499cb2829303a9"
+      },
+      {
+        "file": "T7_G_REPORT.md",
+        "sha256": "95a749b3e4b5908ddfd581d0352ed0fb1820dbae7fb10d11d061ab6303a53cb9"
+      },
+      {
+        "file": "T7_MAC_FOLLOWUP_REPORT.md",
+        "sha256": "82d2b0a8a989dc1d702e8e69fd86245a3c78e17fbd0aba9ca8a1bd2517deb08b"
+      },
+      {
+        "file": "TEST_REPORT.md",
+        "sha256": "3d9d1dd5683ac95e7a8737091d57ee36e304ddb503c8a16973fbdfe9e7dd3571"
+      },
+      {
+        "file": "src/codexProfile.mjs",
+        "sha256": "db16ebd53fec5ad00410c23b98d21892f1d1332bb3ac8b7f6c7e171e4df32605"
+      },
+      {
+        "file": "src/macDependency.mjs",
+        "sha256": "d836c8344d83f41d29bb347bc19a921200706b5949922e19a738e3f4f624e5b3"
+      },
+      {
+        "file": "src/macGradle.mjs",
+        "sha256": "874f982b7c7b517a92b961041d8e29072a416a3c2563c99b42c92ebb0739d9b4"
+      },
+      {
+        "file": "src/macGradleContainer.mjs",
+        "sha256": "55c3d0ac44dffd0f3934c554ff0c021a5fc0792d4cc030c40151d69252df6639"
+      },
+      {
+        "file": "src/macTrust.mjs",
+        "sha256": "9b34569c6e5b19698bcc517121600fd1b031a24dcd852e4be01adbd16f531036"
+      },
+      {
+        "file": "src/provider.mjs",
+        "sha256": "1569c1cfe4c94371c0c5d234215df6a35fed8979e6b700c9f9fdee3d33dc9810"
+      },
+      {
+        "file": "tests/fixtures/mac-gradle-ipc.c",
+        "sha256": "354700840a5078c53e52c480e451884ed02e19f2e234f15c8d1187c686ea2e41"
+      },
+      {
+        "file": "tests/fixtures/mac-gradle/build.gradle",
+        "sha256": "d6ff28e50df7327a2a4739a8acb0935a3ff9550b5dabbb79bd000b055252eed0"
+      },
+      {
+        "file": "tests/fixtures/mac-gradle/settings.gradle",
+        "sha256": "37a8b57aba2bc0812e32f3e8463fbcd17c894b3bf4aa98b149d84738c467ec4c"
+      },
+      {
+        "file": "tests/fixtures/mac-gradle/src/main/java/CrashProbe.java",
+        "sha256": "df82cd977b973ad2fed0b00f2b41041d75c304809ebf27526c99f6133398adcd"
+      },
+      {
+        "file": "tests/fixtures/mac-gradle/src/main/java/Fixture.java",
+        "sha256": "50a22e52c9a5f671c07bc293112f72421da1f4d5495cc79d2acf4860e073c488"
+      },
+      {
+        "file": "tests/fixtures/mac-gradle/src/test/java/FixtureTest.java",
+        "sha256": "d177efd5e5613a98c848fa439091236c07522c89ce82e9bcfc8ea68de4dba393"
+      },
+      {
+        "file": "tests/mac-dependency.test.mjs",
+        "sha256": "5b3e4447f9317cc45ceaf4fa8d916ce01b268eca6103dd0543226877ea1ee164"
+      },
+      {
+        "file": "tests/resume-killed.integration.mjs",
+        "sha256": "a411e9a434e6e84864fcef975292f31351c6f6dcd510a9a3e4fa892dce93bddc"
+      },
+      {
+        "file": "tests/worker-kill.integration.mjs",
+        "sha256": "2434f38d265e57f55a6d3a0188724c565d13375a082a17c7ff0b4f48247b44da"
+      }
+    ],
+    "evidenceDirectory": "evidence/t7-g",
+    "evidenceHashes": "SHA256SUMS.txt"
+  },
+  "be": {
+    "base": "ca3bc87f9d679ea6edd37fffa5e5390e307952b8",
+    "branch": "workspace/t7-g-gradle-checksums",
+    "commit": "b2be605ecacc2fc2fe1427b7f6437ccabb534e78",
+    "files": [
+      {
+        "file": "gradle/wrapper/gradle-wrapper.properties",
+        "sha256": "42bc80546f2979857efc20b23ede63b1c5a20478aef5a5c7b89ca66fb46fc786"
+      }
+    ]
+  },
+  "disposableAdversarialClone": {
+    "path": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/be-attack-fixture",
+    "head": "49ef1d0ab847aa011dddfbc09787368dfbc663b0",
+    "base": "b2be605ecacc2fc2fe1427b7f6437ccabb534e78",
+    "merged": false,
+    "approvalIssued": false,
+    "addon": "be-malicious-build-addon.txt"
+  },
+  "originals": "See final-state.json; original FE tracked patch and untracked files were compared with the previous preserved snapshot"
+}

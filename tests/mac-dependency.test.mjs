@@ -3,12 +3,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import http from 'node:http';
 import {execFileSync} from 'node:child_process';
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {trustedMacFile,validateMacWorktree} from '../src/macTrust.mjs';
-import {macChildEnv} from '../src/provider.mjs';
+import {macChildEnv,activeMacProcessesForWorktree} from '../src/provider.mjs';
 import {prepareMacDependency,verifyMacSetupBoundary} from '../src/macDependency.mjs';
 import {dependencyLinksSafe,preparedNpmDependency,validateReviewedNpmSetup} from '../src/wslChecks.mjs';
+import {runMacGradleCheck,verifyMacGradleMaterials} from '../src/macGradle.mjs';
+import {root} from '../src/config.mjs';
+import {cleanupMacGradleContainer} from '../src/macGradleContainer.mjs';
 
 const step={ifMissing:'node_modules',command:['npm','ci','--ignore-scripts','--no-audit','--no-fund']};
 
@@ -93,9 +97,9 @@ test('macOS executable pins reject replacement, writable files, links and PATH s
 });
 
 test('macOS Gradle preparation stays explicitly blocked',{skip:process.platform!=='darwin'},async()=>{
-  const previous=process.env.WORKSPACE_MAC_GRADLE_POLICY;
-  try{delete process.env.WORKSPACE_MAC_GRADLE_POLICY;await assert.rejects(prepareMacDependency(process.cwd(),{ifMissing:'.gradle/workspace-home',command:['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']}),/Gradle.*blocked/);}
-  finally{if(previous===undefined)delete process.env.WORKSPACE_MAC_GRADLE_POLICY;else process.env.WORKSPACE_MAC_GRADLE_POLICY=previous;}
+  const previous=process.env.WORKSPACE_MAC_GRADLE_POLICY,cwd=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'workspace-no-gradle-policy-')));
+  try{delete process.env.WORKSPACE_MAC_GRADLE_POLICY;await assert.rejects(prepareMacDependency(cwd,{ifMissing:'.gradle/workspace-home',command:['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']}),/Gradle.*blocked/);}
+  finally{if(previous===undefined)delete process.env.WORKSPACE_MAC_GRADLE_POLICY;else process.env.WORKSPACE_MAC_GRADLE_POLICY=previous;fs.rmSync(cwd,{recursive:true,force:true});}
 });
 
 test('real macOS locked npm preparation and marker validation',{
@@ -173,4 +177,72 @@ test('pinned macOS executable policy rejects missing config and worktree shims',
     assert.throws(()=>trustedMacFile('codex',dir,{}),/must be configured/);
     assert.throws(()=>trustedMacFile('codex',dir,{WORKSPACE_MAC_CODEX:shim,WORKSPACE_MAC_CODEX_SHA256:'0'.repeat(64)}),/Untrusted macOS codex path/);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('unapproved Gradle review proposals cannot authorize setup or checks',{skip:process.platform!=='darwin'},async()=>{
+  const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'workspace-gradle-review-'))),cwd=path.join(base,'project'),file=path.join(base,'review.json');fs.mkdirSync(cwd);
+  const oldPolicy=process.env.WORKSPACE_MAC_GRADLE_POLICY,oldSha=process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256;
+  try{
+    fs.writeFileSync(file,JSON.stringify({version:2,reviewOnly:true}),{mode:0o600});process.env.WORKSPACE_MAC_GRADLE_POLICY=file;process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256=createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    await assert.rejects(prepareMacDependency(cwd,{ifMissing:'.gradle/workspace-home',command:['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']}),/Unapproved Gradle review proposal/);
+    await assert.rejects(runMacGradleCheck(cwd,['test'],1000),/Unapproved Gradle review proposal/);
+  }finally{
+    if(oldPolicy===undefined)delete process.env.WORKSPACE_MAC_GRADLE_POLICY;else process.env.WORKSPACE_MAC_GRADLE_POLICY=oldPolicy;
+    if(oldSha===undefined)delete process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256;else process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256=oldSha;
+    fs.rmSync(base,{recursive:true,force:true});
+  }
+});
+
+test('real macOS isolated Gradle workers and malicious input regression',{
+  skip:process.platform!=='darwin'||process.env.RUN_MAC_GRADLE_INTEGRATION!=='1',timeout:180000
+},async()=>{
+  const source=process.env.WORKSPACE_TEST_GRADLE_WORKTREE;assert.ok(source,'Set the reviewed controlled Gradle fixture path');
+  const cwd=path.join(root,'data',`gradle-regression-${randomUUID()}`),marker=path.join(root,'data/check-deps',createHash('sha256').update(cwd+'|mac-gradle').digest('hex')+'.json');
+  execFileSync('/usr/bin/git',['clone','--no-hardlinks',source,cwd],{stdio:'ignore'});
+  const server=http.createServer((_req,res)=>res.end('SYNTHETIC_OTHER_PROJECT_SERVICE'));await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try{
+    const target=path.join(cwd,'attack-targets.txt'),targets=fs.readFileSync(target,'utf8').trim().split('\n');targets[0]=String(server.address().port);fs.writeFileSync(target,targets.join('\n')+'\n');
+    assert.equal(await(await fetch(`http://127.0.0.1:${server.address().port}`)).text(),'SYNTHETIC_OTHER_PROJECT_SERVICE');
+    const prepared=await prepareMacDependency(cwd,{ifMissing:'.gradle/workspace-home',command:['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']});assert.equal(prepared.ok,true,prepared.output);
+    const check=await runMacGradleCheck(cwd,['clean','check'],120000);assert.equal(check.ok,true,check.output);
+    assert.match(check.output,/WORKSPACE_TEST_COUNTS tests=5 failed=0 skipped=0/);assert.match(check.output,/WORKER_API_IPC_OK/);assert.match(check.output,/MALICIOUS_BUILD_INPUTS_DENIED/);
+    assert.equal(check.isolation.network,'none');assert.equal(check.isolation.user,'65532:65532');assert.ok(check.isolation.mounts.every(mount=>!mount.writable));
+    assert.equal(fs.existsSync(path.join(cwd,'command-attempt.txt')),false);assert.equal(fs.existsSync(path.join(cwd,'generated-control.txt')),false);assert.equal(fs.readFileSync(path.join(cwd,'.env.canary'),'utf8'),'SYNTHETIC_PROJECT_SECRET');
+    const oversized=path.join(cwd,'oversized-input.bin'),fd=fs.openSync(oversized,'wx');fs.ftruncateSync(fd,64*1024*1024+1);fs.closeSync(fd);
+    try{await assert.rejects(runMacGradleCheck(cwd,['test'],1000),/source snapshot byte limit/);}finally{fs.unlinkSync(oversized);}
+    const verification=path.join(cwd,'gradle/verification-metadata.xml'),original=fs.readFileSync(verification);fs.appendFileSync(verification,'\n');
+    await assert.rejects(runMacGradleCheck(cwd,['test'],1000),/Gradle build inputs changed/);fs.writeFileSync(verification,original);
+    const policy=JSON.parse(fs.readFileSync(process.env.WORKSPACE_MAC_GRADLE_POLICY)),artifact=path.join(policy.repository,'org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar'),bytes=fs.readFileSync(artifact);
+    try{fs.appendFileSync(artifact,'TAMPER');await assert.rejects(verifyMacGradleMaterials(cwd),/artifact checksum/);}finally{fs.writeFileSync(artifact,bytes);}
+    const oldPolicy=process.env.WORKSPACE_MAC_GRADLE_POLICY,oldSha=process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256,unapproved=path.join(fs.realpathSync(os.tmpdir()),`gradle-policy-${randomUUID()}.json`);
+    try{
+      const changed=structuredClone(policy);changed.artifacts[0].url='https://unapproved.example.invalid/artifact';fs.writeFileSync(unapproved,JSON.stringify(changed),{mode:0o600});process.env.WORKSPACE_MAC_GRADLE_POLICY=unapproved;process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256=createHash('sha256').update(fs.readFileSync(unapproved)).digest('hex');
+      await assert.rejects(verifyMacGradleMaterials(cwd),/Unapproved Gradle artifact source/);
+    }finally{process.env.WORKSPACE_MAC_GRADLE_POLICY=oldPolicy;process.env.WORKSPACE_MAC_GRADLE_POLICY_SHA256=oldSha;fs.rmSync(unapproved,{force:true});}
+    const home=path.join(cwd,'.gradle/workspace-home');fs.mkdirSync(home,{recursive:true});fs.writeFileSync(path.join(home,'unapproved.jar'),'POISONED_CACHE');
+    await assert.rejects(runMacGradleCheck(cwd,['test'],1000),/Unreviewed macOS Gradle cache/);fs.rmSync(path.join(cwd,'.gradle'),{recursive:true});
+    const originalMarker=fs.readFileSync(marker);fs.writeFileSync(marker,JSON.stringify({version:2,platform:'darwin',digest:'0'.repeat(64),isolation:'colima-network-none'}));
+    await assert.rejects(runMacGradleCheck(cwd,['test'],1000),/preparation is not approved/);fs.writeFileSync(marker,originalMarker);
+    const control={name:`momentory-gradle-${randomUUID()}`,docker:policy.execution.docker,sha256:policy.execution.dockerSha256,socket:policy.execution.socket};
+    const docker=(...args)=>execFileSync(trustedMacFile('docker',cwd,{WORKSPACE_MAC_DOCKER:control.docker,WORKSPACE_MAC_DOCKER_SHA256:control.sha256}),['--host',`unix://${control.socket}`,'--config',path.join(root,'data/docker-control'),...args],{env:{PATH:'/usr/bin:/bin'},encoding:'utf8'}).trim();
+    const unrelated=docker('create','--pull=never','--name',control.name,'--network=none','--read-only','--cap-drop=ALL','--user=65532:65532',policy.execution.image,'/bin/true');
+    assert.match(unrelated,/^[a-f0-9]{64}$/);
+    try{assert.throws(()=>cleanupMacGradleContainer(control,cwd),/ownership differs/);assert.equal(docker('inspect','--format','{{.Id}}',unrelated),unrelated);}finally{docker('rm',unrelated);}
+    const crashMode=path.join(cwd,'crash-mode');fs.writeFileSync(crashMode,'CONTROLLED_CANCEL_AND_TIMEOUT\n');
+    const abort=new AbortController(),pending=runMacGradleCheck(cwd,['test'],30000,abort.signal).then(result=>({result}),error=>({error:String(error)}));
+    let ready=false;
+    for(let i=0;i<120;i++){
+      await new Promise(resolve=>setTimeout(resolve,100));
+      const names=docker('ps','--filter',`label=momentory.worktree=${createHash('sha256').update(cwd).digest('hex')}`,'--format','{{.Names}}');
+      if(names&&docker('logs',names).includes('GRADLE_CRASH_CHILD_READY')){ready=true;break;}
+    }
+    abort.abort();const cancelled=await pending;assert.ok(ready,'Cancellation must interrupt actual Gradle descendants');assert.ok(cancelled.error||!cancelled.result.ok);assert.deepEqual(activeMacProcessesForWorktree(cwd),[]);
+    const timeout=await runMacGradleCheck(cwd,['test'],1000);assert.equal(timeout.ok,false);assert.equal(timeout.timedOut,true);assert.deepEqual(activeMacProcessesForWorktree(cwd),[]);
+    fs.unlinkSync(crashMode);const recovered=await runMacGradleCheck(cwd,['test'],120000);assert.equal(recovered.ok,true,recovered.output);assert.match(recovered.output,/WORKSPACE_TEST_COUNTS tests=5 failed=0 skipped=0/);
+    assert.equal((await verifyMacGradleMaterials(cwd)).ok,true);assert.deepEqual(activeMacProcessesForWorktree(cwd),[]);
+    console.log(JSON.stringify({gradle:'PASS',testWorkerTests:5,workerApi:'PASS',networkNone:'PASS',hostLoopbackDenied:true,sourceSecretAndArtifactDenial:true,oversizedSource:'DENIED',metadataTamper:'DENIED',artifactTamper:'DENIED',unapprovedCache:'DENIED',markerTamper:'DENIED',wrongContainerOwner:'DENIED',cancelledDescendantsReaped:true,timeoutNamespaceReaped:true,freshCheckRecovery:true}));
+  }finally{
+    await new Promise(resolve=>server.close(resolve));
+    if(!activeMacProcessesForWorktree(cwd).length){fs.rmSync(marker,{force:true});fs.rmSync(cwd,{recursive:true,force:true});}
+  }
 });

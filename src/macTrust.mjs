@@ -4,7 +4,7 @@ import os from 'node:os';
 import {createHash} from 'node:crypto';
 import {root} from './config.mjs';
 
-const names={node:'NODE',npm:'NPM_CLI',codex:'CODEX',claude:'CLAUDE',java:'JAVA',gradle:'GRADLE',gradlePolicy:'GRADLE_POLICY'};
+const names={node:'NODE',npm:'NPM_CLI',codex:'CODEX',claude:'CLAUDE',java:'JAVA',gradle:'GRADLE',gradlePolicy:'GRADLE_POLICY',docker:'DOCKER'};
 const within=(file,base)=>file===base||file.startsWith(base+path.sep);
 
 export function validateMacWorktree(cwd){

@@ -1,0 +1,38 @@
+[
+  {
+    "mode": "network-false",
+    "command": [
+      "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+      "sandbox",
+      "-p",
+      "ai-dev-workspace-posix-gradle",
+      "-P",
+      "workspace-gradle",
+      "-C",
+      "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/ipc-probe",
+      "--",
+      "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/ipc-probe/syscalls"
+    ],
+    "exitCode": 0,
+    "stdout": "IPv4 UDP socket=1 errno=0\nIPv4 UDP wildcard-bind=0 errno=1\nIPv4 TCP socket=1 errno=0\nIPv4 TCP wildcard-bind=0 errno=1\nIPv6 UDP socket=1 errno=0\nIPv6 UDP wildcard-bind=0 errno=1\nIPv6 TCP socket=1 errno=0\nIPv6 TCP wildcard-bind=0 errno=1\n",
+    "stderr": ""
+  },
+  {
+    "mode": "native-loopback",
+    "command": [
+      "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+      "sandbox",
+      "-p",
+      "ai-dev-workspace-t7-g-probe",
+      "-P",
+      "gradle-ipc",
+      "-C",
+      "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/ipc-probe",
+      "--",
+      "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/ipc-probe/syscalls"
+    ],
+    "exitCode": 0,
+    "stdout": "IPv4 UDP socket=1 errno=0\nIPv4 UDP wildcard-bind=1 errno=0\nIPv4 UDP loopback-send=1 errno=0\nIPv4 UDP loopback-receive=1 errno=0\nIPv4 TCP socket=1 errno=0\nIPv4 TCP wildcard-bind=1 errno=0\nIPv4 TCP wildcard-listen=1 errno=0\nIPv6 UDP socket=1 errno=0\nIPv6 UDP wildcard-bind=1 errno=0\nIPv6 UDP loopback-send=1 errno=0\nIPv6 UDP loopback-receive=1 errno=0\nIPv6 TCP socket=1 errno=0\nIPv6 TCP wildcard-bind=1 errno=0\nIPv6 TCP wildcard-listen=1 errno=0\n",
+    "stderr": ""
+  }
+]

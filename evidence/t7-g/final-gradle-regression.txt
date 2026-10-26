@@ -1,0 +1,83 @@
+TAP version 13
+# {"fixtureHead":"be84615abe96abb464829eef43c51886417f7b1c","reviewedDigest":"e8769efc3c5afcf904f69a2567cef306480b711cba8e4be3118013c9991fb6c1","lockSha256":"01b410c96f1b5f0f5f4b557248091222bd331092bfece89375ee2f79b2d4778b","command":["npm","ci","--ignore-scripts","--no-audit","--no-fund"]}
+# Subtest: reviewed npm setup rejects modified inputs and symbolic-link escapes
+ok 1 - reviewed npm setup rejects modified inputs and symbolic-link escapes
+  ---
+  duration_ms: 175.986125
+  type: 'test'
+  ...
+# Subtest: macOS child environment discards executable and npm configuration injection
+ok 2 - macOS child environment discards executable and npm configuration injection
+  ---
+  duration_ms: 0.182667
+  type: 'test'
+  ...
+# Subtest: macOS dependency commands refuse to run on other platforms
+ok 3 - macOS dependency commands refuse to run on other platforms # SKIP
+  ---
+  duration_ms: 0.028833
+  type: 'test'
+  ...
+# Subtest: macOS executable pins reject replacement, writable files, links and PATH shims
+ok 4 - macOS executable pins reject replacement, writable files, links and PATH shims
+  ---
+  duration_ms: 1.053833
+  type: 'test'
+  ...
+# Subtest: macOS Gradle preparation stays explicitly blocked
+ok 5 - macOS Gradle preparation stays explicitly blocked
+  ---
+  duration_ms: 0.552292
+  type: 'test'
+  ...
+# {"npmInstall":"PASS","lifecycle":"NOT_EXECUTED","markerReuse":"PASS","markerTamper":"DENIED","linkEscape":"DENIED"}
+# /dev/disk8          \\tGUID_partition_scheme          \\t
+# /dev/disk8s1        \\tApple_HFS                      \\t/private/var/folders/5c/_gsm1fr96l79g8zwfrv8zhh40000gn/T/workspace-real-mount-pOQ1g5/node_modules
+# PASS: actual mounted dependency tree denied before execution
+# PASS: link-only project cannot alias the externally mounted volume
+# Subtest: real macOS locked npm preparation and marker validation
+ok 6 - real macOS locked npm preparation and marker validation
+  ---
+  duration_ms: 1551.908292
+  type: 'test'
+  ...
+# Subtest: reviewed npm workspace links bind their tracked manifest and reject substitutions
+ok 7 - reviewed npm workspace links bind their tracked manifest and reject substitutions
+  ---
+  duration_ms: 100.330666
+  type: 'test'
+  ...
+# Subtest: actual macOS mounted volume and symbolic links fail closed
+ok 8 - actual macOS mounted volume and symbolic links fail closed
+  ---
+  duration_ms: 1262.948542
+  type: 'test'
+  ...
+# Subtest: pinned macOS executable policy rejects missing config and worktree shims
+ok 9 - pinned macOS executable policy rejects missing config and worktree shims
+  ---
+  duration_ms: 2.163875
+  type: 'test'
+  ...
+# Subtest: unapproved Gradle review proposals cannot authorize setup or checks
+ok 10 - unapproved Gradle review proposals cannot authorize setup or checks
+  ---
+  duration_ms: 4.869416
+  type: 'test'
+  ...
+# {"gradle":"PASS","testWorkerTests":5,"workerApi":"PASS","networkNone":"PASS","hostLoopbackDenied":true,"sourceSecretAndArtifactDenial":true,"oversizedSource":"DENIED","metadataTamper":"DENIED","artifactTamper":"DENIED","unapprovedCache":"DENIED","markerTamper":"DENIED","wrongContainerOwner":"DENIED","cancelledDescendantsReaped":true,"timeoutNamespaceReaped":true,"freshCheckRecovery":true}
+# Subtest: real macOS isolated Gradle workers and malicious input regression
+ok 11 - real macOS isolated Gradle workers and malicious input regression
+  ---
+  duration_ms: 33855.234375
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 37004.783334

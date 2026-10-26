@@ -1,0 +1,51 @@
+{
+  "command": [
+    "./gradlew",
+    "clean",
+    "check"
+  ],
+  "activeHostServiceVerified": true,
+  "ok": true,
+  "code": 0,
+  "timedOut": false,
+  "output": "\nWelcome to Gradle 9.1.0!\n\nHere are the highlights of this release:\n - Full Java 25 support\n - Native task graph visualization\n - Enhanced console output\n\nFor more details see https://docs.gradle.org/9.1.0/release-notes.html\n\nTo honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nDaemon will be stopped at the end of the build \n> Task :clean UP-TO-DATE\n\n> Task :maliciousBuildProbe\nMALICIOUS_BUILD_INPUTS_DENIED\n\n> Task :compileJava\n> Task :processResources NO-SOURCE\n> Task :classes\n> Task :compileTestJava\n> Task :processTestResources NO-SOURCE\n> Task :testClasses\n\n> Task :test\nWORKSPACE_TEST_COUNTS tests=5 failed=0 skipped=0\n\n> Task :workerProbe\nWORKER_API_IPC_OK\n\n> Task :check\n\nBUILD SUCCESSFUL in 4s\n6 actionable tasks: 5 executed, 1 up-to-date\n",
+  "isolation": {
+    "id": "05a987cb2c4863825ae942dcf3acd8491dac01045f231d20c8ae5422b25d156d",
+    "network": "none",
+    "user": "65532:65532",
+    "readOnly": true,
+    "capabilities": [
+      "ALL"
+    ],
+    "security": [
+      "no-new-privileges=true"
+    ],
+    "mounts": [
+      {
+        "source": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/gradle-runs/momentory-gradle-308459ff-038e-418d-a409-b2061f816a4a/source",
+        "target": "/source",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/.local/share/momentory-t7-g/tools/jdk-21.0.13+9",
+        "target": "/trusted/jdk",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0",
+        "target": "/trusted/gradle",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/.local/share/momentory-t7-g/tools/maven-fixture",
+        "target": "/trusted/maven",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/gradle-runs/momentory-gradle-308459ff-038e-418d-a409-b2061f816a4a/repositories.init.gradle",
+        "target": "/trusted/init.gradle",
+        "writable": false
+      }
+    ]
+  }
+}

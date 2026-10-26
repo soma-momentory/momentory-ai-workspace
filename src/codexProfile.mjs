@@ -34,7 +34,8 @@ const expectedProfile=(mode,source)=>{
 export function installCodexProfiles() {
   fs.mkdirSync(codexHome(),{recursive:true});
   if(process.platform==='darwin')for(const name of ['node','npm','codex','claude'])trustedMacFile(name,root);
-  for(const mode of [false,true,'check','wsl','wsl-generic','wsl-design','wsl-both','wsl-check','wsl-check-generic','wsl-check-design','wsl-check-both','wsl-readonly','wsl-setup','wsl-lab','posix','posix-readonly',...(process.platform==='darwin'?['posix-setup','posix-check','posix-lab',...(process.env.WORKSPACE_MAC_GRADLE_POLICY?['posix-gradle']:[])]:[])]) {
+  const nativeGradle=process.platform==='darwin'&&process.env.WORKSPACE_MAC_GRADLE_POLICY&&JSON.parse(fs.readFileSync(trustedMacFile('gradlePolicy',root),'utf8')).version===1;
+  for(const mode of [false,true,'check','wsl','wsl-generic','wsl-design','wsl-both','wsl-check','wsl-check-generic','wsl-check-design','wsl-check-both','wsl-readonly','wsl-setup','wsl-lab','posix','posix-readonly',...(process.platform==='darwin'?['posix-setup','posix-check','posix-lab',...(nativeGradle?['posix-gradle']:[])]:[])]) {
     const {source,target}=locations(mode),expected=expectedProfile(mode,source);
     if(fs.existsSync(target)) {
       const current=fs.readFileSync(target);

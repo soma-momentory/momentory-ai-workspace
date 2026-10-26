@@ -9,14 +9,15 @@ import {macChildEnv,redact,stopTree,trackMacProcess,verifyMacProcessSupport} fro
 import {trustedMacFile,trustedMacRuntime,validateMacWorktree} from './macTrust.mjs';
 import {preparedNpmDependency,validateReviewedNpmSetup} from './wslChecks.mjs';
 
-export function sandboxRun(cwd,command,args,environment,signal,timeoutMs=900000){
+export function sandboxRun(cwd,command,args,environment,signal,timeoutMs=900000,{outputLimit=12000}={}){
+  if(!Number.isInteger(outputLimit)||outputLimit<12000||outputLimit>2000000)throw new Error('Invalid bounded sandbox output limit');
   return new Promise(resolve=>{
     if(signal?.aborted){resolve({ok:false,code:null,timedOut:false,output:'Cancelled before macOS setup'});return;}
     verifyMacProcessSupport();
     const child=spawn(command,args,{cwd,env:environment,detached:true,stdio:['ignore','pipe','pipe']});
     const tracker=trackMacProcess(child,cwd);
     let output='',done=false,timedOut=false,watchdog;
-    for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{output=(output+chunk.toString()).slice(-12000);});
+    for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{output=(output+chunk.toString()).slice(-outputLimit);});
     const finish=(code,error)=>{if(done)return;if(signal?.aborted||timedOut)stopTree(child,'SIGKILL');const cleaned=tracker.finish();done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error&&cleaned,code,timedOut,output:redact([output,error,cleaned?'':'macOS process cleanup could not be verified'].filter(Boolean).join('\n'))});};
     const stop=()=>{stopTree(child);watchdog??=setTimeout(()=>{stopTree(child,'SIGKILL');finish(null,'macOS setup process did not exit');},5000);watchdog.unref();};
     const timer=setTimeout(()=>{timedOut=true;stop();},timeoutMs);

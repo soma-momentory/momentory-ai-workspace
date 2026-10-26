@@ -1,0 +1,42 @@
+[
+  {
+    "test": "codex-boundary",
+    "exitCode": 0
+  },
+  {
+    "test": "provider-boundary",
+    "exitCode": 0
+  },
+  {
+    "test": "codex-cancel",
+    "exitCode": 0
+  },
+  {
+    "test": "local",
+    "exitCode": 0
+  },
+  {
+    "test": "recovery",
+    "exitCode": 0
+  },
+  {
+    "test": "diff-reviewability",
+    "exitCode": 0
+  },
+  {
+    "test": "approved-inheritance",
+    "exitCode": 0
+  },
+  {
+    "test": "sandbox-check",
+    "exitCode": 0
+  },
+  {
+    "test": "pause",
+    "exitCode": 0
+  },
+  {
+    "test": "wsl-orphan",
+    "exitCode": 0
+  }
+]

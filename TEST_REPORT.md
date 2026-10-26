@@ -1,5 +1,9 @@
 # Test Report
 
+## T7-G — 2026-10-27 KST
+
+**PARTIAL / NOT READY.** From clean `5372d41`, the existing Colima VM now runs pinned Gradle 9.1/JDK 21.0.13+9 in a network-none container. Fixture `clean check`, five actual Test Worker tests, Worker API, malicious input/egress/file rejection, cancellation/timeout and real Worker SIGKILL/reviewed resume passed. Automatic suite: **38 PASS / 0 FAIL / 1 NOT_RUN**; ten existing security/recovery integrations passed. Actual BE `b2be605` ran `clean check` only in **unapproved metadata review mode**: 266 passed, 0 failed, 237 NOT_RUN. Its 626-artifact approval baseline remains unavailable; no BE approval marker or verification XML was applied. See [T7_G_REPORT.md](T7_G_REPORT.md). Earlier sections are historical.
+
 ## T7-Mac follow-up on fetched FE main — 2026-10-26 KST
 
 **PARTIAL / NOT READY.** Actual Mac verification reused `2eeff69` on `workspace/t7-macos-release-blockers`. After `git fetch origin main`, FE `origin/main` advanced from `f783378` to `e6f88ce`; its isolated Lab cache candidate is `711f4e3`. Workspace automatic tests: **36 PASS / 0 FAIL / 1 NOT_RUN** (the Node runner calls the other-OS case SKIP). Nine existing security/workflow integrations passed, as did actual volume/link rejection, durable Worker SIGKILL orphan cleanup and reviewed resume. Final FE typecheck/lint and **127 Jest suites / 1,625 tests** passed. Lab typecheck, repeated builds, real dev rendering and existing Workspace Studio capture passed with read-only dependencies. Gradle/JDK/Maven material integrity and malicious-input checks passed, but real Gradle resolution is **BLOCKED** by socket creation under the retained network-deny boundary. Structural-branch-only parity and physical/native/Windows checks were NOT_RUN. See [T7_MAC_FOLLOWUP_REPORT.md](T7_MAC_FOLLOWUP_REPORT.md) and [evidence](evidence/t7-mac-followup/results.json); earlier sections remain historical.
