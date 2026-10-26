@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {trustedMacFile} from '../src/macTrust.mjs';
+import {trustedMacFile,validateMacWorktree} from '../src/macTrust.mjs';
 import {macChildEnv} from '../src/provider.mjs';
 import {prepareMacDependency,verifyMacSetupBoundary} from '../src/macDependency.mjs';
 import {dependencyLinksSafe,preparedNpmDependency,validateReviewedNpmSetup} from '../src/wslChecks.mjs';
@@ -93,7 +93,9 @@ test('macOS executable pins reject replacement, writable files, links and PATH s
 });
 
 test('macOS Gradle preparation stays explicitly blocked',{skip:process.platform!=='darwin'},async()=>{
-  await assert.rejects(prepareMacDependency(process.cwd(),{ifMissing:'.gradle/workspace-home'}),/Gradle.*not implemented/);
+  const previous=process.env.WORKSPACE_MAC_GRADLE_POLICY;
+  try{delete process.env.WORKSPACE_MAC_GRADLE_POLICY;await assert.rejects(prepareMacDependency(process.cwd(),{ifMissing:'.gradle/workspace-home',command:['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']}),/Gradle.*blocked/);}
+  finally{if(previous===undefined)delete process.env.WORKSPACE_MAC_GRADLE_POLICY;else process.env.WORKSPACE_MAC_GRADLE_POLICY=previous;}
 });
 
 test('real macOS locked npm preparation and marker validation',{
@@ -117,9 +119,51 @@ test('real macOS locked npm preparation and marker validation',{
     assert.equal(preparedNpmDependency(dir,step),false);await assert.rejects(prepareMacDependency(dir,step),/Unverified dependency mount or marker/);
     fs.writeFileSync(marker,original);
     fs.symlinkSync(path.dirname(dir),path.join(dir,'node_modules','escape'));assert.equal(preparedNpmDependency(dir,step),false);
-    await assert.rejects(prepareMacDependency(dir,step),/Unverified dependency mount or marker/);
+    await assert.rejects(prepareMacDependency(dir,step),/Unverified dependency mount or marker|symbolic link escapes/);
     console.log(JSON.stringify({npmInstall:'PASS',lifecycle:'NOT_EXECUTED',markerReuse:'PASS',markerTamper:'DENIED',linkEscape:'DENIED'}));
   }finally{if(marker)fs.rmSync(marker,{force:true});fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('reviewed npm workspace links bind their tracked manifest and reject substitutions',()=>{
+  const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'workspace-reviewed-link-')));let marker;
+  const git=(...args)=>execFileSync('git',args,{cwd:dir,encoding:'utf8'});
+  try{
+    fs.mkdirSync(path.join(dir,'lab'));fs.writeFileSync(path.join(dir,'lab','package.json'),'{"name":"reviewed-lab","version":"1.0.0"}');
+    fs.writeFileSync(path.join(dir,'package.json'),'{"name":"fixture","workspaces":["lab"]}');
+    const packages={'':{name:'fixture',workspaces:['lab']},lab:{name:'reviewed-lab',version:'1.0.0'},'node_modules/reviewed-lab':{resolved:'lab',link:true}};
+    fs.writeFileSync(path.join(dir,'package-lock.json'),JSON.stringify({lockfileVersion:3,packages}));
+    git('init','-b','test');git('add','.');git('-c','user.name=Workspace Test','-c','user.email=workspace@example.invalid','commit','-m','Reviewed workspace fixture');
+    const mount=path.join(dir,'node_modules');fs.mkdirSync(mount);fs.symlinkSync(path.join(dir,'lab'),path.join(mount,'reviewed-lab'),process.platform==='win32'?'junction':'dir');fs.writeFileSync(path.join(mount,'.package-lock.json'),JSON.stringify({packages:{lab:packages.lab,'node_modules/reviewed-lab':packages['node_modules/reviewed-lab']}}));
+    const reviewed=validateReviewedNpmSetup(dir,step);marker=reviewed.marker;fs.writeFileSync(marker,JSON.stringify({digest:reviewed.digest,platform:'darwin'}));
+    assert.equal(dependencyLinksSafe(mount),false,'Unlisted external links remain denied');
+    if(process.platform==='darwin'){
+      assert.equal(preparedNpmDependency(dir,step),true,'Exact reviewed workspace link should be supported');validateMacWorktree(dir);
+      fs.writeFileSync(path.join(dir,'lab','package.json'),'{"name":"reviewed-lab","version":"99.0.0"}');
+      assert.equal(preparedNpmDependency(dir,step),false);assert.throws(()=>validateReviewedNpmSetup(dir,step),/manifest or npm configuration changed/);
+      git('checkout','--','lab/package.json');fs.rmSync(path.join(mount,'reviewed-lab'));fs.symlinkSync(path.dirname(dir),path.join(mount,'reviewed-lab'));
+      assert.equal(preparedNpmDependency(dir,step),false);assert.throws(()=>validateMacWorktree(dir),/symbolic link escapes/);
+    }
+  }finally{if(marker)fs.rmSync(marker,{force:true});fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('actual macOS mounted volume and symbolic links fail closed',{
+  skip:process.platform!=='darwin'||process.env.RUN_MAC_MOUNT_INTEGRATION!=='1',timeout:120000
+},async()=>{
+  const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'workspace-real-mount-'))),mount=path.join(dir,'node_modules'),image=path.join(dir,'boundary.dmg');fs.mkdirSync(mount);
+  const run=(...args)=>execFileSync('/usr/bin/hdiutil',args,{encoding:'utf8',timeout:30000});
+  try{
+    run('create','-size','16m','-fs','HFS+','-volname','WorkspaceBoundary',image);console.log(run('attach','-nobrowse','-mountpoint',mount,image));
+    assert.notEqual(fs.statSync(mount).dev,fs.statSync(dir).dev);assert.equal(dependencyLinksSafe(mount),false);assert.throws(()=>validateMacWorktree(dir),/Unapproved macOS mount/);
+    await assert.rejects(prepareMacDependency(dir,step),/Unapproved macOS mount/);
+    console.log('PASS: actual mounted dependency tree denied before execution');
+    const project=path.join(dir,'link-only-project');fs.mkdirSync(project);
+    fs.symlinkSync(mount,path.join(project,'mounted-alias'));
+    assert.throws(()=>validateMacWorktree(project),/symbolic link escapes/);
+    console.log('PASS: link-only project cannot alias the externally mounted volume');
+  }finally{
+    if(fs.statSync(mount).dev!==fs.statSync(dir).dev)run('detach',mount);
+    fs.rmSync(dir,{recursive:true,force:true});
+  }
 });
 
 test('pinned macOS executable policy rejects missing config and worktree shims',()=>{

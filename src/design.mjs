@@ -64,7 +64,7 @@ async function ensureLab(url,projectId,checkout=null,signal=null) {
       executable=mac.codex;
       args=['sandbox','-p',codexProfileName('posix-lab'),'-P','workspace-lab','-C',fe,'--','/bin/sh','-c','cd "$1" && shift && exec "$@"','lab',labDir,mac.node,cli,'start','--web','--port',new URL(url).port,'--host','localhost'];
     }
-    ownedLab=spawn(executable,args,{cwd:labDir,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env:mac?macChildEnv(mac.path,{EXPO_NO_TELEMETRY:'1'}):{...childEnv(),EXPO_NO_TELEMETRY:'1'}});
+    ownedLab=spawn(executable,args,{cwd:labDir,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env:mac?macChildEnv(mac.path,{EXPO_NO_TELEMETRY:'1',EXPO_OFFLINE:'1'}):{...childEnv(),EXPO_NO_TELEMETRY:'1'}});
     const launch=ownedLabLaunch;ownedLab.on('close',()=>finishWslCodex(launch));
     ownedLabRepo=fe;
     ownedLab.unref();
@@ -130,7 +130,7 @@ async function captureDesignExclusive(candidateId,exported,screen,projectId,chec
   if(!/^http:\/\/(?:127\.0\.0\.1|localhost):\d+$/.test(lab)) throw new Error('Design Lab URL must be loopback');
   await ensureLab(lab,projectId,fe,signal);
   if(signal?.aborted)throw new Error('Design capture cancelled');
-  const feRequire=createRequire(path.join(fe,'package.json'));
+  const feRequire=createRequire(process.env.WORKSPACE_PLAYWRIGHT_PACKAGE_JSON||path.join(fe,'package.json'));
   const {chromium}=feRequire('playwright');
   const browser=await chromium.launch({headless:true});
   const dir=screenshotDirectory();fs.mkdirSync(dir,{recursive:true});

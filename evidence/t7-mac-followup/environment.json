@@ -1,0 +1,23 @@
+{
+  "PATH": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+  "WORKSPACE_REPO_MOMENTORY_FE": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+  "WORKSPACE_REPO_MOMENTORY_BE": "/Users/kjh/Momentory/momentory-be",
+  "WORKSPACE_MAC_NODE": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+  "WORKSPACE_MAC_NODE_SHA256": "18e387c90ab8a8400183e8bdd396376e1e875b91b4c874b894dcade7b35bf572",
+  "WORKSPACE_MAC_NPM_CLI": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/npm/bin/npm-cli.js",
+  "WORKSPACE_MAC_NPM_CLI_SHA256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+  "WORKSPACE_MAC_CODEX": "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+  "WORKSPACE_MAC_CODEX_SHA256": "8813367285524ac798dd96d1b071aea30d58708c7226fd236cd275cf1cfdee31",
+  "WORKSPACE_MAC_CLAUDE": "/Users/kjh/.local/share/claude/versions/2.1.296",
+  "WORKSPACE_MAC_CLAUDE_SHA256": "c9b5341637becbd423ddffc5b254afb645682a3868cb708bbc6cc0e7bb419937",
+  "CODEX_HOME": "/Users/kjh/.local/share/momentory-t7-mac-followup/codex",
+  "WORKSPACE_REPO_SAMPLE_APP": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/sample",
+  "WORKSPACE_TEST_PLAYWRIGHT_PACKAGE_JSON": "/Users/kjh/CAPSTONE/CAPSTONE-SAI/package.json",
+  "WORKSPACE_TEST_OTHER_PROJECT": "/Users/kjh/.local/share/momentory-t7-mac-followup/other-project",
+  "WORKSPACE_MAC_JAVA": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home/bin/java",
+  "WORKSPACE_MAC_JAVA_SHA256": "0f642542ea1f0be6957557c0db96653ec128113bb5a4aaa7c2534d1d72ddb51f",
+  "WORKSPACE_MAC_GRADLE_POLICY": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-fixture-policy.json",
+  "WORKSPACE_MAC_GRADLE_POLICY_SHA256": "d2afc7359357a5e08caf15b2388aca182366abf0751a26876664424eec717e2a",
+  "WORKSPACE_MAC_GRADLE": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0/bin/gradle",
+  "WORKSPACE_MAC_GRADLE_SHA256": "0b088fd5c9c972089c80c691b28cc4c65def93e1b814fc9f60f0734493954caf"
+}

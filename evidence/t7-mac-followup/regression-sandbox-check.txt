@@ -1,0 +1,3 @@
+{"status":"PASS","cwd":"sample","checks":[{"command":"node --check index.mjs","ok":true},{"command":"node --test","ok":true}]}
+(node:78824) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

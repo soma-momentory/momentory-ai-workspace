@@ -1,0 +1,84 @@
+{
+  "source": "/Users/kjh/Momentory/momentory-fe",
+  "target": "/Users/kjh/Momentory/momentory-fe-t7-mac-validation",
+  "head": "4c80a947d42bf0ae90756c40801d21dfff67cc3c",
+  "sourceBranch": "feat/p4-weather-sticker-assets",
+  "validationBranch": "workspace/t7-mac-fe-current-validation",
+  "trackedPatchSha256": "62a44908335475d2e6dcdbfea98cffc49123ec3371bf9da3526a11c391705a79",
+  "sourcePreserved": true,
+  "dependencyManifestsUnchanged": true,
+  "manifests": [
+    {
+      "name": "package.json",
+      "sha256": "9084f3615ff21a9cdd30b44378a347786f684c39894a6086a59a2e7657bb93e6"
+    },
+    {
+      "name": "package-lock.json",
+      "sha256": "ec50d7d3470ad20cfff9815f25928fff4d3aff2f1a18d7b9e39e1d6a598e1412"
+    },
+    {
+      "name": "expo-lab/package.json",
+      "sha256": "82d3097206eab4ee65a74e7e3a83a13fc49764bfa367bf20799a0184a61ffb47"
+    },
+    {
+      "name": "design-lab/package.json",
+      "sha256": "fd4b57dc92421f22edac19fe3b7afe6c92b6a7b9de9b1a4fc93fdf3286af2f15"
+    },
+    {
+      "name": "design-lab/package-lock.json",
+      "sha256": "8485ec6c064991443f7b4004b5fb266bc3f9aad6c0aaa452d20e11d2f451a127"
+    }
+  ],
+  "untrackedSourceCopies": [
+    {
+      "name": "expo-lab/BUTTON_V1_ADOPTION.md",
+      "sha256": "1075fb95ca95470c2af08aca4b70ed07c21439fd8f39b193e4667fa4ff81db75",
+      "mode": 420
+    },
+    {
+      "name": "expo-lab/assets/references/home-v2-primary-button.png",
+      "sha256": "d4b91bcdb22248c0244c8edff3a152a5bab9560fa9bed2beb9f233e9b05440e4",
+      "mode": 420
+    },
+    {
+      "name": "expo-lab/src/buttons/ButtonGalleryPreview.tsx",
+      "sha256": "0b9f43cdff7ddeacc002898b99f6ae05660e23504cb0af24850b93fac5daa842",
+      "mode": 420
+    },
+    {
+      "name": "expo-lab/src/buttons/MomentoryButton.tsx",
+      "sha256": "a6ccbf26708f15bfc0a0848850988a13cdb03e8defff3d1f823d0d7f5e43e020",
+      "mode": 420
+    },
+    {
+      "name": "expo-lab/src/buttons/__tests__/momentoryButton.test.tsx",
+      "sha256": "b3c89ee7c8e854bf1c62ee71f27704192ad36c1d863eef8a14d54c8a84996361",
+      "mode": 420
+    },
+    {
+      "name": "expo-lab/src/buttons/tokens.ts",
+      "sha256": "6e0df0f859be8869b52eb9e9bbe301f3846afe84513b2e623a2c1b6776b08a60",
+      "mode": 420
+    },
+    {
+      "name": "expo-lab/src/rest/QuietNotebookPreview.tsx",
+      "sha256": "ecea94472e055fa237f9693490a4bcf9da366f31d33860830452a90e05a4538d",
+      "mode": 420
+    },
+    {
+      "name": "src/components/ds/MomentoryButton.tsx",
+      "sha256": "1777d4a4d1acff1d021a63d85db0fc7f8bac02d71c1c9d6e6b59065f4bb7f2e7",
+      "mode": 420
+    },
+    {
+      "name": "src/components/ds/__tests__/momentoryButton.test.tsx",
+      "sha256": "b3e2d524242769355e98ac89ee573e213696c6128bf81732b232cd45cd813123",
+      "mode": 420
+    },
+    {
+      "name": "src/design/ds/momentoryButton.ts",
+      "sha256": "7f03ad42ed6e419a357bda9daeb51dcccf505eebd9989f9f2d3a3e347c77ce5a",
+      "mode": 420
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 ## Evidence classification (2026-10-26)
 
-`VERIFIED` has identified test or inspection evidence at a stated revision. `IMPLEMENTED_NOT_VERIFIED` has code but its full operating scenario was not observed. `FAILED` means the latest relevant test failed. `BLOCKED_EXTERNAL` needs unavailable equipment or access. `NOT_IMPLEMENTED` has no required path. Historical checks below retain their original evidence dates.
+`VERIFIED` has identified test or inspection evidence at a stated revision. `IMPLEMENTED_NOT_VERIFIED` has code but its full operating scenario was not observed. `FAILED` means the latest relevant test failed. `BLOCKED` cannot complete a required prerequisite under the current boundary. `BLOCKED_EXTERNAL` needs unavailable equipment or access. `NOT_IMPLEMENTED` has no required path. Historical checks below retain their original evidence dates.
 
 | Release condition | Status | Evidence or next step |
 | --- | --- | --- |
@@ -23,11 +23,11 @@
 | Installer, provider login, isolation setup and Windows update | VERIFIED | Clean same-host clone at old `0e585e9` was set up, updated to `f9898f5`, started/stopped, migrated schema 0 to 1, and preserved/restored its task. Different hardware remains untested. |
 | Full CI stability and FE integration | IMPLEMENTED_NOT_VERIFIED | Current checks pass, but one transient `npm test` failure had truncated diagnostics. Read-only review found a differing `home.hero.structure` value in both selected FE worktrees and the dirty user `main`; approval and manual reconciliation are pending. |
 | Real Momentory Android development app on API 36 emulator | VERIFIED | T5 on 2026-10-26 built FE `main` HEAD `01c3475` as `kr.momentory.app`, signed in through Kakao with a dedicated test account, entered home, selected a weekday dock item, visited Rest and returned Home. `agent-device` screenshots/accessibility snapshots and scoped logcat are in `data/t5-real-app-20261026/artifacts`; QA task `9865bc3d-eeb7-4e41-a09d-c2ef21cc617a` is DONE. This did not include the pending structural patch or dirty main files. |
-| macOS pinned Node/npm/Codex/Claude paths and locked npm preparation | VERIFIED for fixed fixture | Actual macOS 26.6.2 arm64 locked npm preparation, marker reuse/tamper, installed-index checks and deny probes passed. Full FE/Design Lab installation remains unverified. See T7_MAC_REPORT.md. |
-| macOS Gradle dependency preparation | NOT_IMPLEMENTED | Gradle setup fails closed on Mac; a reviewed Mac path is still required for Momentory BE tasks. |
-| Actual macOS sandbox, AI execution, cancellation, backup and recovery | VERIFIED for tested paths; PARTIAL overall | Real Codex/Claude sample tasks, boundaries, cancellation/timeout, pause/resume, approvals/follow-ups and encrypted fixture restore passed. 34 PASS / 0 FAIL / 1 SKIP. Mac Worker SIGKILL orphan recovery and actual mount replacement remain unverified. |
+| macOS pinned tools and locked npm preparation | VERIFIED for tested latest FE and fixtures | Actual latest main `e6f88ce` plus isolated cache fix `711f4e3`: locked root/Lab installs, workspace links, checks and Studio rendering passed. See T7_MAC_FOLLOWUP_REPORT.md. |
+| macOS Gradle dependency preparation | BLOCKED | Verified private JDK/Gradle/Wrapper and fixed Maven materials; actual resolution fails at required socket creation under network=false. Real BE wrapper lacks distribution SHA property and complete approved dependency metadata. No successful marker or unrestricted fallback. |
+| Actual macOS sandbox, AI execution, cancellation, backup and recovery | VERIFIED for tested paths; PARTIAL overall | 36 PASS / 0 FAIL / 1 NOT_RUN automatic cases, nine security integrations, actual mounted-volume/link rejection, Worker SIGKILL cleanup and reviewed resume passed. Physical/native and Gradle acceptance remain open. |
 | Physical phone/Tailscale separate network, locked screen, network loss/recovery | BLOCKED_EXTERNAL | Follow `MANUAL_VALIDATION.md` on a phone and tailnet. |
-| Physical native iOS and Android display and accessibility | BLOCKED_EXTERNAL | Physical devices and Mac/iOS tooling unavailable. The API 36 emulator result above does not satisfy physical-device acceptance. |
+| Physical native iOS and Android display and accessibility | BLOCKED_EXTERNAL | Physical-device acceptance has not run. The Mac Web checks and historical API 36 emulator result do not satisfy it. |
 
 No latest repeat is `FAILED`; the transient test failure remains an open stability observation. The final Windows status and release decision are in `TEST_REPORT.md` after validation.
 
@@ -53,7 +53,7 @@ No latest repeat is `FAILED`; the transient test failure remains an open stabili
 - [x] Inject a partial Worktree write, force-kill the Worker, reap its orphan WSL scope, retain `STALE` without a duplicate claim, require a reviewed diff hash, then resume to verified approval. Browser-offline follow-up draft retention and server-restart idempotency also passed; a physical mobile network test remains below.
 - [ ] Complete Tailscale Serve setup, separate-network phone workflow, phone approval/rejection, and locked-screen execution test.
 - [ ] Verify macOS laptop operation and native iOS/Android app screens.
-- [x] Run the T7 trusted npm preparation and marker path on a real Mac; fixed fixture evidence is in T7_MAC_REPORT.md. Full FE/Design Lab and Gradle acceptance remain separate.
+- [x] Run trusted npm preparation, full FE/Studio validation and Worker SIGKILL/recovery on a real Mac; final candidate and scope are recorded in T7_MAC_FOLLOWUP_REPORT.md. Gradle acceptance remains separate.
 - [ ] Implement a reviewed macOS Gradle dependency path if Momentory BE tasks are required on Mac; the current candidate explicitly fails closed.
 - [x] Test Claude restricted Read/Edit denial and sandbox configured Windows verification commands, including the full FE checks.
 - [x] Re-run Momentory BE `gradlew.bat test --rerun-tasks` on Windows; compilation and tests executed successfully.
@@ -73,4 +73,4 @@ No latest repeat is `FAILED`; the transient test failure remains an open stabili
 - [ ] Assess broader secret masking and command audit before handling highly sensitive repositories. The owner token intentionally reaches every configured project; it is not a multi-user role system.
 - [ ] Validate all FE/BE CI suites and inspect code integration conflicts before release.
 
-External setup required: Tailscale installation/sign-in on an authorized laptop and phone, HTTPS/tailnet policy, and access to a Mac/physical mobile devices for the stated tests. No cloud or paid infrastructure has been created. Release approval should be requested only after every required check passes.
+External setup required: Tailscale installation/sign-in on an authorized laptop and phone, HTTPS/tailnet policy, and physical mobile devices for the remaining acceptance tests. No cloud or paid infrastructure has been created. Release approval should be requested only after every required check passes.

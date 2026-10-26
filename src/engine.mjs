@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createWorktree, inheritApproved, diffSummary, recoveryFingerprint, ignoredWorktreeViolations } from './git.mjs';
-import { runProvider, stopTree, redact, childEnv,macChildEnv } from './provider.mjs';
+import { runProvider, stopTree, redact, childEnv,macChildEnv,trackMacProcess,verifyMacProcessSupport } from './provider.mjs';
 import { git } from './git.mjs';
 import { project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
@@ -11,7 +11,7 @@ import { applySelectedDesign, validateExport } from './design.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {strictWslChecks,prepareWslDependency,runWslCheck,cleanupStaleBoundaryCanaries,approvedIgnoredMounts} from './wslChecks.mjs';
 import {prepareMacDependency} from './macDependency.mjs';
-import {trustedMacFile,trustedMacRuntime} from './macTrust.mjs';
+import {trustedMacFile,trustedMacRuntime,validateMacWorktree} from './macTrust.mjs';
 
 const forbidden = 'Do not commit, push, merge, deploy, delete user files, read secrets, modify .env files, or change files outside this worktree. Keep changes scoped to the goal.';
 export function reviewVerdict(text) { return /^\s*\W*(PASS|FIX_REQUIRED)\b/i.exec(text)?.[1]?.toUpperCase() || null; }
@@ -25,8 +25,11 @@ export function parseDesignCandidates(text) {
 const context = (task) => `${project(task.project_id).name} development task. Goal: ${task.goal}\nProject: ${task.project_id}\nRepository: ${task.repo}\nCompletion criteria: ${task.completion_criteria || 'Verify the requested goal and report evidence.'}\nMode: ${task.mode}\n${forbidden}\nReturn a concise summary of what you changed and remaining risks.`;
 
 export function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
+  if(isolate&&process.platform==='darwin'&&['./gradlew','gradlew.bat'].includes(command))return import('./macGradle.mjs').then(module=>module.runMacGradleCheck(cwd,args,timeoutMs,signal));
   return new Promise(resolve=>{
     if(signal?.aborted){resolve({ok:false,code:null,timedOut:false,output:'Cancelled before command start'});return;}
+    verifyMacProcessSupport();
+    if(isolate&&process.platform==='darwin')validateMacWorktree(cwd);
     if(isolate) verifyCodexProfile(process.platform==='darwin'?'posix-check':'check');
     const mac=isolate&&process.platform==='darwin'?trustedMacRuntime(cwd):null;
     const actualCommand=mac&&command==='npm'?mac.node:mac&&command==='node'?mac.node:command;
@@ -36,9 +39,10 @@ export function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={})
     const env=mac?macChildEnv(mac.path):childEnv();
     if(isolate&&process.platform!=='darwin') env.NODE_OPTIONS=`--require=${JSON.stringify(path.join(path.resolve(import.meta.dirname,'..'),'scripts','sandbox-temp.cjs'))}`;
     const child=spawn(executable,commandArgs,{cwd,windowsHide:true,shell:process.platform==='win32'&&executable!==process.execPath,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env});
+    const macTracker=trackMacProcess(child,cwd);
     let output='',timedOut=false,done=false,watchdog=null;
     for(const stream of [child.stdout,child.stderr]) stream.on('data',chunk=>{output=(output+chunk.toString('utf8')).slice(-12000);});
-    const finish=(code,error)=>{if(done)return;if(signal?.aborted||timedOut)stopTree(child,'SIGKILL');done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error,code,timedOut,output:redact([output,error].filter(Boolean).join('\n'))});};
+    const finish=(code,error)=>{if(done)return;if(signal?.aborted||timedOut)stopTree(child,'SIGKILL');const cleaned=macTracker.finish();done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error&&cleaned,code,timedOut,output:redact([output,error,cleaned?'':'macOS process cleanup could not be verified'].filter(Boolean).join('\n'))});};
     const stop=()=>{stopTree(child);if(!watchdog){watchdog=setTimeout(()=>{stopTree(child,'SIGKILL');finish(null,'Command wrapper did not exit after termination');},5000);watchdog.unref();}};
     const timer=setTimeout(()=>{timedOut=true;stop();},timeoutMs);
     const abort=()=>stop(); signal?.addEventListener('abort',abort,{once:true});

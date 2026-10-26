@@ -1,0 +1,9 @@
+{"phase":"before-worker-SIGKILL","record":{"version":2,"workspace":"/Users/kjh/Momentory/momentory-ai-workspace-t7-followup","cwd":"/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/worktrees/sample/d11e837f-9434-44db-b5da-74afd69276ee","owner":{"pid":79810,"identity":"1793012514:224906"},"pid":79824,"processes":[[79824,"1793012514:462095"],[79927,"1793012519:763803"],[79926,"1793012519:723474"],[79929,"1793012519:786762"]]}}
+{"phase":"after-worker-SIGKILL","survivingControlled":[79927,79929],"marker":"79810-34d36818-137f-42c2-859c-58fa63632306.json"}
+{"status":"PASS","taskId":"d11e837f-9434-44db-b5da-74afd69276ee","worktree":"/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/worktrees/sample/d11e837f-9434-44db-b5da-74afd69276ee","partialFilePreserved":true,"orphanReaped":true,"attempts":1,"recoveredStatus":"STALE","database":"/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/worker-kill-5b89bbbb-b329-4b64-8ab1-8d9f0e91e72b.sqlite"}
+
+{"status":"PASS","taskId":"d11e837f-9434-44db-b5da-74afd69276ee","attempts":2,"worktree":"/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/worktrees/sample/d11e837f-9434-44db-b5da-74afd69276ee","partialDiffReviewed":true,"changedFiles":["index.test.mjs","controlled.pids","partial-change.txt"],"checks":[{"command":"node --check index.mjs","ok":true},{"command":"node --test","ok":true}]}
+ (node:80283) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+{"workerKillExit":0,"resumeExit":0}

@@ -4,8 +4,31 @@ import os from 'node:os';
 import {createHash} from 'node:crypto';
 import {root} from './config.mjs';
 
-const names={node:'NODE',npm:'NPM_CLI',codex:'CODEX',claude:'CLAUDE'};
+const names={node:'NODE',npm:'NPM_CLI',codex:'CODEX',claude:'CLAUDE',java:'JAVA',gradle:'GRADLE',gradlePolicy:'GRADLE_POLICY'};
 const within=(file,base)=>file===base||file.startsWith(base+path.sep);
+
+export function validateMacWorktree(cwd){
+  const base=path.resolve(cwd);
+  if(fs.realpathSync(base)!==base)throw new Error('macOS worktree must have a canonical path');
+  const device=fs.statSync(base).dev;
+  if(device!==fs.statSync(path.dirname(base)).dev)throw new Error('Unapproved macOS worktree mount');
+  const stack=[[base,0]];let visited=0;
+  while(stack.length){
+    const [directory,depth]=stack.pop();
+    if(depth>32)throw new Error('macOS worktree exceeds the audited directory depth');
+    for(const entry of fs.readdirSync(directory,{withFileTypes:true})){
+      if(++visited>500000)throw new Error('macOS worktree exceeds the audited entry limit');
+      const file=path.join(directory,entry.name),stat=fs.lstatSync(file);
+      if(stat.dev!==device)throw new Error(`Unapproved macOS mount: ${path.relative(base,file)}`);
+      if(stat.isSymbolicLink()){
+        const target=fs.realpathSync(file);
+        if(!within(target,base)||fs.statSync(target).dev!==device)throw new Error(`macOS symbolic link escapes the worktree: ${path.relative(base,file)}`);
+      }else if(stat.isDirectory())stack.push([file,depth+1]);
+      else if(!stat.isFile())throw new Error('Unsupported macOS worktree file type');
+    }
+  }
+  return base;
+}
 
 export function trustedMacFile(name,cwd,environment=process.env){
   if(!Object.hasOwn(names,name))throw new Error('Unknown macOS executable');
@@ -21,7 +44,7 @@ export function trustedMacFile(name,cwd,environment=process.env){
   }
   const stat=fs.statSync(resolved);
   if(!stat.isFile())throw new Error(`Untrusted macOS ${name} file type`);
-  if(name!=='npm')fs.accessSync(resolved,fs.constants.X_OK);
+  if(!['npm','gradlePolicy'].includes(name))fs.accessSync(resolved,fs.constants.X_OK);
   const actual=createHash('sha256').update(fs.readFileSync(resolved)).digest('hex');
   if(actual!==sha.toLowerCase())throw new Error(`macOS ${name} executable checksum changed`);
   const [major,minor]=process.versions.node.split('.').map(Number);

@@ -1,0 +1,2 @@
+{"kind":"gradle","file":"/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle.zip","sha256":"a17ddd85a26b6a7f5ddb71ff8b05fc5104c0202c6e64782429790c933686c806","verified":true,"bytes":134528013}
+{"kind":"jdk","file":"/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk.tar.gz","sha256":"bf036b35b071bfb2f54f2c0af8ee8d88afa95ee6eb3dce02c0f94cfc2524d04a","verified":true,"bytes":199754598}

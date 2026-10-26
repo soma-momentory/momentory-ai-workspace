@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "screenshots": {
+    "baseline": "b0a79585-56ed-4d16-af71-2f61642f33b5-baseline.png",
+    "candidate": "b0a79585-56ed-4d16-af71-2f61642f33b5-candidate.png",
+    "matrix": {
+      "375": {
+        "baseline": "b0a79585-56ed-4d16-af71-2f61642f33b5-375-baseline.png",
+        "candidate": "b0a79585-56ed-4d16-af71-2f61642f33b5-375-candidate.png",
+        "overflowPx": 0
+      },
+      "390": {
+        "baseline": "b0a79585-56ed-4d16-af71-2f61642f33b5-baseline.png",
+        "candidate": "b0a79585-56ed-4d16-af71-2f61642f33b5-candidate.png",
+        "overflowPx": 0
+      },
+      "402": {
+        "baseline": "b0a79585-56ed-4d16-af71-2f61642f33b5-402-baseline.png",
+        "candidate": "b0a79585-56ed-4d16-af71-2f61642f33b5-402-candidate.png",
+        "overflowPx": 0
+      },
+      "430": {
+        "baseline": "b0a79585-56ed-4d16-af71-2f61642f33b5-430-baseline.png",
+        "candidate": "b0a79585-56ed-4d16-af71-2f61642f33b5-430-candidate.png",
+        "overflowPx": 0
+      }
+    },
+    "states": {
+      "many-375": {
+        "baseline": "b0a79585-56ed-4d16-af71-2f61642f33b5-many-375-baseline.png",
+        "candidate": "b0a79585-56ed-4d16-af71-2f61642f33b5-many-375-candidate.png",
+        "overflowPx": 0,
+        "scenario": "일정 10개 · 접기/펼치기",
+        "fontScale": 1
+      },
+      "long-375": {
+        "baseline": "b0a79585-56ed-4d16-af71-2f61642f33b5-long-375-baseline.png",
+        "candidate": "b0a79585-56ed-4d16-af71-2f61642f33b5-long-375-candidate.png",
+        "overflowPx": 0,
+        "scenario": "긴 일정 제목",
+        "fontScale": 1.5
+      }
+    },
+    "screen": "home-main",
+    "viewport": "1440x1200",
+    "baseHead": "711f4e31f023320b469cffc7513b13e0aaa6badc"
+  },
+  "hashes": {
+    "baseline": "d2e8269cf53f6876bd04e197248dc8880f013f5edeb3589f32dd4fef0bc5024a",
+    "candidate": "318be46db0f06bd0de4141ced2116a6915097772638ec412087070aa2c67ed48"
+  }
+}

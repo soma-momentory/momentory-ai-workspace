@@ -1,5 +1,7 @@
 # T7-Mac 실제 macOS 검증 — 2026-10-26 KST
 
+후속 실행과 최신 FE main 기준 판정은 [T7_MAC_FOLLOWUP_REPORT.md](T7_MAC_FOLLOWUP_REPORT.md)에 있다. 아래는 `2eeff69` 시점의 증거다.
+
 **T7-Mac: PARTIAL. Workspace Release: NOT READY.**
 
 기존 T7 `10d835a`에서 `workspace/t7-macos-validation` 브랜치와 별도 worktree를 만들어 검증했다. 원본 Workspace `/Users/kjh/Momentory/momentory-ai-workspace`는 깨끗한 `main`, HEAD `10d835a` 그대로다. `dev` 기준 `fd9cdcc`와 후보 원격 브랜치가 로컬에 존재해 가져오기나 전송이 필요하지 않았다. FE 및 BE 소스에는 쓰지 않았다. 실제 제품의 구조 디자인 승인, main/dev 병합, push, 배포는 하지 않았다. 테스트의 승인 처리는 합성 sample 데이터베이스와 worktree에 한정된다.

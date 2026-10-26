@@ -5,17 +5,19 @@ import {randomUUID} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
-import {macChildEnv,redact,stopTree} from './provider.mjs';
-import {trustedMacFile,trustedMacRuntime} from './macTrust.mjs';
+import {macChildEnv,redact,stopTree,trackMacProcess,verifyMacProcessSupport} from './provider.mjs';
+import {trustedMacFile,trustedMacRuntime,validateMacWorktree} from './macTrust.mjs';
 import {preparedNpmDependency,validateReviewedNpmSetup} from './wslChecks.mjs';
 
-function sandboxRun(cwd,command,args,environment,signal,timeoutMs=900000){
+export function sandboxRun(cwd,command,args,environment,signal,timeoutMs=900000){
   return new Promise(resolve=>{
     if(signal?.aborted){resolve({ok:false,code:null,timedOut:false,output:'Cancelled before macOS setup'});return;}
+    verifyMacProcessSupport();
     const child=spawn(command,args,{cwd,env:environment,detached:true,stdio:['ignore','pipe','pipe']});
+    const tracker=trackMacProcess(child,cwd);
     let output='',done=false,timedOut=false,watchdog;
     for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{output=(output+chunk.toString()).slice(-12000);});
-    const finish=(code,error)=>{if(done)return;if(signal?.aborted||timedOut)stopTree(child,'SIGKILL');done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error,code,timedOut,output:redact([output,error].filter(Boolean).join('\n'))});};
+    const finish=(code,error)=>{if(done)return;if(signal?.aborted||timedOut)stopTree(child,'SIGKILL');const cleaned=tracker.finish();done=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);resolve({ok:code===0&&!timedOut&&!signal?.aborted&&!error&&cleaned,code,timedOut,output:redact([output,error,cleaned?'':'macOS process cleanup could not be verified'].filter(Boolean).join('\n'))});};
     const stop=()=>{stopTree(child);watchdog??=setTimeout(()=>{stopTree(child,'SIGKILL');finish(null,'macOS setup process did not exit');},5000);watchdog.unref();};
     const timer=setTimeout(()=>{timedOut=true;stop();},timeoutMs);
     const abort=()=>stop();signal?.addEventListener('abort',abort,{once:true});
@@ -31,6 +33,7 @@ function version(command,args,cwd,environment,pattern,label){
 
 export async function verifyMacSetupBoundary(cwd,runtime,signal,mode='posix-setup'){
   if(process.platform!=='darwin')throw new Error('macOS setup boundary requires macOS');
+  validateMacWorktree(cwd);
   if(!['posix-setup','posix-lab'].includes(mode))throw new Error('Invalid macOS boundary mode');
   verifyCodexProfile(mode);
   const id=randomUUID(),allowed=path.join(cwd,`.workspace-setup-${id}`),denied=path.join(root,'data',`setup-denied-${id}`),linked=path.join(cwd,`.workspace-linked-${id}`);
@@ -47,7 +50,8 @@ export async function verifyMacSetupBoundary(cwd,runtime,signal,mode='posix-setu
 
 export async function prepareMacDependency(cwd,step,signal){
   if(process.platform!=='darwin')throw new Error('Trusted macOS dependency preparation requires macOS');
-  if(step?.ifMissing==='.gradle/workspace-home')throw new Error('Trusted macOS Gradle dependency preparation is not implemented');
+  validateMacWorktree(cwd);
+  if(step?.ifMissing==='.gradle/workspace-home')return (await import('./macGradle.mjs')).prepareMacGradle(cwd,step,signal);
   const {digest,marker}=validateReviewedNpmSetup(cwd,step);
   const runtime=trustedMacRuntime(cwd),npm=trustedMacFile('npm',cwd);
   const cache=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-mac-npm-'));

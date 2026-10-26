@@ -1,0 +1,7 @@
+/dev/disk8          	GUID_partition_scheme
+/dev/disk8s1        	Apple_HFS                      	/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-followup/mount-target
+
+{"parentDevice":16777233,"mountDevice":16777245}
+PASS: real mounted image rejected by task and dependency preflights
+PASS: symbolic link into mounted volume rejected
+DETACH 0 "disk8" ejected.

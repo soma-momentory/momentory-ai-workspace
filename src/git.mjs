@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import { root } from './config.mjs';
 import { repository } from './projects.mjs';
 import { Store } from './store.mjs';
-import { redact } from './provider.mjs';
+import { redact,activeMacProcessesForWorktree } from './provider.mjs';
 
 export function git(cwd,...args) { return execFileSync('git',args,{cwd,encoding:'utf8',timeout:15000,windowsHide:true}).trim(); }
 export function ignoredWorktreeViolations(dir,allowed=[]){
@@ -28,6 +28,7 @@ export function repoStatus(projectId,repoId) {
 export function createWorktree(task) {
   const info=repoStatus(task.project_id,task.repo);
   const dir=path.join(root,'worktrees',task.project_id,task.id);
+  if(activeMacProcessesForWorktree(dir).length)throw new Error('Active or unreaped macOS process blocks this worktree');
   if (fs.existsSync(dir)) {
     const actualDir=fs.realpathSync(dir),expectedDir=path.resolve(dir);
     if(fs.lstatSync(dir).isSymbolicLink()||(process.platform==='win32'?actualDir.toLowerCase()!==expectedDir.toLowerCase():actualDir!==expectedDir))throw new Error('Worktree path is linked outside its isolation directory');

@@ -4,7 +4,7 @@ import path from 'node:path';
 import {root} from './config.mjs';
 import {trustedMacFile} from './macTrust.mjs';
 
-export const codexProfileName=mode=>mode==='check'?'ai-dev-workspace-check':mode==='wsl'?'ai-dev-workspace-wsl':mode==='wsl-generic'?'ai-dev-workspace-wsl-generic':mode==='wsl-design'?'ai-dev-workspace-wsl-design':mode==='wsl-both'?'ai-dev-workspace-wsl-both':mode==='wsl-check'?'ai-dev-workspace-wsl-check':mode==='wsl-check-generic'?'ai-dev-workspace-wsl-check-generic':mode==='wsl-check-design'?'ai-dev-workspace-wsl-check-design':mode==='wsl-check-both'?'ai-dev-workspace-wsl-check-both':mode==='wsl-readonly'?'ai-dev-workspace-wsl-readonly':mode==='wsl-setup'?'ai-dev-workspace-wsl-setup':mode==='wsl-lab'?'ai-dev-workspace-wsl-lab':mode==='posix'?'ai-dev-workspace-posix':mode==='posix-readonly'?'ai-dev-workspace-posix-readonly':mode==='posix-setup'?'ai-dev-workspace-posix-setup':mode==='posix-check'?'ai-dev-workspace-posix-check':mode==='posix-lab'?'ai-dev-workspace-posix-lab':mode===true?'ai-dev-workspace-readonly':'ai-dev-workspace-isolated';
+export const codexProfileName=mode=>mode==='posix-gradle'?'ai-dev-workspace-posix-gradle':mode==='check'?'ai-dev-workspace-check':mode==='wsl'?'ai-dev-workspace-wsl':mode==='wsl-generic'?'ai-dev-workspace-wsl-generic':mode==='wsl-design'?'ai-dev-workspace-wsl-design':mode==='wsl-both'?'ai-dev-workspace-wsl-both':mode==='wsl-check'?'ai-dev-workspace-wsl-check':mode==='wsl-check-generic'?'ai-dev-workspace-wsl-check-generic':mode==='wsl-check-design'?'ai-dev-workspace-wsl-check-design':mode==='wsl-check-both'?'ai-dev-workspace-wsl-check-both':mode==='wsl-readonly'?'ai-dev-workspace-wsl-readonly':mode==='wsl-setup'?'ai-dev-workspace-wsl-setup':mode==='wsl-lab'?'ai-dev-workspace-wsl-lab':mode==='posix'?'ai-dev-workspace-posix':mode==='posix-readonly'?'ai-dev-workspace-posix-readonly':mode==='posix-setup'?'ai-dev-workspace-posix-setup':mode==='posix-check'?'ai-dev-workspace-posix-check':mode==='posix-lab'?'ai-dev-workspace-posix-lab':mode===true?'ai-dev-workspace-readonly':'ai-dev-workspace-isolated';
 const codexHome=()=>process.env.CODEX_HOME || path.join(os.homedir(),'.codex');
 const locations=mode=>{
   const name=`${codexProfileName(mode)}.config.toml`;
@@ -20,6 +20,13 @@ const expectedProfile=(mode,source)=>{
     content=content.replace('"__MAC_NODE_DIR__"',JSON.stringify(path.dirname(node)))
       .replace('"__MAC_NPM_ROOT__"',JSON.stringify(path.dirname(path.dirname(npm))));
   }
+  if(mode==='posix-gradle'){
+    const policy=JSON.parse(fs.readFileSync(trustedMacFile('gradlePolicy',root),'utf8'));
+    for(const [token,value] of [['__MAC_JDK_HOME__',policy.jdk.home],['__MAC_GRADLE_HOME__',policy.gradle.home],['__MAC_GRADLE_REPO__',policy.repository]]){
+      if(!path.isAbsolute(value)||fs.realpathSync(value)!==value)throw new Error('Untrusted macOS Gradle runtime path');
+      content=content.replace(JSON.stringify(token),JSON.stringify(value));
+    }
+  }
   const insideHome=!path.relative(os.homedir(),root).startsWith('..')&&!path.isAbsolute(path.relative(os.homedir(),root));
   if(insideHome) content=content.replace('"~" = "deny"\n','');
   return Buffer.from(content);
@@ -27,7 +34,7 @@ const expectedProfile=(mode,source)=>{
 export function installCodexProfiles() {
   fs.mkdirSync(codexHome(),{recursive:true});
   if(process.platform==='darwin')for(const name of ['node','npm','codex','claude'])trustedMacFile(name,root);
-  for(const mode of [false,true,'check','wsl','wsl-generic','wsl-design','wsl-both','wsl-check','wsl-check-generic','wsl-check-design','wsl-check-both','wsl-readonly','wsl-setup','wsl-lab','posix','posix-readonly',...(process.platform==='darwin'?['posix-setup','posix-check','posix-lab']:[])]) {
+  for(const mode of [false,true,'check','wsl','wsl-generic','wsl-design','wsl-both','wsl-check','wsl-check-generic','wsl-check-design','wsl-check-both','wsl-readonly','wsl-setup','wsl-lab','posix','posix-readonly',...(process.platform==='darwin'?['posix-setup','posix-check','posix-lab',...(process.env.WORKSPACE_MAC_GRADLE_POLICY?['posix-gradle']:[])]:[])]) {
     const {source,target}=locations(mode),expected=expectedProfile(mode,source);
     if(fs.existsSync(target)) {
       const current=fs.readFileSync(target);

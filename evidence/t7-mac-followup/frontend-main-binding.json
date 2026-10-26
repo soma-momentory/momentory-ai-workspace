@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-26T12:05:18.314Z",
+  "configuredWorkspaces": [
+    {
+      "workspace": "/Users/kjh/Momentory/momentory-ai-workspace",
+      "repository": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+      "status": {
+        "dir": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+        "branch": "workspace/t7-mac-latest-main",
+        "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+        "dirty": ""
+      }
+    },
+    {
+      "workspace": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup",
+      "repository": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+      "status": {
+        "dir": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+        "branch": "workspace/t7-mac-latest-main",
+        "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+        "dirty": ""
+      }
+    }
+  ],
+  "fetchedMain": "e6f88ce528a0bdb270aee9b152bb47090f226ca5",
+  "candidate": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+  "mainIsAncestor": true,
+  "mainAppSrcExpoLabUnchanged": true,
+  "studioApprovedMatchesMain": true,
+  "localConfigMode": "0600",
+  "credentialsLogged": false
+}

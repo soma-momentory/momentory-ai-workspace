@@ -1,0 +1,1 @@
+{"status":"PASS","taskId":"ec3cbfcb-3372-4ef9-b324-c03d62ad6295","attempts":2,"worktree":"/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/worktrees/sample/ec3cbfcb-3372-4ef9-b324-c03d62ad6295","changedFiles":["index.test.mjs"],"database":"/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/pause-0274e301-dd46-4413-9644-377ae5158235.sqlite"}

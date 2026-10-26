@@ -1,0 +1,18 @@
+START tests/codex-boundary.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/codex-boundary.integration.mjs"],"exitCode":0,"log":"regression-codex-boundary.txt"}
+START tests/provider-boundary.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/provider-boundary.integration.mjs"],"exitCode":0,"log":"regression-provider-boundary.txt"}
+START tests/codex-cancel.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/codex-cancel.integration.mjs"],"exitCode":0,"log":"regression-codex-cancel.txt"}
+START tests/local.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/local.integration.mjs"],"exitCode":0,"log":"regression-local.txt"}
+START tests/recovery.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/recovery.integration.mjs"],"exitCode":0,"log":"regression-recovery.txt"}
+START tests/diff-reviewability.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/diff-reviewability.integration.mjs"],"exitCode":0,"log":"regression-diff-reviewability.txt"}
+START tests/approved-inheritance.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/approved-inheritance.integration.mjs"],"exitCode":0,"log":"regression-approved-inheritance.txt"}
+START tests/sandbox-check.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/sandbox-check.integration.mjs"],"exitCode":0,"log":"regression-sandbox-check.txt"}
+START tests/pause.integration.mjs
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","tests/pause.integration.mjs"],"exitCode":0,"log":"regression-pause.txt"}

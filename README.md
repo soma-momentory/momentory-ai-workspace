@@ -17,7 +17,7 @@ Open `http://127.0.0.1:4178` and log in with `WORKSPACE_TOKEN`. The launcher sup
 
 ## Start on macOS
 
-Use Node 22.x (22.13+), Git, and authenticated official CLIs. Clone this repository and each target project. Set each repository path in `projects.json` or use `WORKSPACE_REPO_<PROJECT>_<REPO>` environment variables. Run `npm run setup`, configure the canonical executable paths and SHA-256 pins in [OPERATIONS.md](OPERATIONS.md), then run `npm run isolation:setup` and `npm run local`. Actual macOS npm/sample/CLI validation is recorded in [T7_MAC_REPORT.md](T7_MAC_REPORT.md); Gradle remains blocked and full release parity is incomplete.
+Use Node 22.x (22.13+), Git, authenticated official CLIs, and `/usr/bin/python3` with Darwin libproc support (Apple developer tools on the tested Mac). Clone this repository and each target project. Set each repository path in `projects.json` or use `WORKSPACE_REPO_<PROJECT>_<REPO>` environment variables. Run `npm run setup`, configure the canonical executable paths and SHA-256 pins in [OPERATIONS.md](OPERATIONS.md), then run `npm run isolation:setup` and `npm run local`. [T7_MAC_FOLLOWUP_REPORT.md](T7_MAC_FOLLOWUP_REPORT.md) records actual mounted-volume, Worker SIGKILL/recovery, latest FE main and Lab evidence. Gradle execution remains blocked; release is NOT READY.
 
 ## Projects and tasks
 

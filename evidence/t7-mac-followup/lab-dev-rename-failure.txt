@@ -1,0 +1,21 @@
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex","sandbox","-p","ai-dev-workspace-posix-lab","-P","workspace-lab","-C","/Users/kjh/Momentory/momentory-fe-t7-mac-main","--","/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/npm/bin/npm-cli.js","run","dev","--prefix","design-lab","--","--host","127.0.0.1","--port","14173","--strictPort"]}
+{"ready":true,"metric":{"title":"Momentory Design Lab","textLength":0,"scrollWidth":390,"width":390},"errors":["Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)","Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)","Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"],"output":"\n> momentory-design-lab@0.1.0 dev\n> vite --configLoader runner --host 127.0.0.1 --port 14173 --strictPort\n\n\n  VITE v7.3.7  ready in 89 ms\n\n  ➜  Local:   http://127.0.0.1:14173/\n8:19:13 PM [vite] (client) error while updating dependencies:\nError: EPERM: operation not permitted, rename '/Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/.cache/vite/deps_temp_6c5a6286' -> '/Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/.cache/vite/deps'\n    at Object.renameSync (node:fs:1012:11)\n    at Object.commit (file:///Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/node_modules/vite/dist/node/chunks/config.js:32229:8)\n    at commitProcessing (file:///Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/node_modules/vite/dist/node/chunks/config.js:34438:28)\n    at runOptimizer (file:///Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/node_modules/vite/dist/node/chunks/config.js:34460:11)\n    at onCrawlEnd (file:///Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/node_modules/vite/dist/node/chunks/config.js:34580:5)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n8:19:14 PM [vite] (client) error while updating dependencies:\nError: EPERM: operation not permitted, rename '/Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/.cache/vite/deps_temp_8fa9376a' -> '/Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/.cache/vite/deps'\n    at Object.renameSync (node:fs:1012:11)\n    at Object.commit (file:///Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/node_modules/vite/dist/node/chunks/config.js:32229:8)\n    at commitProcessing (file:///Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/node_modules/vite/dist/node/chunks/config.js:34438:28)\n    at runOptimizer (file:///Users/kjh/Momentory/momentory-fe-t7-mac-main/design-lab/node_modules/vite/dist/node/chunks/config.js:34460:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n"}
+CLEANUP true
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(metric.textLength>100)
+
+    at file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/[eval1]:2:1096 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.23.2
