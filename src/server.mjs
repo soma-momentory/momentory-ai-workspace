@@ -305,7 +305,7 @@ async function handle(req,res) {
   if(!['index.html','app.js','style.css'].includes(name)) return send(res,404,{error:'Not found'});
   const file=path.join(publicDir,name);
   const mime=name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':'text/html';
-  res.writeHead(200,{'Content-Type':`${mime}; charset=utf-8`,'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});
+  res.writeHead(200,{'Content-Type':`${mime}; charset=utf-8`,'Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});
   fs.createReadStream(file).pipe(res);
 }
 
