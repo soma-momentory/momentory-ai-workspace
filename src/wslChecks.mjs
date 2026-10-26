@@ -9,6 +9,25 @@ import {wslCodexConfig,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex,async
 
 export const strictWslChecks=stack=>process.platform==='win32'&&['node','react-native-expo','spring'].includes(stack);
 const checkedSetup=new Set();
+export function dependencyLinksSafe(mount){
+  try{
+    const base=fs.realpathSync(mount),stack=[base];
+    if(base!==path.resolve(mount))return false;
+    let visited=0;
+    while(stack.length){
+      const directory=stack.pop();
+      for(const entry of fs.readdirSync(directory,{withFileTypes:true})){
+        if(++visited>500000)return false;
+        const location=path.join(directory,entry.name);
+        if(entry.isSymbolicLink()){
+          const target=fs.realpathSync(location);
+          if(!target.startsWith(base+path.sep))return false;
+        }else if(entry.isDirectory())stack.push(location);
+      }
+    }
+    return true;
+  }catch{return false;}
+}
 export function cleanupStaleBoundaryCanaries(cwd){
   if(process.platform!=='win32')return [];
   const files=fs.readdirSync(cwd).filter(name=>/^\.workspace-(?:setup|isolation)-[0-9a-f-]{36}$/.test(name));
@@ -24,7 +43,7 @@ export function cleanupStaleBoundaryCanaries(cwd){
   }
   return removed;
 }
-export function preparedNpmDependency(cwd,step){
+export function preparedNpmDependency(cwd,step,platform=process.platform){
   if(!step||!['node_modules','design-lab/node_modules'].includes(step.ifMissing))return false;
   const prefix=step.ifMissing==='node_modules'?'.':'design-lab';
   const lock=path.join(cwd,prefix,'package-lock.json'),manifest=path.join(cwd,prefix,'package.json');
@@ -39,18 +58,21 @@ export function preparedNpmDependency(cwd,step){
     const entries=Object.entries(installed.packages||{});
     const required=Object.entries(locked.packages||{}).filter(([name,meta])=>name&&!meta.optional);
     const base=path.resolve(cwd,prefix);
+    const mount=path.join(cwd,step.ifMissing);
+    if(fs.lstatSync(mount).isSymbolicLink()||fs.realpathSync(mount)!==path.resolve(mount))return false;
     const complete=entries.length>0&&entries.every(([relative,meta])=>{
       if(!relative||relative.split(/[\\/]/).includes('..'))return false;
       const location=path.resolve(base,relative);
       if(!location.startsWith(base+path.sep))return false;
       const target=meta?.link?path.resolve(base,String(meta.resolved||'')):location;
-      return target.startsWith(base+path.sep)&&fs.existsSync(path.join(target,'package.json'));
+      return target.startsWith(base+path.sep)&&fs.existsSync(path.join(target,'package.json'))&&fs.realpathSync(target).startsWith(base+path.sep);
     });
-    return JSON.parse(fs.readFileSync(marker,'utf8')).digest===digest&&complete&&required.every(([name])=>Object.hasOwn(installed.packages,name));
+    const record=JSON.parse(fs.readFileSync(marker,'utf8'));
+    return record.digest===digest&&(platform!=='darwin'||record.platform==='darwin'&&dependencyLinksSafe(mount))&&complete&&required.every(([name])=>Object.hasOwn(installed.packages,name));
   }catch{return false;}
 }
 export function approvedIgnoredMounts(cwd,repoConfig){
-  if(repoConfig.stack==='spring')return new Set(['.gradle/','build/','out/']);
+  if(repoConfig.stack==='spring')return process.platform==='darwin'?new Set():new Set(['.gradle/','build/','out/']);
   return new Set((repoConfig.setup||[])
     .filter(step=>['node_modules','design-lab/node_modules'].includes(step.ifMissing))
     .filter(step=>preparedNpmDependency(cwd,step))
@@ -161,16 +183,18 @@ async function prepareWslGradle(cwd,step,signal){
   fs.writeFileSync(marker,JSON.stringify({digest:expected,step:step.ifMissing,preparedAt:new Date().toISOString()}));
   return result;
 }
-export async function prepareWslDependency(cwd,step,signal){
-  if(step.ifMissing==='.gradle/workspace-home')return prepareWslGradle(cwd,step,signal);
+export function validateReviewedNpmSetup(cwd,step){
+  if(fs.realpathSync(cwd)!==path.resolve(cwd))throw new Error('Dependency worktree must have a canonical path');
   const prefix=step.ifMissing==='node_modules'?null:step.ifMissing==='design-lab/node_modules'?'design-lab':null;
   const expected=['npm','ci',...(prefix?['--prefix',prefix]:[]),'--ignore-scripts','--no-audit','--no-fund'];
   if(!prefix&&step.ifMissing!=='node_modules'||JSON.stringify(step.command)!==JSON.stringify(expected))throw new Error('Only the reviewed npm ci --ignore-scripts setup is allowed');
   const protectedFiles=['package.json','package-lock.json','.npmrc',...(prefix?[`${prefix}/package.json`,`${prefix}/package-lock.json`,`${prefix}/.npmrc`]:[])];
   const changed=spawnSync('git',['diff','--name-only','HEAD','--',...protectedFiles],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
   const untracked=spawnSync('git',['ls-files','--others','--exclude-standard','--',...protectedFiles],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
-  if(changed.status!==0||untracked.status!==0||changed.stdout.trim()||untracked.stdout.trim())throw new Error('Dependency manifest or npm configuration changed in the task worktree');
+  const ignoredConfig=spawnSync('git',['ls-files','--others','--ignored','--exclude-standard','--','.npmrc',...(prefix?[`${prefix}/.npmrc`]:[])],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
+  if(changed.status!==0||untracked.status!==0||ignoredConfig.status!==0||changed.stdout.trim()||untracked.stdout.trim()||ignoredConfig.stdout.trim())throw new Error('Dependency manifest or npm configuration changed in the task worktree');
   const lock=path.join(cwd,prefix||'.','package-lock.json'),manifest=path.join(cwd,prefix||'.','package.json');
+  if([lock,manifest].some(file=>fs.realpathSync(file)!==path.resolve(file)||!fs.statSync(file).isFile()))throw new Error('Dependency manifest or lockfile crosses a symbolic link');
   const lockData=JSON.parse(fs.readFileSync(lock,'utf8'));
   for(const item of Object.values(lockData.packages||{}))if(item?.resolved){
     const resolved=String(item.resolved);
@@ -180,6 +204,11 @@ export async function prepareWslDependency(cwd,step,signal){
   const digest=createHash('sha256').update(fs.readFileSync(lock)).update(fs.readFileSync(manifest)).update(JSON.stringify(step.command)).digest('hex');
   const markerDir=path.join(root,'data','check-deps');fs.mkdirSync(markerDir,{recursive:true});
   const marker=path.join(markerDir,`${createHash('sha256').update(path.resolve(cwd)+'|'+step.ifMissing).digest('hex')}.json`);
+  return {prefix,digest,marker,lock,manifest};
+}
+export async function prepareWslDependency(cwd,step,signal){
+  if(step.ifMissing==='.gradle/workspace-home')return prepareWslGradle(cwd,step,signal);
+  const {digest,marker}=validateReviewedNpmSetup(cwd,step);
   if(preparedNpmDependency(cwd,step))return {ok:true,output:'Previously prepared Linux dependencies match the locked manifest and installed package index'};
   const config=nodeEnvironment(cwd);
   await verifyWslSetupBoundary(cwd);

@@ -5,9 +5,12 @@ import { spawn, execFileSync } from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import { root, screenshotDirectory } from './config.mjs';
 import { repository, project } from './projects.mjs';
-import {childEnv,stopTree} from './provider.mjs';
+import {childEnv,macChildEnv,stopTree} from './provider.mjs';
 import {wslCodexConfig,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
 import {verifyWslSetupBoundary,prepareWslDependency,cleanupStaleBoundaryCanaries} from './wslChecks.mjs';
+import {prepareMacDependency,verifyMacSetupBoundary} from './macDependency.mjs';
+import {trustedMacRuntime} from './macTrust.mjs';
+import {codexProfileName} from './codexProfile.mjs';
 import {validateMomentoryDesign} from './momentorySchema.mjs';
 
 const screenRoots={'home-main':'studio-home-hero','rest-hub':'studio-rest-root','archive':'studio-archive-root','my-main':'studio-my-root','report':'studio-report-root'};
@@ -39,10 +42,10 @@ async function ensureLab(url,projectId,checkout=null,signal=null) {
   if(!labStartup) labStartup=(async()=>{
     const cli=path.join(fe,'node_modules','expo','bin','cli');
     const linuxDependencies=process.platform==='win32';
-    if(linuxDependencies){
+    if(linuxDependencies||process.platform==='darwin'){
       const step=repository(projectId,project(projectId).design.repo).setup?.find(item=>item.ifMissing==='node_modules');
       if(!step)throw new Error('Expo Lab dependency setup is not configured');
-      const setup=await prepareWslDependency(fe,step,signal);
+      const setup=linuxDependencies?await prepareWslDependency(fe,step,signal):await prepareMacDependency(fe,step,signal);
       if(!setup.ok)throw new Error(`Expo Lab dependency setup failed: ${setup.output.slice(-1000)}`);
     }
     if(!fs.existsSync(cli))throw new Error('Expo Lab CLI unavailable; install Momentory FE dependencies');
@@ -55,7 +58,13 @@ async function ensureLab(url,projectId,checkout=null,signal=null) {
       ownedLabLaunch=wslTrustedCommandLaunch(fe,sandbox);
       executable=ownedLabLaunch.executable;args=ownedLabLaunch.args;
     }
-    ownedLab=spawn(executable,args,{cwd:labDir,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env:{...childEnv(),EXPO_NO_TELEMETRY:'1'}});
+    const mac=process.platform==='darwin'?trustedMacRuntime(fe):null;
+    if(mac){
+      await verifyMacSetupBoundary(fe,mac,signal,'posix-lab');
+      executable=mac.codex;
+      args=['sandbox','-p',codexProfileName('posix-lab'),'-P','workspace-lab','-C',fe,'--','/bin/sh','-c','cd "$1" && shift && exec "$@"','lab',labDir,mac.node,cli,'start','--web','--port',new URL(url).port,'--host','localhost'];
+    }
+    ownedLab=spawn(executable,args,{cwd:labDir,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env:mac?macChildEnv(mac.path,{EXPO_NO_TELEMETRY:'1'}):{...childEnv(),EXPO_NO_TELEMETRY:'1'}});
     const launch=ownedLabLaunch;ownedLab.on('close',()=>finishWslCodex(launch));
     ownedLabRepo=fe;
     ownedLab.unref();
@@ -113,6 +122,7 @@ async function captureDesignExclusive(candidateId,exported,screen,projectId,chec
   if(signal?.aborted)throw new Error('Design capture cancelled');
   if(!screenRoots[screen]) throw new Error('Unsupported screen');
   const fe=fs.realpathSync(checkout||labRepo(projectId));
+  if(process.platform==='darwin'&&execFileSync('git',['branch','--show-current'],{cwd:fe,encoding:'utf8',timeout:10000}).trim()==='main')throw new Error('macOS Design Lab capture requires an isolated FE worktree, not main');
   cleanupStaleBoundaryCanaries(fe);
   const baseHead=execFileSync('git',['rev-parse','HEAD'],{cwd:fe,encoding:'utf8',timeout:10000}).trim();
   if(execFileSync('git',['status','--porcelain'],{cwd:fe,encoding:'utf8',timeout:10000}).trim())throw new Error('Design rendering checkout has unreviewed source changes');

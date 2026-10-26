@@ -12,7 +12,7 @@ npm run setup
 npm run isolation:setup
 ```
 
-`npm run setup` refuses to overwrite an existing `.env`. `npm run isolation:setup` installs audited Codex sandbox profiles under `CODEX_HOME`; it refuses to overwrite a profile with different content except the exact previous WSL template when adding the tested Node runtime. Run the same commands on macOS, though Mac execution remains unverified. Repository paths may be set in `projects.json` or by `WORKSPACE_REPO_MOMENTORY_FE` and `WORKSPACE_REPO_MOMENTORY_BE`. Run `npm run local` in the workspace. Open `http://127.0.0.1:4178`, read `WORKSPACE_TOKEN` from your local `.env` to log in, choose a project, then create an AI, human, or collaborative task. If an installed profile changes with a later Workspace version, inspect the tracked `profiles/` template and the corresponding `CODEX_HOME/ai-dev-workspace-*.config.toml` before replacing the latter, then rerun `npm run isolation:setup`.
+`npm run setup` refuses to overwrite an existing `.env`. `npm run isolation:setup` installs audited Codex sandbox profiles under `CODEX_HOME`; it refuses to overwrite an unrelated local profile change. Repository paths may be set in `projects.json` or by `WORKSPACE_REPO_MOMENTORY_FE` and `WORKSPACE_REPO_MOMENTORY_BE`. On macOS, set the pinned CLI paths and hashes below before isolation setup. Run `npm run local` in the workspace. Open `http://127.0.0.1:4178`, read `WORKSPACE_TOKEN` from your local `.env` to log in, choose a project, then create an AI, human, or collaborative task. If an installed profile changes with a later Workspace version, inspect the tracked `profiles/` template and the corresponding `CODEX_HOME/ai-dev-workspace-*.config.toml` before replacing the latter, then rerun `npm run isolation:setup`.
 
 Existing installations created before encrypted backups need `npm run backup:init` once. It appends a random `WORKSPACE_BACKUP_KEY` to the ignored `.env` without changing existing tokens. Keep an offline copy of that key outside the laptop; losing it makes encrypted backups unreadable. `npm run setup` includes the key on new installations. `npm run local` requires the key and creates a backup before starting AI workers, then every 24 hours while running. A backup failure stops the launcher. Retention keeps the 14 newest backups plus one per day from up to 30 older days in ignored `backups/`.
 
@@ -42,13 +42,23 @@ Claude must resolve to an actual `claude.exe` outside the Workspace and every ta
 
 The WSL Codex CLI uses the existing Windows Codex login through `CODEX_HOME`; do not copy credentials into the repository. If WSL, systemd, authentication, the profile, or a deny probe fails, Codex execution fails closed. Node/Expo checks install Linux dependencies with `npm ci --ignore-scripts` in each isolated Worktree; on Windows DrvFS this initial setup took about seven minutes for Momentory FE. Spring checks require WSL OpenJDK 21 and an isolated Gradle dependency cache. The setup fetches dependencies from a clean committed build; later tests run offline in a loopback-only network namespace. `npm run test:be-isolation` passed on the tested Windows/WSL host after configuring a bounded 384-task Gradle scope and startup Byte Buddy agent. See `TEST_REPORT.md` for the exact result and Docker-dependent test limitation.
 
-On an authorized Mac, run this manual acceptance sequence from a clone of the same commit. Set the repository path overrides in the local `.env` if Momentory is not beside the Workspace clone. Record `sw_vers`, `node --version`, `claude --version`, `codex --version`, command output and the resulting task IDs. No Mac result has been supplied yet.
+On an authorized Mac, run `npm run setup` once on a fresh clone, then locate the canonical files for Node, npm CLI, Codex and Claude. Resolve the installed commands before adding them to `.env`; do not pin shell aliases or symlinks. These commands print paths and hashes, never credentials:
+
+```sh
+node -p 'require("fs").realpathSync(process.execPath)'
+python3 -c 'import os,shutil; [print(name,os.path.realpath(shutil.which(name) or "")) for name in ("npm","codex","claude")]'
+shasum -a 256 /absolute/canonical/node /absolute/canonical/npm-cli.js /absolute/canonical/codex /absolute/canonical/claude
+```
+
+Add the four paths to the ignored `.env` as `WORKSPACE_MAC_NODE`, `WORKSPACE_MAC_NPM_CLI`, `WORKSPACE_MAC_CODEX`, `WORKSPACE_MAC_CLAUDE`, and each matching lowercase hex digest as `<name>_SHA256` (for example, `WORKSPACE_MAC_NODE_SHA256`). All four files must be canonical, outside Workspace/task worktrees, owned by the current user or root, and not writable by group or others. The Node runtime must be 22.13+; npm must report major 10 or 11. Refresh the digest after a reviewed CLI update, then reinstall the Codex profiles. The Workspace never installs these CLIs automatically. A changed file, symlink, PATH shim, or missing profile stops execution.
+
+Run this manual acceptance sequence from a clone of the same commit. Set repository path overrides in `.env` if Momentory is not beside Workspace. Record `sw_vers`, command output and task IDs. No Mac result has been supplied yet.
 
 ```sh
 cd /path/to/ai-dev-workspace
-npm run setup
 npm run isolation:setup
 npm test
+npm run test:diff-reviewability
 npm run test:sandbox-check
 npm run test:local-integration
 npm run test:design-capture
@@ -73,7 +83,7 @@ The laptop may move between home, school, or cafe networks if Tailscale remains 
 
 Upgrading from an earlier Workspace profile: run `npm run isolation:setup` after reviewing the tracked `profiles/` changes. The installer recognizes the exact prior scan-depth-8 template and installs scan depth 32; a different local profile edit fails closed. A deep or oversized Worktree blocks isolated execution. An already approved parent result without the new verified fingerprint cannot be inherited by a dependent task; rerun and verify that parent before approving it again. If the Worktree changes after checks or approval, restore or re-verify the reviewed contents rather than overriding the HTTP 409 response.
 
-Empty `expo-lab/node_modules` and `design-lab/node_modules` directories can be created as read-only sandbox mounts in a Momentory FE Worktree. The gate ignores exact empty directories; populated root or Design Lab dependencies on every platform require a validated locked-installation marker. The current Mac setup path does not issue that marker and therefore fails closed for populated dependencies; Mac acceptance remains BLOCKED until a trusted setup is implemented and run on a Mac. Unprepared or linked content remains an ignored-content violation. The release test preserved an `UNVERIFIED` design apply, reviewed its Diff hash, resumed the same Worktree, and reached `AWAITING_APPROVAL` after all configured FE checks passed. Do not discard or auto-approve an `UNVERIFIED` Worktree.
+Empty `expo-lab/node_modules` and `design-lab/node_modules` directories can be created as read-only sandbox mounts in a Momentory FE Worktree. The gate ignores exact empty directories; populated root or Design Lab dependencies on every platform require a validated locked-installation marker. The T7 macOS candidate can issue that marker only after the pinned npm setup, sandbox deny probe and installed-index checks succeed. Unprepared or linked content remains an ignored-content violation. Mac execution has not yet been observed; macOS Gradle setup explicitly fails closed. The release test preserved an `UNVERIFIED` design apply, reviewed its Diff hash, resumed the same Worktree, and reached `AWAITING_APPROVAL` after all configured FE checks passed. Do not discard or auto-approve an `UNVERIFIED` Worktree.
 
 
 SQLite lives under ignored `data/`; project/task worktrees live under ignored `worktrees/`. The launcher restarts a crashed API or worker. A lost lease with a worktree becomes `STALE`: the task detail exposes its preserved diff, and a partial diff requires an exact reviewed hash to resume. Restarted Workers reap dead-owner WSL Codex scopes; an active prior scope blocks resume. WSL scope metadata is written atomically. A zero-filled legacy marker is moved to `data/codex-processes/quarantine/` only after its owner has exited and the corresponding scope is inactive across installed WSL distributions; malformed nonzero metadata still blocks execution for inspection. A `*.result.json` checkpoint and an `orphan_result` event may help reconcile an interrupted completion. The launcher creates encrypted backups on start and every 24 hours; worktrees and Git repositories require separate backup. [Manual device validation](MANUAL_VALIDATION.md) separates phone, Mac, and native checks from Windows simulation.

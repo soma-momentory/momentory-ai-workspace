@@ -15,24 +15,28 @@ These checks require equipment unavailable in the 2026-10-25 Windows run. Record
 
 ## macOS laptop — BLOCKED until a Mac is available
 
-The current Mac setup path does not issue the validated dependency marker required for populated Node and Design Lab directories. Those tasks must fail closed until a trusted setup path is implemented and verified on a Mac. The commands below gather diagnostic evidence; they do not establish Mac release acceptance by themselves.
+The T7 candidate has a reviewed npm preparation path, but no actual Mac result. Follow [OPERATIONS.md](OPERATIONS.md) to pin canonical Node, npm CLI, Codex and Claude paths plus SHA-256 digests in the ignored `.env`; first use `npm run setup` to create that file. Windows unit tests and WSL results do not count as Mac passes.
 
-On an authorized Mac with Xcode command-line tools, Node 22.14+, Git, Claude Code, Codex CLI, and Tailscale installed, clone this Workspace commit and the registered project repositories. Set `WORKSPACE_REPO_MOMENTORY_FE` and `WORKSPACE_REPO_MOMENTORY_BE` in the ignored `.env` if their paths differ. Record the outputs of:
+On an authorized Mac with Node 22.13+, Git and the official AI CLIs, clone this Workspace commit and the registered project repositories. Set `WORKSPACE_REPO_MOMENTORY_FE` and `WORKSPACE_REPO_MOMENTORY_BE` in the ignored `.env` if their paths differ. Save OS version, Workspace and FE commits, command output, task IDs and timestamps:
 
 ```sh
 sw_vers
 node --version
 claude --version
 codex --version
-npm run setup
 npm run isolation:setup
 npm test
+npm run test:diff-reviewability
 npm run test:local-integration
 npm run test:design-capture
 npm run local
 ```
 
-Create a real Claude task, a real Codex task, and a REVIEW task. Check that the POSIX isolation profile blocks an outside canary in an actual Codex AI session; Windows WSL evidence does not establish macOS isolation. Run the phone checklist against this Mac with Tailscale Serve. Record any sandbox/profile incompatibility as a blocker.
+Use a fresh isolated FE task worktree to prove both root and Design Lab `npm ci --ignore-scripts` steps, marker creation, and subsequent typecheck/lint/Jest. Run Design Lab capture from an isolated non-`main` FE checkout and verify its separate Lab sandbox boundary. Confirm a deliberately unmarked populated mount, modified lockfile, changed executable digest, PATH shim and symlink escaping the dependency mount each stop before AI execution. Do not alter the registered FE `main` checkout for these negatives. Confirm the setup and Lab deny probes read/write their allowed canary while the direct and symlinked outside Workspace-data canary remains unreadable and unchanged. Preserve a failed worktree and its logs; do not retry a partial mount as trusted.
+
+Create real Claude, Codex and REVIEW tasks in a disposable registered test project. In the actual Codex session, attempt to read another registered project and Workspace `data/`, and attempt writes outside the worktree and to installed dependencies. Verify denial. During separate runs, cancel the task and inspect its child process group, force a timeout, kill the Worker, restart Workspace and inspect the `STALE` worktree before any manual resume. Attempt an unapproved risky operation and duplicate approval; both must be denied. Inspect persisted events for token masking. Perform encrypted backup, verification and restore in a separate test instance, then confirm tasks, decisions, screenshots and credentials policy. Record exact evidence and failures. Claude still relies on the host OS account for file access; do not claim an OS sandbox for Claude without an observed boundary.
+
+The Mac Gradle dependency path currently fails closed. If Momentory BE must run on Mac, this remains a separate implementation blocker. Run the physical-phone checklist against this Mac with Tailscale Serve only after local acceptance. Record any sandbox/profile incompatibility as a blocker.
 
 ## Native Momentory screens — PENDING_MANUAL_VALIDATION
 
