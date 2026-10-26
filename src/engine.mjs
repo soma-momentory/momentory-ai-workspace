@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createWorktree, inheritApproved, diffSummary, recoveryFingerprint, ignoredWorktreeViolations } from './git.mjs';
+import { createWorktree, inheritApproved, sealTaskBaseline, diffSummary, recoveryFingerprint, ignoredWorktreeViolations } from './git.mjs';
 import { runProvider, stopTree, redact, childEnv } from './provider.mjs';
 import { git } from './git.mjs';
 import { project, repository } from './projects.mjs';
@@ -72,6 +72,8 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   cleanupStaleBoundaryCanaries(location.dir);
   emit('worktree',{branch:location.branch,baseHead:location.baseHead,dirtySource:location.dirtySource});
   inheritApproved(task,location.dir);
+  const approvalBaseHead=sealTaskBaseline(task,location.dir,location.baseHead);
+  await save({approval_base_head:approvalBaseHead});
   const repoConfig=repository(task.project_id,task.repo);
   for(const step of repoConfig.setup||[]) if(strictWslChecks(repoConfig.stack)||!fs.existsSync(path.join(location.dir,step.ifMissing))) {
     const setup=strictWslChecks(repoConfig.stack)?await prepareWslDependency(location.dir,step,signal):await runCommand(location.dir,step.command[0],step.command.slice(1),600000,signal);
@@ -88,18 +90,18 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
     try{applied=await applySelectedDesign(selected.proposal.exported,task.project_id,location.dir);}
     catch(error){emit('design_applied',{ok:false,error:String(error)});return {status:'FAILED',result:{candidateId:selected.id,error:String(error)},verification:{ok:false,reason:'Design apply failed'}};}
     emit('design_applied',{ok:true,changedKeys:applied.changedKeys});
-    const beforeChecks=recoveryFingerprint(location.dir,location.baseHead);
+    const beforeChecks=recoveryFingerprint(location.dir,approvalBaseHead);
     const verification=await verifyTask(task,location.dir,signal);
-    const diff=diffSummary(location.dir,location.baseHead);
-    const checksChangedSource=beforeChecks!==recoveryFingerprint(location.dir,location.baseHead);
+    const diff=diffSummary(location.dir,approvalBaseHead);
+    const checksChangedSource=beforeChecks!==recoveryFingerprint(location.dir,approvalBaseHead);
     const violations=await protectedViolations(task,diff.changedFiles);
     const outputPath=project(task.project_id).design.outputPath.replace(/\\/g,'/');
-    const headMoved=git(location.dir,'rev-parse','HEAD')!==location.baseHead;
+    const headMoved=git(location.dir,'rev-parse','HEAD')!==approvalBaseHead;
     const ignored=ignoredWorktreeViolations(location.dir,approvedIgnoredMounts(location.dir,repoConfig));
     const onlySelectedOutput=diff.changedFiles.length===1&&diff.changedFiles[0]===outputPath;
     const status=signal?.aborted?'CANCELLED':selectedDesignApprovalReady({verification,diff,outputPath,checksChangedSource,headMoved,ignored,violations})?'AWAITING_APPROVAL':'UNVERIFIED';
-    const verifiedDiffHash=status==='AWAITING_APPROVAL'?recoveryFingerprint(location.dir,location.baseHead):null;
-    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,protectedViolations:violations,checksChangedSource,headMoved,ignored,onlySelectedOutput,verifiedDiffHash},verification,usage:{automation:true}};
+    const verifiedDiffHash=status==='AWAITING_APPROVAL'?recoveryFingerprint(location.dir,approvalBaseHead):null;
+    return {status,result:{candidateId:selected.id,screenshot:selected.screenshot,diff,approvalBaseHead,protectedViolations:violations,checksChangedSource,headMoved,ignored,onlySelectedOutput,verifiedDiffHash},verification,usage:{automation:true}};
   }
   const provider=task.provider;
   const run=async (which,prompt,readOnly=false,sessionId=null)=>{
@@ -150,16 +152,16 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   let execution=await run(provider,context(task),false,task.session_id);
   await save({session_id:execution.sessionId});
   if(!execution.ok) return {status:signal?.aborted?'CANCELLED':'FAILED',result:execution,verification:{ok:false,reason:signal?.aborted?'Task cancelled':'Provider failed'},usage:execution.usage};
-  let diff=diffSummary(location.dir,location.baseHead);
+  let diff=diffSummary(location.dir,approvalBaseHead);
   if(diff.changedFiles.length===0) return {status:'UNVERIFIED',result:execution,verification:{ok:false,reason:'No code changes detected'},usage:execution.usage};
   let checksChangedSource=false;
   const unsafeIgnored=()=>ignoredWorktreeViolations(location.dir,approvedIgnoredMounts(location.dir,repoConfig));
   const verifyWithoutMutation=async()=>{
     const hidden=unsafeIgnored();
     if(hidden.length)return {ok:false,checks:[],unsafeIgnored:hidden};
-    const before=recoveryFingerprint(location.dir,location.baseHead);
+    const before=recoveryFingerprint(location.dir,approvalBaseHead);
     const result=await verifyTask(task,location.dir,signal);
-    if(before!==recoveryFingerprint(location.dir,location.baseHead))checksChangedSource=true;
+    if(before!==recoveryFingerprint(location.dir,approvalBaseHead))checksChangedSource=true;
     return result;
   };
   let verification=await verifyWithoutMutation();
@@ -178,7 +180,7 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   let reviewIncomplete=false;
   if(task.mode==='REVIEW' && verification.ok && !signal?.aborted) {
     const other=provider==='claude'?'codex':'claude';
-    const reviewDiff=diffSummary(location.dir,location.baseHead);
+    const reviewDiff=diffSummary(location.dir,approvalBaseHead);
     if(!reviewDiff.reviewable||reviewDiff.patch.length>30000)reviewIncomplete=true;
     else review=await run(other,`Independently review this current worktree patch for goal: ${task.goal}. The patch is supplied directly so review does not depend on Git metadata access. Read project files as needed. Read only. Identify correctness, security and test gaps. Start answer with PASS or FIX_REQUIRED, followed by evidence. ${forbidden}\nPatch:\n${reviewDiff.patch}`,true);
     const verdict=review?.ok?reviewVerdict(review.result):null;
@@ -189,17 +191,17 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
       if(verification.unsafeIgnored)return {status:'UNVERIFIED',result:{execution,review,diff,unsafeIgnored:verification.unsafeIgnored},verification:{ok:false,reason:'Ignored worktree content changed before review reverification'},usage:execution.usage};
       emit('review_reverification',{ok:verification.ok});
       if(verification.ok) {
-        const current=diffSummary(location.dir,location.baseHead);
+        const current=diffSummary(location.dir,approvalBaseHead);
         if(!current.reviewable||current.patch.length>30000)reviewIncomplete=true;
         else review=await run(other,`Read-only re-review of the current diff for goal: ${task.goal}. Check the previous findings were addressed. Start with PASS or FIX_REQUIRED and explain. Previous findings: ${review.result.slice(0,8000)}\nCurrent patch:\n${current.patch}`,true);
       }
     }
   }
-  diff=diffSummary(location.dir,location.baseHead);
+  diff=diffSummary(location.dir,approvalBaseHead);
   const violations=await protectedViolations(task,diff.changedFiles);
-  const headMoved=git(location.dir,'rev-parse','HEAD')!==location.baseHead;
+  const headMoved=git(location.dir,'rev-parse','HEAD')!==approvalBaseHead;
   const finalVerdict=review?.ok?reviewVerdict(review.result):null;
   const status=signal?.aborted?'CANCELLED':!verification.ok?'FAILED':violations.length||headMoved||checksChangedSource||!diff.reviewable||reviewIncomplete?'UNVERIFIED':review && finalVerdict!=='PASS'?'UNVERIFIED':'AWAITING_APPROVAL';
-  const verifiedDiffHash=status==='AWAITING_APPROVAL'?recoveryFingerprint(location.dir,location.baseHead):null;
-  return {status,result:{execution,review,diff,baseHead:location.baseHead,dirtySource:location.dirtySource,protectedViolations:violations,headMoved,checksChangedSource,reviewIncomplete,verifiedDiffHash},verification,usage:{primary:execution.usage,review:review?.usage}};
+  const verifiedDiffHash=status==='AWAITING_APPROVAL'?recoveryFingerprint(location.dir,approvalBaseHead):null;
+  return {status,result:{execution,review,diff,baseHead:location.baseHead,approvalBaseHead,dirtySource:location.dirtySource,protectedViolations:violations,headMoved,checksChangedSource,reviewIncomplete,verifiedDiffHash},verification,usage:{primary:execution.usage,review:review?.usage}};
 }

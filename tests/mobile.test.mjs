@@ -19,24 +19,23 @@ test('390px browser manages Momentory and a separate project',async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-mobile-'));
   const port=await freePort(),token=randomBytes(32).toString('hex'),workerToken=randomBytes(32).toString('hex');
   const shotDir=path.resolve(import.meta.dirname,'..','data','screenshots'),shotFiles=[];
-  const child=spawn(process.execPath,['src/server.mjs'],{cwd:path.resolve(import.meta.dirname,'..'),env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_DATA_FILE:path.join(dir,'db.sqlite')},stdio:'ignore'});
+  const child=spawn(process.execPath,['src/server.mjs'],{cwd:path.resolve(import.meta.dirname,'..'),env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_DATA_FILE:path.join(dir,'db.sqlite'),WORKSPACE_PROJECTS_FILE:path.resolve(import.meta.dirname,'../projects.json')},stdio:'ignore'});
   const browser=await chromium.launch({headless:true});const base=`http://127.0.0.1:${port}`;
   const worker=async(route,value)=>{const response=await fetch(base+route,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${workerToken}`},body:JSON.stringify(value)});assert.equal(response.status,200);return response.json();};
   try{
     let ready=false;for(let i=0;i<40;i++){try{if((await fetch(base)).ok){ready=true;break;}}catch{}await delay(100);}assert.ok(ready);
     const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});await page.goto(base);
     await page.locator('#token').fill(token);await page.locator('#login-form button').click();
-    await page.locator('#goal').fill('Improve the home screen card layout and verify it');await page.locator('#new-task button').click();
+    await page.locator('#goal').fill('Improve the home screen card layout and verify it');await page.locator('#task-type').selectOption('HUMAN_TASK');await page.locator('#new-task button').click();
     await page.locator('#task-detail h1').waitFor();
     const task=await page.evaluate(async()=>{const response=await fetch('/api/overview');return (await response.json()).tasks[0];});
     assert.equal(task.status,'QUEUED');
-    const taskClaim=(await worker('/api/worker/claim',{id:'mobile-test',capabilities:['momentory:fe'],provider:task.provider})).task;assert.equal(taskClaim.id,task.id);
     await page.context().setOffline(true);
-    await worker('/api/worker/complete',{id:'mobile-test',taskId:task.id,leaseNonce:taskClaim.lease_nonce,status:'AWAITING_APPROVAL',result:{diff:{changedFiles:['src/card.tsx']}},verification:{ok:true}});
-    await page.context().setOffline(false);await page.reload();
-    await page.locator('#decisions-now [role="button"]').first().click();
-    await page.getByRole('button',{name:'승인',exact:true}).click();
-    await page.waitForFunction(()=>document.querySelector('#task-content')?.textContent?.includes('APPROVED'));
+    await page.context().setOffline(false);await page.reload();await page.locator('#nav-task').click();
+    await page.locator('#task-detail h1').waitFor();
+    page.once('dialog',dialog=>dialog.accept('Mobile fixture completed'));
+    await page.getByRole('button',{name:'사람 작업 완료'}).click();
+    await page.waitForFunction(async id=>(await (await fetch(`/api/tasks/${id}`)).json()).task.status==='DONE',task.id);
     await page.locator('#task-content form textarea').fill('Check the long text state');await delay(3500);
     assert.equal(await page.locator('#task-content form textarea').inputValue(),'Check the long text state','Periodic refresh lost an unsent mobile instruction');
     await page.context().setOffline(true);
@@ -58,7 +57,7 @@ test('390px browser manages Momentory and a separate project',async()=>{
     await page.waitForFunction(id=>localStorage.getItem(`workspace-followup-pending-${id}`)===null,acceptedParent.id);
     const acceptedChildren=await page.evaluate(async id=>((await (await fetch('/api/overview')).json()).tasks.filter(item=>item.depends_on.includes(id))),acceptedParent.id);
     assert.equal(acceptedChildren.length,1,'Retry after accepted response must not create a duplicate task');
-    await page.getByRole('button',{name:'작업 취소'}).click();await page.waitForFunction(()=>document.querySelector('#task-content')?.textContent?.includes('CANCELLED'));
+    await page.getByRole('button',{name:'작업 취소'}).click();await page.waitForFunction(async id=>(await (await fetch(`/api/tasks/${id}`)).json()).task.status==='CANCELLED',acceptedChildren[0].id);
     await page.evaluate(async id=>{const response=await fetch(`/api/tasks/${id}/control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'cancel'})});if(!response.ok)throw new Error('Fixture parent cancellation failed');},acceptedParent.id);
     await page.locator('#nav-dashboard').click();await page.locator('#goal').fill('Explore two distinct home screen design alternatives');await page.locator('#mode').selectOption('EXPLORE');await page.locator('#new-task button').click();
     const designTask=await page.evaluate(async()=>{const response=await fetch('/api/overview');return (await response.json()).tasks[0];});
@@ -71,11 +70,13 @@ test('390px browser manages Momentory and a separate project',async()=>{
     await page.locator('#nav-design').click();await page.locator('#design-content img').first().waitFor();assert.equal(await page.locator('#design-content img').count(),4);
     assert.equal(await page.evaluate(async id=>(await fetch(`/api/candidates/${id}/long-375-candidate.png`)).status,created.id),200);
     await page.getByRole('button',{name:'이 시안 선택'}).click();await page.locator('#nav-task').click();
-    await page.waitForFunction(()=>document.querySelector('#task-content')?.textContent?.includes('SELECTED'));
+    await page.waitForFunction(async id=>(await (await fetch(`/api/tasks/${id}`)).json()).task.status==='SELECTED',designTask.id);
     const width=await page.evaluate(()=>({content:document.documentElement.scrollWidth,viewport:innerWidth}));assert.ok(width.content<=width.viewport+2,JSON.stringify(width));
     await page.locator('#nav-dashboard').click();await page.locator('#project').selectOption('sample');await page.locator('#goal').fill('Plan the sample project release notes');await page.locator('#task-type').selectOption('HUMAN_TASK');await page.locator('#new-task button').click();
-    await page.waitForFunction(()=>document.querySelector('#task-content')?.textContent?.includes('HUMAN_TASK'));
+    await page.waitForFunction(async()=>(await (await fetch('/api/overview?project=sample')).json()).tasks.some(task=>task.type==='HUMAN_TASK'));
     const sample=await page.evaluate(async()=>{const response=await fetch('/api/overview?project=sample');return await response.json();});assert.equal(sample.tasks.length,1);assert.equal(sample.tasks[0].project_id,'sample');
     const momentory=await page.evaluate(async()=>{const response=await fetch('/api/overview?project=momentory');return await response.json();});assert.ok(momentory.tasks.every(item=>item.project_id==='momentory'));
+    await page.locator('#logout').click();await page.locator('#login').waitFor();
+    assert.equal(await page.evaluate(async()=>(await fetch('/api/session')).status),401);
   }finally{await browser.close();const exited=new Promise(resolve=>child.once('exit',resolve));child.kill();await exited;for(const file of shotFiles)fs.rmSync(file,{force:true});fs.rmSync(dir,{recursive:true,force:true});}
 });

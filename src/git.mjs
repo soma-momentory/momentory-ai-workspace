@@ -50,9 +50,10 @@ export function inheritApproved(task,dir,sourceStore=null) {
       const parent=store.getTask(id);
       if(!parent||parent.project_id!==task.project_id) throw new Error('Cross-project dependency denied');
       if(parent.status!=='APPROVED'||parent.repo!==task.repo) continue;
+      if(parent.dependsOn?.length&&!parent.approval_base_head)throw new Error(`Legacy dependent approval lacks a task-specific baseline: ${id}`);
       if(!parent.worktree||!fs.existsSync(parent.worktree)) throw new Error(`Approved worktree unavailable: ${id}`);
       const approval=store.decisions(id).find(item=>item.kind==='result'&&item.status==='APPROVED');
-      if(!/^[0-9a-f]{64}$/.test(approval?.details?.approvedDiffHash||'')||git(parent.worktree,'rev-parse','HEAD')!==parent.base_head||recoveryFingerprint(parent.worktree,parent.base_head)!==approval.details.approvedDiffHash)
+      if(!/^[0-9a-f]{64}$/.test(approval?.details?.approvedDiffHash||'')||git(parent.worktree,'rev-parse','HEAD')!==(parent.approval_base_head||parent.base_head)||recoveryFingerprint(parent.worktree,parent.base_head)!==approval.details.approvedDiffHash)
         throw new Error(`Approved worktree changed after human review or lacks a frozen fingerprint: ${id}`);
       const patch=execFileSync('git',['diff','--binary',parent.base_head],{cwd:parent.worktree,encoding:'utf8',maxBuffer:10*1024*1024,timeout:30000});
       if(patch) {
@@ -79,21 +80,37 @@ export function inheritApproved(task,dir,sourceStore=null) {
     }
   } finally {if(!sourceStore)store.close();}
 }
+// The isolated task branch records inherited, already approved content before AI execution.
+// The source base_head remains unchanged so descendants can inherit the complete lineage.
+export function sealTaskBaseline(task,dir,sourceHead){
+  if(task.approval_base_head){
+    if(git(dir,'rev-parse','HEAD')!==task.approval_base_head)throw new Error('Task approval baseline moved');
+    return task.approval_base_head;
+  }
+  if(task.worktree)throw new Error('Existing worktree has no task-start baseline; manual recovery required');
+  if(git(dir,'rev-parse','HEAD')!==sourceHead)throw new Error('Source base moved before task-start baseline');
+  git(dir,'add','-A');
+  if(git(dir,'diff','--cached','--name-only')){
+    git(dir,'-c','user.name=Workspace Baseline','-c','user.email=baseline@workspace.invalid','commit','-m',`Inherited approved baseline for ${task.id}`);
+  }
+  return git(dir,'rev-parse','HEAD');
+}
 export function diffSummary(dir,baseHead) {
   const status=git(dir,'status','--porcelain');
-  const changed=git(dir,'diff','--name-only',baseHead);
-  const untracked=git(dir,'ls-files','--others','--exclude-standard');
-  let opaque=false;
-  const extras=untracked.split(/\r?\n/).filter(Boolean).flatMap(file=>{
-    const name=path.resolve(dir,file);if(!name.startsWith(path.resolve(dir)+path.sep)||/(^|\/)(?:\.env|\.git)/.test(file))return [];
+  const changed=git(dir,'diff','--no-renames','--name-only','-z',baseHead).split('\0').filter(Boolean);
+  const untracked=git(dir,'ls-files','--others','--exclude-standard','-z').split('\0').filter(Boolean);
+  let opaque=changed.some(file=>/[\r\n\\]/.test(file)||/(^|\/)(?:\.env|\.git)/.test(file));
+  const extras=untracked.flatMap(file=>{
+    const name=path.resolve(dir,file);if(!name.startsWith(path.resolve(dir)+path.sep)||/(^|\/)(?:\.env|\.git)/.test(file)||/[\r\n\\]/.test(file)){opaque=true;return [];}
     const stat=fs.lstatSync(name);if(stat.isSymbolicLink()||!fs.realpathSync(name).startsWith(fs.realpathSync(dir)+path.sep)||!stat.isFile()||stat.size>32000){opaque=true;return [`--- /dev/null\n+++ b/${file}\n(binary, linked, or large new file)`];}
     const content=fs.readFileSync(name,'utf8');if(content.includes('\0')){opaque=true;return [`--- /dev/null\n+++ b/${file}\n(binary new file)`];}
     return [`--- /dev/null\n+++ b/${file}\n${content.split(/\r?\n/).map(line=>`+${line}`).join('\n')}`];
   });
   const patch=execFileSync('git',['diff','--no-ext-diff','--binary',baseHead],{cwd:dir,encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024});
   const full=[patch,...extras].join('\n'),masked=redact(full);
-  const reviewable=!opaque&&!/GIT binary patch|Binary files .* differ/.test(patch)&&full.length<=120000&&masked===full;
-  return {status,changedFiles:[...new Set([...changed.split(/\r?\n/),...untracked.split(/\r?\n/)].filter(Boolean))],diff:git(dir,'diff','--stat',baseHead).slice(0,10000),patch:masked.slice(0,120000),reviewable,reviewError:reviewable?null:'Diff has hidden, truncated, binary, or redacted content; inspect it locally before recovery or approval'};
+  const mixedIndex=Boolean(git(dir,'diff','--cached','--name-only',baseHead)&&git(dir,'diff','--name-only'));
+  const reviewable=!opaque&&!mixedIndex&&!/GIT binary patch|Binary files .* differ/.test(patch)&&full.length<=120000&&masked===full;
+  return {status,changedFiles:[...new Set([...changed,...untracked])],diff:git(dir,'diff','--stat',baseHead).slice(0,10000),patch:masked.slice(0,120000),reviewable,reviewError:reviewable?null:'Diff has hidden, truncated, binary, or redacted content; inspect it locally before recovery or approval'};
 }
 export function recoveryFingerprint(dir,baseHead){
   const hash=createHash('sha256');

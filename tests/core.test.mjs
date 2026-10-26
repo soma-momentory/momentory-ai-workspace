@@ -117,7 +117,7 @@ test('persistent queue claims once, recovers lease, limits attempts and records 
     assert.equal(db.recoverExpired(),1);
     assert.equal(db.getTask(task.id).status,'QUEUED');
     const secondClaim=db.claim('b',['momentory:fe']);assert.equal(secondClaim.attempts,2);assert.notEqual(secondClaim.lease_nonce,firstClaim.lease_nonce);
-    db.patch(task.id,{worktree:path.join(dir,'worktree'),worktree_host:'b',base_head:'abc'},'checkpoint');
+    db.patch(task.id,{worktree:path.join(dir,'worktree'),worktree_host:'b',base_head:'abc',approval_base_head:'abc'},'checkpoint');
     db.db.prepare('UPDATE tasks SET lease_until=0 WHERE id=?').run(task.id);
     db.recoverExpired();assert.equal(db.getTask(task.id).status,'STALE');
     db.patch(task.id,{status:'AWAITING_APPROVAL'},'test');

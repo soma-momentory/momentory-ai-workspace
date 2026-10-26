@@ -27,7 +27,7 @@ export class Store {
         attempts INTEGER NOT NULL DEFAULT 0, max_attempts INTEGER NOT NULL DEFAULT 2,
         lease_owner TEXT, lease_until INTEGER, lease_nonce TEXT, pause_requested INTEGER NOT NULL DEFAULT 0,
         cancel_requested INTEGER NOT NULL DEFAULT 0, session_id TEXT, worktree TEXT,
-        branch TEXT, base_head TEXT, worktree_host TEXT, design_candidate_id TEXT, result TEXT, verification TEXT, usage TEXT,
+        branch TEXT, base_head TEXT, approval_base_head TEXT, worktree_host TEXT, design_candidate_id TEXT, result TEXT, verification TEXT, usage TEXT,
         created_at TEXT NOT NULL, updated_at TEXT NOT NULL
       );
       CREATE TABLE IF NOT EXISTS events (
@@ -53,8 +53,11 @@ export class Store {
         parent_task_id TEXT NOT NULL, request_id TEXT NOT NULL, child_task_id TEXT NOT NULL, instruction_hash TEXT,
         PRIMARY KEY(parent_task_id,request_id)
       );
+      CREATE TABLE IF NOT EXISTS browser_sessions (
+        id_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL
+      );
     `);
-    for(const [column,type] of [['base_head','TEXT'],['worktree_host','TEXT'],['design_candidate_id','TEXT'],['lease_nonce','TEXT'],['project_id',"TEXT NOT NULL DEFAULT 'momentory'"],['type',"TEXT NOT NULL DEFAULT 'AI_TASK'"],['owner',"TEXT NOT NULL DEFAULT 'ai'"],['completion_criteria',"TEXT NOT NULL DEFAULT ''"]]) {
+    for(const [column,type] of [['base_head','TEXT'],['approval_base_head','TEXT'],['worktree_host','TEXT'],['design_candidate_id','TEXT'],['lease_nonce','TEXT'],['project_id',"TEXT NOT NULL DEFAULT 'momentory'"],['type',"TEXT NOT NULL DEFAULT 'AI_TASK'"],['owner',"TEXT NOT NULL DEFAULT 'ai'"],['completion_criteria',"TEXT NOT NULL DEFAULT ''"]]) {
       const columns=this.db.prepare('PRAGMA table_info(tasks)').all().map(x=>x.name);
       if(!columns.includes(column)) this.db.exec(`ALTER TABLE tasks ADD COLUMN ${column} ${type}`);
     }
@@ -62,8 +65,21 @@ export class Store {
     if(!this.db.prepare('PRAGMA table_info(followup_requests)').all().some(x=>x.name==='instruction_hash'))this.db.exec('ALTER TABLE followup_requests ADD COLUMN instruction_hash TEXT');
     this.db.exec('CREATE INDEX IF NOT EXISTS tasks_queue ON tasks(status,priority,created_at); CREATE INDEX IF NOT EXISTS tasks_project ON tasks(project_id,created_at)');
     if(version<1)this.db.exec('PRAGMA user_version=1');
+    this.invalidateLegacyApprovals();
+  }
+  invalidateLegacyApprovals(){
+    const rows=this.db.prepare("SELECT id,result FROM tasks WHERE status='AWAITING_APPROVAL' AND worktree IS NOT NULL AND approval_base_head IS NULL").all();
+    for(const row of rows)this.tx(()=>{
+      const result=parse(row.result)||{};
+      this.db.prepare("UPDATE tasks SET status='UNVERIFIED',result=?,updated_at=? WHERE id=?").run(json({...result,diff:null,verifiedDiffHash:null,approvalInvalidated:'Task-start baseline was not recorded'}),now(),row.id);
+      this.db.prepare("UPDATE decisions SET status='INVALIDATED',resolved_at=? WHERE task_id=? AND kind='result' AND status='PENDING'").run(now(),row.id);
+      this.event(row.id,'approval_invalidated',{reason:'Task-start baseline was not recorded'});
+    });
   }
   close() { this.db.close(); }
+  createBrowserSession(idHash,expiry){this.tx(()=>{this.db.prepare('DELETE FROM browser_sessions WHERE expires_at<=?').run(Date.now());this.db.prepare('INSERT INTO browser_sessions(id_hash,expires_at) VALUES(?,?)').run(idHash,expiry);});}
+  hasBrowserSession(idHash,expiry){return !!this.db.prepare('SELECT 1 FROM browser_sessions WHERE id_hash=? AND expires_at=?').get(idHash,expiry);}
+  revokeBrowserSession(idHash){this.db.prepare('DELETE FROM browser_sessions WHERE id_hash=?').run(idHash);}
   tx(fn) {
     this.db.exec('BEGIN IMMEDIATE');
     try { const value = fn(); this.db.exec('COMMIT'); return value; }
@@ -120,7 +136,7 @@ export class Store {
   events(taskId, after = 0) { return this.db.prepare('SELECT * FROM events WHERE task_id=? AND id>? ORDER BY id LIMIT 500').all(taskId, after).map(x => ({...x,payload:parse(x.payload)})); }
   eventsSince(after=0) {return this.db.prepare('SELECT id,task_id,kind,created_at FROM events WHERE id>? ORDER BY id LIMIT 100').all(after);}
   patch(id, fields, eventKind, payload = {}) {
-    const allowed = ['status','goal','priority','completion_criteria','owner','depends_on','provider','reason','pause_requested','cancel_requested','session_id','worktree','branch','base_head','worktree_host','result','verification','usage','lease_owner','lease_until'];
+    const allowed = ['status','goal','priority','completion_criteria','owner','depends_on','provider','reason','pause_requested','cancel_requested','session_id','worktree','branch','base_head','approval_base_head','worktree_host','result','verification','usage','lease_owner','lease_until'];
     const entries = Object.entries(fields).filter(([key]) => allowed.includes(key));
     if (!entries.length) return this.getTask(id);
     this.tx(() => {
@@ -199,7 +215,7 @@ export class Store {
     const item=this.db.prepare('SELECT * FROM decisions WHERE id=?').get(id);
     if (!item || item.status!=='PENDING') return null;
     const approvalTask=this.getTask(item.task_id);
-    if(item.kind==='result'&&status==='APPROVED'&&approvalTask?.worktree&&!/^[0-9a-f]{64}$/.test(approvedDiffHash||''))return null;
+    if(item.kind==='result'&&status==='APPROVED'&&(!approvalTask?.worktree||!/^[0-9a-f]{64}$/.test(approvedDiffHash||'')))return null;
     if(item.kind==='design' && status==='APPROVED') {
       const selected=this.db.prepare('SELECT screenshot FROM design_candidates WHERE id=? AND task_id=?').get(selectedCandidateId,item.task_id);
       if(!selected || (project(this.getTask(item.task_id).project_id).design.adapter==='momentory-expo-lab'&&!selected.screenshot)) return null;

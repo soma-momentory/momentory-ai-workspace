@@ -16,10 +16,10 @@ test('event storage failure rolls back task creation and approval atomically',()
     assert.equal(store.db.prepare('SELECT count(*) AS count FROM tasks').get().count,0);
     store.db.exec('DROP TRIGGER deny_event');
     const task=store.createTask(input,route);
-    store.patch(task.id,{status:'AWAITING_APPROVAL'},'fixture');
+    store.patch(task.id,{status:'AWAITING_APPROVAL',worktree:path.join(dir,'isolated-worktree'),approval_base_head:'fixture'},'fixture');
     const decision=store.addDecision(task.id,'result',{question:'Approve?'});
     store.db.exec("CREATE TEMP TRIGGER deny_event BEFORE INSERT ON events BEGIN SELECT RAISE(FAIL, 'injected disk failure'); END");
-    assert.throws(()=>store.resolveDecision(decision,'APPROVED'),/injected disk failure/);
+    assert.throws(()=>store.resolveDecision(decision,'APPROVED',null,'','a'.repeat(64)),/injected disk failure/);
     assert.equal(store.decision(decision).status,'PENDING');
     assert.equal(store.getTask(task.id).status,'AWAITING_APPROVAL');
     assert.throws(()=>store.addCandidate(task.id,'codex',{name:'candidate'}),/injected disk failure/);

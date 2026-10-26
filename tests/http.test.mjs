@@ -12,7 +12,7 @@ async function freePort(){return new Promise(resolve=>{const server=net.createSe
 test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'momentory-http-'));
   const port=await freePort(),token=randomBytes(32).toString('hex'),workerToken=randomBytes(32).toString('hex');
-  const child=spawn(process.execPath,['src/server.mjs'],{cwd:path.resolve(import.meta.dirname,'..'),env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_PUBLIC_URL:'https://laptop.tail.ts.net',WORKSPACE_DATA_FILE:path.join(dir,'db.sqlite')},stdio:'ignore'});
+  const child=spawn(process.execPath,['src/server.mjs'],{cwd:path.resolve(import.meta.dirname,'..'),env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_PUBLIC_URL:'https://laptop.tail.ts.net',WORKSPACE_DATA_FILE:path.join(dir,'db.sqlite'),WORKSPACE_PROJECTS_FILE:path.resolve(import.meta.dirname,'../projects.json')},stdio:'ignore'});
   const base=`http://127.0.0.1:${port}`;
   let cookie='';
   async function request(url,method='GET',value,worker=false){const response=await fetch(base+url,{method,headers:{'Content-Type':'application/json',...(worker?{Authorization:`Bearer ${workerToken}`}:{Cookie:cookie,Origin:base})},body:value?JSON.stringify(value):undefined});return {status:response.status,body:await response.json(),headers:response.headers};}
@@ -32,7 +32,7 @@ test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=
     const noOrigin=await fetch(base+'/api/tasks',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({goal:'Attempt unauthorized task',repo:'fe'})});assert.equal(noOrigin.status,403);
     assert.equal((await request('/api/worker/claim','POST',{id:'browser',capabilities:['momentory:fe'],provider:'codex'})).status,401);
     const remoteLogin=await fetch(base+'/api/login',{method:'POST',headers:{Origin:'https://laptop.tail.ts.net','Content-Type':'application/json'},body:JSON.stringify({token})});assert.equal(remoteLogin.status,200);assert.match(remoteLogin.headers.get('set-cookie'),/; Secure/);
-    const task=(await request('/api/tasks','POST',{goal:'Improve the home screen card layout',repo:'fe',mode:'FAST'})).body.task;
+    const created=await request('/api/tasks','POST',{goal:'Improve the home screen card layout',repo:'fe',mode:'FAST'});assert.equal(created.status,201,JSON.stringify(created.body));const task=created.body.task;
     assert.equal(task.status,'QUEUED');
     assert.equal((await request('/api/tasks','POST',{projectId:'sample',goal:'Try a cross project dependency',repo:'app',dependsOn:[task.id]})).status,400);
     assert.equal((await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe']},true)).status,400);
@@ -44,10 +44,9 @@ test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=
     assert.equal((await request('/api/worker/complete','POST',{id:'test-worker',taskId:task.id,leaseNonce:'stale-generation',status:'AWAITING_APPROVAL'},true)).status,409);
     const complete=await request('/api/worker/complete','POST',{id:'test-worker',taskId:task.id,leaseNonce:claimed.lease_nonce,status:'AWAITING_APPROVAL',result:{diff:{changedFiles:['src/a.ts']}},verification:{ok:true}},true);
     assert.equal(complete.status,200);
-    const detail=await request(`/api/tasks/${task.id}`);assert.equal(detail.body.decisions.length,1);
-    const accepted=await request(`/api/decisions/${detail.body.decisions[0].id}`,'POST',{status:'APPROVED'});
-    assert.equal(accepted.body.task.status,'APPROVED');
-    assert.equal((await request(`/api/decisions/${detail.body.decisions[0].id}`,'POST',{status:'APPROVED'})).status,409);
+    const detail=await request(`/api/tasks/${task.id}`);assert.equal(detail.body.task.status,'UNVERIFIED');
+    assert.equal(detail.body.decisions.length,0,'A worker claim without a sealed worktree cannot request approval');
+    assert.equal(detail.body.task.result.diff,null);
     const risky=await request('/api/tasks','POST',{goal:'Deploy production changes after review',repo:'fe'});
     assert.equal(risky.body.task.status,'AWAITING_PREAPPROVAL');
     assert.equal((await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe'],provider:task.provider},true)).body.task,null);

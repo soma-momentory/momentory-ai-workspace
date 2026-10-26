@@ -1,14 +1,14 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { settings, root, screenshotDirectory } from './config.mjs';
 import { publicProjects, project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
 import { routeTask, nextHumanActions, TASK_TYPES } from './router.mjs';
 import { validateExport, captureDesign } from './design.mjs';
-import { repoStatus, createWorktree, inheritApproved, diffSummary, recoveryFingerprint, ignoredWorktreeViolations, git } from './git.mjs';
+import { repoStatus, createWorktree, inheritApproved, sealTaskBaseline, diffSummary, recoveryFingerprint, ignoredWorktreeViolations, git } from './git.mjs';
 import { activeWslCodexForWorktree, reapStaleWslCodex } from './wslCodex.mjs';
 import {approvedIgnoredMounts} from './wslChecks.mjs';
 import {redact} from './provider.mjs';
@@ -20,8 +20,9 @@ const safeEqual=(a,b)=>{const x=Buffer.from(String(a)),y=Buffer.from(String(b));
 const sign=value=>createHmac('sha256',config.token).update(value).digest('hex');
 const cookie=req=>Object.fromEntries((req.headers.cookie||'').split(';').map(x=>x.trim().split('=')).filter(x=>x.length===2));
 function userAuth(req) {
-  const [expiry,mac]=(cookie(req).workspace_session||'').split('.');
-  return !!expiry && Number(expiry)>Date.now() && safeEqual(mac,sign(expiry));
+  const [expiry,id,mac]=(cookie(req).workspace_session||'').split('.');
+  if(!/^\d{13}$/.test(expiry||'')||!/^[0-9a-f]{64}$/.test(id||'')||!/^[0-9a-f]{64}$/.test(mac||''))return false;
+  return Number(expiry)>Date.now() && safeEqual(mac,sign(`${expiry}.${id}`)) && store.hasBrowserSession(createHash('sha256').update(id).digest('hex'),Number(expiry));
 }
 const workerAuth=req=>safeEqual((req.headers.authorization||'').replace(/^Bearer /,''),config.workerToken);
 const send=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));};
@@ -52,13 +53,15 @@ function recoveryDiff(task){
   if(!task.worktree&&fs.existsSync(expected))return {error:'Uncheckpointed worktree needs local recovery before resume'};
   if(!task.worktree)return null;
   if(!task.base_head||!fs.existsSync(task.worktree))return {error:'Preserved worktree or base commit missing'};
+  if(task.dependsOn?.length&&!task.approval_base_head)return {error:'Inherited task has no sealed task-start baseline; manual recovery required'};
   try{
-    const diff=diffSummary(task.worktree,task.base_head);
+    const baseline=task.approval_base_head||task.base_head;
+    const diff=diffSummary(task.worktree,baseline);
     if(!diff.reviewable)return {...diff,error:diff.reviewError};
     const safeIgnored=approvedIgnoredMounts(task.worktree,repository(task.project_id,task.repo));
     const opaqueIgnored=ignoredWorktreeViolations(task.worktree,safeIgnored);
     if(opaqueIgnored.length)return {...diff,error:`Ignored worktree content needs local recovery: ${opaqueIgnored.slice(0,8).join(', ')}`};
-    return {...diff,hash:recoveryFingerprint(task.worktree,task.base_head)};
+    return {...diff,hash:recoveryFingerprint(task.worktree,baseline)};
   }
   catch(error){return {error:String(error)};}
 }
@@ -72,7 +75,11 @@ function designCheckout(task){
   const prepared=store.getTask(task.id);
   if(prepared.worktree!==expected||!fs.existsSync(expected))throw new Error('Design task checkout is unavailable or outside its isolated worktree');
   if(fs.lstatSync(expected).isSymbolicLink()||fs.realpathSync(expected).toLowerCase()!==path.resolve(expected).toLowerCase())throw new Error('Design task worktree path is linked');
-  inheritApproved(prepared,expected);
+  if(!prepared.approval_base_head){
+    inheritApproved(prepared,expected);
+    const approvalBaseHead=sealTaskBaseline({...prepared,worktree:current.worktree},expected,prepared.base_head);
+    store.patch(task.id,{approval_base_head:approvalBaseHead},'task_baseline_sealed');
+  }
   return expected;
 }
 const activeCaptures=new Map();
@@ -106,9 +113,17 @@ async function handle(req,res) {
     const input=await body(req);
     if(!safeEqual(input.token||'',config.token)) {entry.count++;if(entry.count>=5){entry.until=Date.now()+60000;entry.count=0;}loginFailures.set(client,entry);return send(res,401,{error:'Invalid token'});}
     loginFailures.delete(client);
-    const expiry=String(Date.now()+7*86400000);
+    const expiry=String(Date.now()+7*86400000),id=randomBytes(32).toString('hex');
+    store.createBrowserSession(createHash('sha256').update(id).digest('hex'),Number(expiry));
     const secure=req.headers.origin===process.env.WORKSPACE_PUBLIC_URL&&process.env.WORKSPACE_PUBLIC_URL?.startsWith('https://')?'; Secure':'';
-    res.setHeader('Set-Cookie',`workspace_session=${expiry}.${sign(expiry)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800${secure}`);
+    res.setHeader('Set-Cookie',`workspace_session=${expiry}.${id}.${sign(`${expiry}.${id}`)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800${secure}`);
+    return send(res,200,{ok:true});
+  }
+  if(pathname==='/api/logout' && req.method==='POST') {
+    const [,id]=(cookie(req).workspace_session||'').split('.');
+    if(userAuth(req))store.revokeBrowserSession(createHash('sha256').update(id).digest('hex'));
+    const secure=req.headers.origin===process.env.WORKSPACE_PUBLIC_URL&&process.env.WORKSPACE_PUBLIC_URL?.startsWith('https://')?'; Secure':'';
+    res.setHeader('Set-Cookie',`workspace_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`);
     return send(res,200,{ok:true});
   }
   if(pathname.startsWith('/api/worker/')) {
@@ -134,7 +149,7 @@ async function handle(req,res) {
     const task=owned(input.taskId,input.id,input.leaseNonce); if(!task) return send(res,409,{error:'Lease owner mismatch'});
     if(pathname==='/api/worker/event') {store.event(task.id,String(input.event).slice(0,80),input.payload||{});return send(res,200,{ok:true});}
     if(pathname==='/api/worker/patch') {
-      const fields={};for(const key of ['session_id','worktree','branch','base_head']) if(input.fields?.[key]!=null) fields[key]=String(input.fields[key]).slice(0,1000);
+      const fields={};for(const key of ['session_id','worktree','branch','base_head','approval_base_head']) if(input.fields?.[key]!=null) fields[key]=String(input.fields[key]).slice(0,1000);
       if(fields.worktree) fields.worktree_host=input.id;
       return send(res,200,{task:store.patch(task.id,fields,'checkpoint',fields)});
     }
@@ -159,10 +174,17 @@ async function handle(req,res) {
       const accepted=['AWAITING_APPROVAL','AWAITING_DESIGN_SELECTION','FAILED','UNVERIFIED','CANCELLED'];
       if(!accepted.includes(input.status)) return send(res,400,{error:'Invalid status'});
       let status=task.cancel_requested?'CANCELLED':task.pause_requested?'PAUSED':input.status;
-      if(status==='AWAITING_APPROVAL' && (input.verification?.ok!==true || !input.result?.diff?.changedFiles?.length)) status='UNVERIFIED';
+      let actualDiff=null;
+      if(status==='AWAITING_APPROVAL'){
+        try{
+          const baseline=task.approval_base_head;actualDiff=baseline&&task.worktree&&diffSummary(task.worktree,baseline);
+          if(input.verification?.ok!==true||!actualDiff?.reviewable||!actualDiff.changedFiles.length||git(task.worktree,'rev-parse','HEAD')!==baseline||recoveryFingerprint(task.worktree,baseline)!==input.result?.verifiedDiffHash||JSON.stringify(actualDiff.changedFiles)!==JSON.stringify(input.result?.diff?.changedFiles))status='UNVERIFIED';
+        }catch{status='UNVERIFIED';}
+      }
       if(status==='FAILED' && task.attempts<task.max_attempts) status='QUEUED';
-      const updated=store.patch(task.id,{status,lease_owner:null,lease_until:null,result:input.result||{},verification:input.verification||{},usage:input.usage||{}},'completed',{status});
-      if(status==='AWAITING_APPROVAL') store.addDecision(task.id,'result',{question:'Accept this verified result?',options:[{value:'APPROVED',benefit:'Allows dependent tasks to start',risk:'Source integration still requires review'},{value:'REJECTED',benefit:'Prevents dependent work',risk:'Requires a correction task'}],recommendation:'Review the diff and verification before approval',basis:updated.verification,changedFiles:updated.result?.diff?.changedFiles||[],next:'Dependent tasks become eligible; no automatic merge or deployment.'});
+      const result=status==='UNVERIFIED'&&input.status==='AWAITING_APPROVAL'?{...input.result,diff:null,verifiedDiffHash:null,approvalInvalidated:'Task diff did not match the sealed baseline'}:status==='AWAITING_APPROVAL'?{...input.result,diff:actualDiff}:input.result||{};
+      const updated=store.patch(task.id,{status,lease_owner:null,lease_until:null,result,verification:input.verification||{},usage:input.usage||{}},'completed',{status});
+      if(status==='AWAITING_APPROVAL') store.addDecision(task.id,'result',{question:'Accept this verified result?',options:[{value:'APPROVED',benefit:'Allows dependent tasks to start',risk:'Source integration still requires review'},{value:'REJECTED',benefit:'Prevents dependent work',risk:'Requires a correction task'}],recommendation:'Review the diff and verification before approval',basis:updated.verification,changedFiles:updated.result?.diff?.changedFiles||[],taskId:task.id,attempt:task.attempts,baseHead:task.base_head,approvalBaseHead:task.approval_base_head,verifiedDiffHash:updated.result?.verifiedDiffHash,next:'Dependent tasks become eligible; no automatic merge or deployment.'});
       if(status==='AWAITING_DESIGN_SELECTION') store.addDecision(task.id,'design',{question:'Which design candidate should proceed?',options:store.candidates(task.id).map(x=>({value:x.id,benefit:'Selected for further implementation',risk:'Visual and device verification may still be needed'})),recommendation:'Compare candidates at equal viewport and content',basis:'Selection remains a human product decision',candidateIds:store.candidates(task.id).map(x=>x.id),next:'Chosen candidate becomes the basis for a follow-up implementation task.'});
       return send(res,200,{task:updated});
     }
@@ -177,7 +199,7 @@ async function handle(req,res) {
       if(!Number.isSafeInteger(cursor)||cursor<0) cursor=0;
       res.write(': connected\n\n');
       const interval=setInterval(()=>{
-        try {for(const event of store.eventsSince(cursor)){cursor=event.id;res.write(`id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`);}res.write(': heartbeat\n\n');}
+        try {if(!userAuth(req)){clearInterval(interval);res.end();return;}for(const event of store.eventsSince(cursor)){cursor=event.id;res.write(`id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`);}res.write(': heartbeat\n\n');}
         catch {clearInterval(interval);res.end();}
       },1000);
       res.on('close',()=>clearInterval(interval));
@@ -281,10 +303,11 @@ async function handle(req,res) {
         const candidate=store.getTask(pending.task_id);
         if(candidate?.worktree){
           try{
-            const verified=candidate.result?.verifiedDiffHash;
-            if(!/^[0-9a-f]{64}$/.test(verified||'')||git(candidate.worktree,'rev-parse','HEAD')!==candidate.base_head||!diffSummary(candidate.worktree,candidate.base_head).reviewable)return send(res,409,{error:'Verified worktree changed or has no approval fingerprint; rerun verification'});
+            const verified=candidate.result?.verifiedDiffHash,baseline=candidate.approval_base_head,details=pending.details;
+            if(!/^[0-9a-f]{64}$/.test(verified||'')||!baseline||details.taskId!==candidate.id||details.attempt!==candidate.attempts||details.baseHead!==candidate.base_head||details.approvalBaseHead!==baseline||details.verifiedDiffHash!==verified||candidate.status!=='AWAITING_APPROVAL'||git(candidate.worktree,'rev-parse','HEAD')!==baseline)return send(res,409,{error:'Approval no longer matches this task attempt and baseline'});
+            const current=diffSummary(candidate.worktree,baseline);
+            if(!current.reviewable||!current.changedFiles.length||JSON.stringify(current.changedFiles)!==JSON.stringify(candidate.result?.diff?.changedFiles)||recoveryFingerprint(candidate.worktree,baseline)!==verified)return send(res,409,{error:'Verified task diff changed before approval; rerun verification'});
             approvedDiffHash=recoveryFingerprint(candidate.worktree,candidate.base_head);
-            if(approvedDiffHash!==verified)return send(res,409,{error:'Verified worktree changed before approval; rerun verification'});
           }catch{return send(res,409,{error:'Verified worktree unavailable; rerun verification'});}
         }
       }
