@@ -1,5 +1,13 @@
 # Test Report
 
+## T5 real Android app integration — 2026-10-26 KST
+
+**T5 status: DONE for the FE main baseline on an Android emulator. Workspace release: NOT READY.** A short-path detached worktree at `C:\SWM\mqt5` used Momentory FE `main` HEAD `01c3475`; the dirty `main` checkout (63 pre-existing entries) and clean structural branch `c55b782` were untouched. The real package `kr.momentory.app` version 1.3.0 built with `BUILD SUCCESSFUL in 3m 51s` and ran on an API 36 Android emulator. The ignored development environment pointed to `dev.momentory.co.kr` (health HTTP 200). The user entered a dedicated Kakao test account directly in the emulator OAuth page. The app then showed its authenticated home, not the Design Lab preview or the development wordmark bypass.
+
+`agent-device 0.21.31` captured the login and home screens and accessibility trees. The home tree exposed notification, reflection CTA, schedule add/empty state, seven weekday dock controls and bottom navigation; selecting a weekday changed its accessibility state to selected. The Rest tab opened and Home returned. Focused FE checks on the isolated checkout passed: typecheck, 25 login tests, and 26 home-view tests. The scoped Android log has no fatal exception, but retains a require-cycle warning and a transient Expo CLI connection warning. Full steps, artifact paths and hashes are in `data/t5-real-app-20261026/T5_RUN.md`; the authenticated Workspace QA task `9865bc3d-eeb7-4e41-a09d-c2ef21cc617a` records those paths and is DONE. Existing structural result task `5e94be11-5d35-4689-90c5-550147943c73` remains `AWAITING_APPROVAL` with one pending decision. The API link is an evidence reference; it does not enforce native QA as an approval prerequisite.
+
+This run did **not** include the pending structural-design changes or uncommitted `main` changes. Structural commits and dirty main overlap in `src/design/studioApproved.json` and `src/features/home/ui/v2/HeroCard.tsx`; manual reconciliation and native retest of an approved integrated revision remain. Physical Android, iOS, Mac, remote phone/Tailscale and locked-screen conditions are still pending. No merge or deployment occurred.
+
 ## Windows finalization run — 2026-10-26 KST
 
 **Release decision: NOT READY.** Windows execution is substantially validated, but physical phone, locked-screen, macOS, and native-device acceptance remain open. The trusted macOS populated-dependency preparation path is not implemented. The detailed status classification is in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). This section supersedes older test totals below while retaining their historical evidence.

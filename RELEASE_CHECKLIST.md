@@ -22,9 +22,10 @@
 | Duplicate follow-up/approval and storage write failure consistency | VERIFIED | Current recovery, HTTP and storage-failure tests. |
 | Installer, provider login, isolation setup and Windows update | VERIFIED | Clean same-host clone at old `0e585e9` was set up, updated to `f9898f5`, started/stopped, migrated schema 0 to 1, and preserved/restored its task. Different hardware remains untested. |
 | Full CI stability and FE integration | IMPLEMENTED_NOT_VERIFIED | Current checks pass, but one transient `npm test` failure had truncated diagnostics. Read-only review found a differing `home.hero.structure` value in both selected FE worktrees and the dirty user `main`; approval and manual reconciliation are pending. |
+| Real Momentory Android development app on API 36 emulator | VERIFIED | T5 on 2026-10-26 built FE `main` HEAD `01c3475` as `kr.momentory.app`, signed in through Kakao with a dedicated test account, entered home, selected a weekday dock item, visited Rest and returned Home. `agent-device` screenshots/accessibility snapshots and scoped logcat are in `data/t5-real-app-20261026/artifacts`; QA task `9865bc3d-eeb7-4e41-a09d-c2ef21cc617a` is DONE. This did not include the pending structural patch or dirty main files. |
 | Trusted macOS populated dependency preparation and Mac sandbox | NOT_IMPLEMENTED | Mac path fails closed; implementation and real Mac acceptance needed. |
 | Physical phone/Tailscale separate network, locked screen, network loss/recovery | BLOCKED_EXTERNAL | Follow `MANUAL_VALIDATION.md` on a phone and tailnet. |
-| Native iOS and Android display and accessibility | BLOCKED_EXTERNAL | Physical devices and Mac/iOS tooling unavailable. Web viewport results do not substitute. |
+| Physical native iOS and Android display and accessibility | BLOCKED_EXTERNAL | Physical devices and Mac/iOS tooling unavailable. The API 36 emulator result above does not satisfy physical-device acceptance. |
 
 No latest repeat is `FAILED`; the transient test failure remains an open stability observation. The final Windows status and release decision are in `TEST_REPORT.md` after validation.
 
