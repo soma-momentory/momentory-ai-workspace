@@ -9,12 +9,15 @@ import {redact} from './provider.mjs';
 const json = (value) => JSON.stringify(value ?? null);
 const parse = (value) => value == null ? null : JSON.parse(value);
 const now = () => new Date().toISOString();
+const scrub = value => typeof value==='string'?redact(value):Array.isArray(value)?value.map(scrub):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([key,item])=>[key,scrub(item)])):value;
 
 export class Store {
   constructor(file = process.env.WORKSPACE_DATA_FILE || path.join(root, 'data', 'workspace.sqlite')) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     this.db = new DatabaseSync(file);
     this.db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000');
+    const version=this.db.prepare('PRAGMA user_version').get().user_version;
+    if(version>1){this.db.close();throw new Error(`Unsupported Workspace database schema ${version}`);}
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY, project_id TEXT NOT NULL DEFAULT 'momentory', goal TEXT NOT NULL, repo TEXT NOT NULL, mode TEXT NOT NULL,
@@ -58,6 +61,7 @@ export class Store {
     if(!this.db.prepare('PRAGMA table_info(workers)').all().some(x=>x.name==='name')) this.db.exec("ALTER TABLE workers ADD COLUMN name TEXT NOT NULL DEFAULT ''");
     if(!this.db.prepare('PRAGMA table_info(followup_requests)').all().some(x=>x.name==='instruction_hash'))this.db.exec('ALTER TABLE followup_requests ADD COLUMN instruction_hash TEXT');
     this.db.exec('CREATE INDEX IF NOT EXISTS tasks_queue ON tasks(status,priority,created_at); CREATE INDEX IF NOT EXISTS tasks_project ON tasks(project_id,created_at)');
+    if(version<1)this.db.exec('PRAGMA user_version=1');
   }
   close() { this.db.close(); }
   tx(fn) {
@@ -67,7 +71,7 @@ export class Store {
   }
   event(taskId, kind, payload = {}) {
     this.db.prepare('INSERT INTO events(task_id,kind,payload,created_at) VALUES(?,?,?,?)')
-      .run(taskId, kind, json(payload), now());
+      .run(taskId, kind, json(scrub(payload)), now());
   }
   blockDependents(parentId,parentStatus){
     const queue=[[parentId,parentStatus]];
@@ -215,16 +219,17 @@ export class Store {
     return this.getTask(item.task_id);
   }
   addCandidate(taskId,provider,proposal) {
-    const id=randomUUID(); this.db.prepare('INSERT INTO design_candidates(id,task_id,provider,proposal,created_at) VALUES(?,?,?,?,?)').run(id,taskId,provider,json(proposal),now());
-    this.event(taskId,'design_candidate',{id,provider}); return id;
+    const id=randomUUID();
+    this.tx(()=>{this.db.prepare('INSERT INTO design_candidates(id,task_id,provider,proposal,created_at) VALUES(?,?,?,?,?)').run(id,taskId,provider,json(proposal),now());this.event(taskId,'design_candidate',{id,provider});});
+    return id;
   }
   candidates(taskId) { return this.db.prepare('SELECT * FROM design_candidates WHERE task_id=?').all(taskId).map(x=>({...x,proposal:parse(x.proposal),evaluation:parse(x.evaluation),screenshot:parse(x.screenshot)})); }
   candidate(id) { const x=this.db.prepare('SELECT * FROM design_candidates WHERE id=?').get(id);return x && {...x,proposal:parse(x.proposal),evaluation:parse(x.evaluation),screenshot:parse(x.screenshot)}; }
   pendingCaptures(){return this.db.prepare("SELECT id FROM design_candidates WHERE status='CAPTURE_PENDING'").all().map(row=>row.id);}
-  setCandidateCapturePending(id){const item=this.candidate(id);if(!item)return false;const result=this.db.prepare("UPDATE design_candidates SET status='CAPTURE_PENDING' WHERE id=? AND status IN ('PROPOSED','CAPTURE_FAILED')").run(id);if(result.changes)this.event(item.task_id,'design_capture_queued',{id});return result.changes>0;}
-  setCandidateCaptureFailed(id,error){const item=this.candidate(id);if(!item)return;this.db.prepare("UPDATE design_candidates SET status='CAPTURE_FAILED' WHERE id=? AND status='CAPTURE_PENDING'").run(id);this.event(item.task_id,'design_capture_failed',{id,error:redact(error).slice(0,1200)});}
-  setCandidateScreenshot(id,screenshot) {const item=this.candidate(id);if(!item)return;const result=this.db.prepare("UPDATE design_candidates SET screenshot=?,status='RENDERED' WHERE id=? AND status IN ('PROPOSED','CAPTURE_PENDING')").run(json(screenshot),id);if(result.changes)this.event(item.task_id,'design_rendered',{id,baseHead:screenshot.baseHead});}
-  setCandidateEvaluation(id,taskId,evaluation) {const result=this.db.prepare('UPDATE design_candidates SET evaluation=? WHERE id=? AND task_id=?').run(json(evaluation),id,taskId);if(result.changes)this.event(taskId,'design_evaluated',{candidateId:id});return result.changes>0;}
+  setCandidateCapturePending(id){const item=this.candidate(id);if(!item)return false;return this.tx(()=>{const result=this.db.prepare("UPDATE design_candidates SET status='CAPTURE_PENDING' WHERE id=? AND status IN ('PROPOSED','CAPTURE_FAILED')").run(id);if(result.changes)this.event(item.task_id,'design_capture_queued',{id});return result.changes>0;});}
+  setCandidateCaptureFailed(id,error){const item=this.candidate(id);if(!item)return;this.tx(()=>{const result=this.db.prepare("UPDATE design_candidates SET status='CAPTURE_FAILED' WHERE id=? AND status='CAPTURE_PENDING'").run(id);if(result.changes)this.event(item.task_id,'design_capture_failed',{id,error:redact(error).slice(0,1200)});});}
+  setCandidateScreenshot(id,screenshot) {const item=this.candidate(id);if(!item)return;this.tx(()=>{const result=this.db.prepare("UPDATE design_candidates SET screenshot=?,status='RENDERED' WHERE id=? AND status IN ('PROPOSED','CAPTURE_PENDING')").run(json(screenshot),id);if(result.changes)this.event(item.task_id,'design_rendered',{id,baseHead:screenshot.baseHead});});}
+  setCandidateEvaluation(id,taskId,evaluation) {return this.tx(()=>{const result=this.db.prepare('UPDATE design_candidates SET evaluation=? WHERE id=? AND task_id=?').run(json(evaluation),id,taskId);if(result.changes)this.event(taskId,'design_evaluated',{candidateId:id});return result.changes>0;});}
   designHistory(projectId) {
     return this.db.prepare("SELECT d.task_id,d.status,d.details,t.goal FROM decisions d JOIN tasks t ON t.id=d.task_id WHERE t.project_id=? AND d.kind='design' AND d.status!='PENDING' ORDER BY d.resolved_at DESC LIMIT 10").all(projectId)
       .map(row=>({goal:row.goal,status:row.status,rationale:parse(row.details)?.rationale||'',selectedCandidateId:parse(row.details)?.selectedCandidateId||null,

@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { spawn, execFileSync } from 'node:child_process';
-import { root } from './config.mjs';
+import {randomUUID} from 'node:crypto';
+import { root, screenshotDirectory } from './config.mjs';
 import { repository, project } from './projects.mjs';
 import {childEnv,stopTree} from './provider.mjs';
 import {wslCodexConfig,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
@@ -122,7 +123,13 @@ async function captureDesignExclusive(candidateId,exported,screen,projectId,chec
   const feRequire=createRequire(path.join(fe,'package.json'));
   const {chromium}=feRequire('playwright');
   const browser=await chromium.launch({headless:true});
-  const dir=path.join(root,'data','screenshots');fs.mkdirSync(dir,{recursive:true});
+  const dir=screenshotDirectory();fs.mkdirSync(dir,{recursive:true});
+  const saveScreenshot=async(locator,name)=>{
+    const image=await locator.screenshot({animations:'disabled'});
+    const temporary=path.join(dir,`.capture-${randomUUID()}.tmp`);
+    try{fs.writeFileSync(temporary,image,{flag:'wx',mode:0o600});fs.renameSync(temporary,path.join(dir,name));}
+    finally{fs.rmSync(temporary,{force:true});}
+  };
   const checkStructure=async(page,scenario)=>{
     if(screen!=='home-main'||!exported.design['home.hero.structure']?.length)return;
     const layout=await page.getByTestId('studio-preview-B').getByTestId('studio-home-structure').evaluate(element=>{
@@ -171,8 +178,8 @@ async function captureDesignExclusive(candidateId,exported,screen,projectId,chec
       if(measure.scrollWidth-measure.clientWidth>2) throw new Error(`Horizontal overflow at ${width}pt`);
       await checkStructure(page,`${width}pt`);
       const baseline=`${candidateId}-${width===390?'':`${width}-`}baseline.png`,candidate=`${candidateId}-${width===390?'':`${width}-`}candidate.png`;
-      await page.getByTestId('studio-preview-A').locator(':scope > div').last().screenshot({path:path.join(dir,baseline),animations:'disabled'});
-      await page.getByTestId('studio-preview-B').locator(':scope > div').last().screenshot({path:path.join(dir,candidate),animations:'disabled'});
+      await saveScreenshot(page.getByTestId('studio-preview-A').locator(':scope > div').last(),baseline);
+      await saveScreenshot(page.getByTestId('studio-preview-B').locator(':scope > div').last(),candidate);
       matrix[width]={baseline,candidate,overflowPx:measure.scrollWidth-measure.clientWidth};
     }
     const states={};
@@ -185,8 +192,8 @@ async function captureDesignExclusive(candidateId,exported,screen,projectId,chec
       await checkStructure(page,key);
       for(const side of ['A','B']) await page.getByTestId(`studio-preview-${side}`).evaluate(root=>{const scroller=[root,...root.querySelectorAll('*')].find(element=>getComputedStyle(element).overflowY==='auto'&&element.scrollHeight>element.clientHeight+20);if(scroller)scroller.scrollTop=scroller.scrollHeight-scroller.clientHeight;});
       const baseline=`${candidateId}-${key}-baseline.png`,candidate=`${candidateId}-${key}-candidate.png`;
-      await page.getByTestId('studio-preview-A').locator(':scope > div').last().screenshot({path:path.join(dir,baseline),animations:'disabled'});
-      await page.getByTestId('studio-preview-B').locator(':scope > div').last().screenshot({path:path.join(dir,candidate),animations:'disabled'});
+      await saveScreenshot(page.getByTestId('studio-preview-A').locator(':scope > div').last(),baseline);
+      await saveScreenshot(page.getByTestId('studio-preview-B').locator(':scope > div').last(),candidate);
       states[key]={baseline,candidate,overflowPx:measure.scrollWidth-measure.clientWidth,scenario:label,fontScale:largeText?1.5:1};
     }
     return {baseline:matrix[390].baseline,candidate:matrix[390].candidate,matrix,states,screen,viewport:'1440x1200',baseHead};

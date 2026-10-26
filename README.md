@@ -6,14 +6,14 @@ The workspace source lives at `C:\SWM\ai-dev-workspace`. Momentory is a register
 
 ## Start on Windows
 
-Requires Node 22.13+, Git, authenticated official `claude` and `codex` CLIs, plus WSL2 Ubuntu with systemd, bubblewrap, Linux Codex and Node 22 for isolated Windows AI and Node/Expo checks. Spring checks additionally require WSL OpenJDK 21. Run `npm run setup` once to create ignored `.env` with two distinct random tokens, run `npm run isolation:setup` to install sandbox profiles, and verify paths in `projects.json`. The exact setup and acceptance commands are in [OPERATIONS.md](OPERATIONS.md). Then run:
+Requires Node 22.13+, Git, authenticated official `claude` and `codex` CLIs, plus WSL2 Ubuntu with systemd, bubblewrap, Linux Codex and Node 22 for isolated Windows AI and Node/Expo checks. Spring checks additionally require WSL OpenJDK 21. Run `npm run setup` once to create ignored `.env` with distinct login, worker, and encrypted-backup keys. Existing installations run `npm run backup:init` once. Run `npm run isolation:setup` to install sandbox profiles, and verify paths in `projects.json`. The exact setup, backup, restore and acceptance commands are in [OPERATIONS.md](OPERATIONS.md). Then run:
 
 ```powershell
 cd C:\SWM\ai-dev-workspace
 npm run local
 ```
 
-Open `http://127.0.0.1:4178` and log in with `WORKSPACE_TOKEN`. The launcher supervises one Claude slot, one Codex slot, and the API. Ctrl+C stops them gracefully. No `npm install` is required for the workspace itself; individual project worktrees use their configured tools.
+Open `http://127.0.0.1:4178` and log in with `WORKSPACE_TOKEN`. The launcher supervises one Claude slot, one Codex slot, and the API. It creates a verified encrypted Workspace data backup on start and every 24 hours. Ctrl+C stops them gracefully. No `npm install` is required for the workspace itself; individual project worktrees use their configured tools.
 
 ## Start on macOS
 

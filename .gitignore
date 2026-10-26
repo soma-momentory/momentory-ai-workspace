@@ -1,5 +1,6 @@
 .env
 data/
+backups/
 worktrees/
 examples/sample-project/
 *.log

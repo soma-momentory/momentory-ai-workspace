@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { settings, root } from './config.mjs';
+import { settings, root, screenshotDirectory } from './config.mjs';
 import { publicProjects, project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
 import { routeTask, nextHumanActions, TASK_TYPES } from './router.mjs';
@@ -11,6 +11,7 @@ import { validateExport, captureDesign } from './design.mjs';
 import { repoStatus, createWorktree, inheritApproved, diffSummary, recoveryFingerprint, ignoredWorktreeViolations, git } from './git.mjs';
 import { activeWslCodexForWorktree, reapStaleWslCodex } from './wslCodex.mjs';
 import {approvedIgnoredMounts} from './wslChecks.mjs';
+import {redact} from './provider.mjs';
 
 const config=settings();
 const store=new Store();
@@ -197,7 +198,7 @@ async function handle(req,res) {
       const qualifier=shot[2],kind=shot[3];
       const file=!qualifier?candidate?.screenshot?.[kind]:qualifier.includes('-')?candidate?.screenshot?.states?.[qualifier]?.[kind]:candidate?.screenshot?.matrix?.[qualifier]?.[kind];
       if(!file || !/^[0-9a-f-]{36}-(?:(?:375|390|402|430|many-375|long-375)-)?(?:baseline|candidate)\.png$/.test(file)) return send(res,404,{error:'Screenshot unavailable'});
-      const screenshotPath=path.join(publicDir,'..','data','screenshots',file);if(!fs.existsSync(screenshotPath))return send(res,404,{error:'Screenshot missing'});
+      const screenshotPath=path.join(screenshotDirectory(),file);if(!fs.existsSync(screenshotPath))return send(res,404,{error:'Screenshot missing'});
       res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
       return fs.createReadStream(screenshotPath).pipe(res);
     }
@@ -309,7 +310,7 @@ async function handle(req,res) {
 }
 
 setInterval(()=>store.recoverExpired(),5000).unref();
-const server=http.createServer((req,res)=>handle(req,res).catch(error=>send(res,400,{error:String(error.message||error)})));
+const server=http.createServer((req,res)=>handle(req,res).catch(error=>send(res,400,{error:redact(String(error.message||error))})));
 server.listen(config.port,config.host,()=>{console.log(`AI Development Workspace http://${config.host}:${config.port}`);for(const id of store.pendingCaptures())queueCapture(id);});
 function shutdown(){server.closeAllConnections();server.close(()=>{store.close();process.disconnect?.();});}
 process.on('SIGINT',shutdown);

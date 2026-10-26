@@ -4,6 +4,7 @@ import path from 'node:path';
 import net from 'node:net';
 import { spawn, execFileSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
+import {backupFixture} from './backup-fixture.mjs';
 
 const root=path.resolve(import.meta.dirname,'..'),repo=path.join(root,'data','local-integration-'+randomUUID());
 fs.mkdirSync(repo,{recursive:true});
@@ -14,7 +15,8 @@ execFileSync('git',['init','-b','test'],{cwd:repo});execFileSync('git',['add','.
 execFileSync('git',['-c','user.name=Workspace Test','-c','user.email=workspace@example.invalid','commit','-m','baseline'],{cwd:repo});
 const port=await new Promise(resolve=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
 const token=randomBytes(32).toString('hex'),workerToken=randomBytes(32).toString('hex'),base=`http://127.0.0.1:${port}`;
-const child=spawn(process.execPath,['src/local.mjs'],{cwd:root,env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_REPO_SAMPLE_APP:repo,WORKSPACE_DATA_FILE:path.join(root,'data',`local-integration-${port}.sqlite`)},stdio:['ignore','pipe','pipe','ipc']});
+const db=path.join(root,'data',`local-integration-${port}.sqlite`);
+const child=spawn(process.execPath,['src/local.mjs'],{cwd:root,env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_REPO_SAMPLE_APP:repo,WORKSPACE_DATA_FILE:db,...backupFixture(db,token,workerToken)},stdio:['ignore','pipe','pipe','ipc']});
 let log='';for(const s of [child.stdout,child.stderr])s.on('data',chunk=>{log=(log+chunk.toString('utf8')).slice(-10000);});
 let cookie='';
 async function api(route,method='GET',payload,worker=false){const response=await fetch(base+route,{method,headers:{'Content-Type':'application/json',...(worker?{Authorization:`Bearer ${workerToken}`}:{Origin:base,Cookie:cookie})},body:payload?JSON.stringify(payload):undefined});const data=await response.json();if(!response.ok)throw new Error(`${response.status}: ${JSON.stringify(data)}`);return {data,response};}

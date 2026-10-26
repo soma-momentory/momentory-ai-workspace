@@ -20,10 +20,17 @@ test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=
     let ready=false;for(let i=0;i<40;i++){try{const r=await request('/api/session');if(r.status===401){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,100));}
     assert.ok(ready,'server started');
     assert.equal((await request('/api/overview')).status,401);
+    assert.equal((await request('/api/tasks/12345678-1234-1234-1234-123456789abc')).status,401);
+    assert.equal((await request('/api/candidates/12345678-1234-1234-1234-123456789abc/candidate.png')).status,401);
+    assert.equal((await request('/api/worker/claim','POST',{id:'unauthorized',capabilities:['momentory:fe'],provider:'codex'})).status,401);
     const forged=await fetch(base+'/api/login',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/json'},body:JSON.stringify({token})});assert.equal(forged.status,403);
     const rebound=await new Promise((resolve,reject)=>{const request=http.get({hostname:'127.0.0.1',port,path:'/api/session',headers:{Host:'evil.example'}},response=>{response.resume();resolve(response.statusCode);});request.on('error',reject);});assert.equal(rebound,403);
     assert.equal((await request('/api/login','POST',{token:'wrong'})).status,401);
     const login=await request('/api/login','POST',{token});assert.equal(login.status,200);cookie=login.headers.get('set-cookie').split(';')[0];
+    assert.match(login.headers.get('set-cookie'),/HttpOnly; SameSite=Strict/);
+    const crossOrigin=await fetch(base+'/api/tasks',{method:'POST',headers:{Cookie:cookie,Origin:'https://evil.example','Content-Type':'application/json'},body:JSON.stringify({goal:'Attempt unauthorized task',repo:'fe'})});assert.equal(crossOrigin.status,403);
+    const noOrigin=await fetch(base+'/api/tasks',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({goal:'Attempt unauthorized task',repo:'fe'})});assert.equal(noOrigin.status,403);
+    assert.equal((await request('/api/worker/claim','POST',{id:'browser',capabilities:['momentory:fe'],provider:'codex'})).status,401);
     const remoteLogin=await fetch(base+'/api/login',{method:'POST',headers:{Origin:'https://laptop.tail.ts.net','Content-Type':'application/json'},body:JSON.stringify({token})});assert.equal(remoteLogin.status,200);assert.match(remoteLogin.headers.get('set-cookie'),/; Secure/);
     const task=(await request('/api/tasks','POST',{goal:'Improve the home screen card layout',repo:'fe',mode:'FAST'})).body.task;
     assert.equal(task.status,'QUEUED');
@@ -40,6 +47,7 @@ test('HTTP auth, task API, duplicate claim, bounded retry and approval',async()=
     const detail=await request(`/api/tasks/${task.id}`);assert.equal(detail.body.decisions.length,1);
     const accepted=await request(`/api/decisions/${detail.body.decisions[0].id}`,'POST',{status:'APPROVED'});
     assert.equal(accepted.body.task.status,'APPROVED');
+    assert.equal((await request(`/api/decisions/${detail.body.decisions[0].id}`,'POST',{status:'APPROVED'})).status,409);
     const risky=await request('/api/tasks','POST',{goal:'Deploy production changes after review',repo:'fe'});
     assert.equal(risky.body.task.status,'AWAITING_PREAPPROVAL');
     assert.equal((await request('/api/worker/claim','POST',{id:'test-worker',capabilities:['momentory:fe'],provider:task.provider},true)).body.task,null);

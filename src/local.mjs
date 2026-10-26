@@ -1,7 +1,10 @@
 import { spawn } from 'node:child_process';
 import { settings, root } from './config.mjs';
+import {createBackup} from './backup.mjs';
 
 const config=settings();
+if(!process.env.WORKSPACE_BACKUP_KEY)throw new Error('Backup key missing. Run npm run backup:init before starting the launcher.');
+if(process.env.WORKSPACE_DATA_FILE&&(!process.env.WORKSPACE_PROJECTS_FILE||!process.env.WORKSPACE_BACKUP_ENV_FILE||!process.env.WORKSPACE_SCREENSHOTS_DIR))throw new Error('Custom WORKSPACE_DATA_FILE requires explicit projects, backup environment and screenshots paths');
 let stopping=false,server=null;
 const workers=new Map();
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -16,4 +19,7 @@ async function startWorker(slot){workers.set(slot,launch(`worker/${slot}`,'src/w
 async function stop(){if(stopping)return;stopping=true;const children=[...workers.values(),server].filter(Boolean);for(const child of children) child.send('stop');for(let i=0;i<30&&children.some(child=>child.exitCode===null);i++)await wait(1000);for(const child of children) if(child.exitCode===null)child.kill();process.disconnect?.();}
 process.on('SIGINT',stop);process.on('SIGTERM',stop);
 process.on('message',message=>{if(message==='stop')stop();});
-await startServer();await waitForServer();await startWorker('claude');await startWorker('codex');
+await startServer();await waitForServer();
+try{createBackup();}catch(error){await stop();throw new Error(`Initial Workspace backup failed: ${error.message}`);}
+setInterval(()=>{try{createBackup();}catch(error){console.error(`Scheduled Workspace backup failed: ${error.message}`);stop().then(()=>{process.exitCode=1;});}},24*60*60*1000).unref();
+await startWorker('claude');await startWorker('codex');

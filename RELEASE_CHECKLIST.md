@@ -1,5 +1,33 @@
 # Release Checklist
 
+## Evidence classification (2026-10-26)
+
+`VERIFIED` has identified test or inspection evidence at a stated revision. `IMPLEMENTED_NOT_VERIFIED` has code but its full operating scenario was not observed. `FAILED` means the latest relevant test failed. `BLOCKED_EXTERNAL` needs unavailable equipment or access. `NOT_IMPLEMENTED` has no required path. Historical checks below retain their original evidence dates.
+
+| Release condition | Status | Evidence or next step |
+| --- | --- | --- |
+| Local owner login, session cookie, Host/Origin and CSRF checks, unauthenticated API denial | VERIFIED | Current HTTP negative tests; separate worker credential. |
+| Project-qualified task dependencies and registered repository selection | VERIFIED | HTTP cross-project dependency denial. One owner intentionally controls all configured projects. |
+| Actual Codex project path, Workspace data, and dependency isolation | VERIFIED | Current real `test:codex-boundary`, including another registered project. |
+| Claude restricted Read/Edit tools and trusted executable | VERIFIED | Prior real `test:provider-boundary`; current launcher unchanged. Claude's OS account remains trusted. |
+| Preapproval, result fingerprint, duplicate decision and follow-up controls | VERIFIED | HTTP, fingerprint and current recovery tests. |
+| Encrypted SQLite/configuration/screenshot backup, schema and integrity verification, actual restore | VERIFIED | `backup.test.mjs` restores tasks/decisions and rejects tampering; actual Workspace backup restored 592 screenshots. |
+| Daily backup cadence over an elapsed 24-hour run | IMPLEMENTED_NOT_VERIFIED | Launcher interval is present; elapsed-time observation remains. Initial backup and retention are tested. |
+| Git repositories and uncommitted worktrees backed up separately | IMPLEMENTED_NOT_VERIFIED | Workspace backup excludes them; operator must arrange separate repository/worktree backup. |
+| Real Claude/Codex parallel work, human planning, approved automatic follow-up | VERIFIED | Current collaboration integration: both AI sessions overlapped; new tasks were registered during execution; human task, follow-up and 95 events. |
+| Real dashboard creation through code checks, approval, restart and mobile viewport | VERIFIED | Current `test:windows-release`: fresh project, real Codex, two checks, browser approval, 390px viewport, restart, and actual backup/restore. |
+| Structural edit schema, persisted data/render parity and multi-size Web capture | VERIFIED | FE `ba34e0d`; current parity (11 cases) and capture at 375/390/402/430pt plus content states. |
+| Independent design drafts, rendering, evaluation, selection and isolated FE apply | VERIFIED | Earlier full pipeline on FE `ba34e0d` reached `AWAITING_APPROVAL` after typecheck, lint and 127 Jest suites; no merge. |
+| Lease loss, Worker kill, orphan cleanup, partial file review and safe resume | VERIFIED | Current recovery and worker-kill/resume tests. |
+| Duplicate follow-up/approval and storage write failure consistency | VERIFIED | Current recovery, HTTP and storage-failure tests. |
+| Installer, provider login, isolation setup and Windows update | IMPLEMENTED_NOT_VERIFIED | Current launcher and integrations run; fresh-machine installation and update preservation are untested. |
+| Full CI stability and cross-repository integration conflicts | IMPLEMENTED_NOT_VERIFIED | Current checks pass, but one transient `npm test` failure had truncated diagnostics; FE/BE full suites and integration conflicts were last checked on recorded earlier revisions. |
+| Trusted macOS populated dependency preparation and Mac sandbox | NOT_IMPLEMENTED | Mac path fails closed; implementation and real Mac acceptance needed. |
+| Physical phone/Tailscale separate network, locked screen, network loss/recovery | BLOCKED_EXTERNAL | Follow `MANUAL_VALIDATION.md` on a phone and tailnet. |
+| Native iOS and Android display and accessibility | BLOCKED_EXTERNAL | Physical devices and Mac/iOS tooling unavailable. Web viewport results do not substitute. |
+
+No latest repeat is `FAILED`; the transient test failure remains an open stability observation. The final Windows status and release decision are in `TEST_REPORT.md` after validation.
+
 **IN PROGRESS — NOT RELEASE READY.** A checked item has evidence in [TEST_REPORT.md](TEST_REPORT.md); historical checks do not imply the newest source revision passed the full flow.
 
 - [x] Audit Git boundaries, Harness Core, Expo Lab, installed tools, and preserve user changes.

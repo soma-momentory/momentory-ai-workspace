@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {root} from '../src/config.mjs';
+import {screenshotDirectory} from '../src/config.mjs';
 import {repository} from '../src/projects.mjs';
 import {validateExport,captureDesign} from '../src/design.mjs';
 
@@ -14,7 +14,7 @@ const exported=await validateExport({version:1,name:'Structural capture',design:
 await assert.rejects(validateExport({version:1,name:'Unchanged',design:approved}),/no changes/);
 const images=await captureDesign(randomUUID(),exported,'home-main');
 assert.equal(images.baseHead,execFileSync('git',['rev-parse','HEAD'],{cwd:repository('momentory','fe').path,encoding:'utf8'}).trim(),'Screenshots must record the rendered checkout commit');
-const dir=path.join(root,'data','screenshots');
+const dir=screenshotDirectory();
 const digest=name=>createHash('sha256').update(fs.readFileSync(path.join(dir,name))).digest('hex');
 assert.notEqual(digest(images.baseline),digest(images.candidate),'Structural text must appear in matched screenshot');
 assert.deepEqual(Object.keys(images.matrix),['375','390','402','430']);

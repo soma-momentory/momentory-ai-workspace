@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+export const screenshotDirectory = () => path.resolve(process.env.WORKSPACE_SCREENSHOTS_DIR||path.join(root,'data','screenshots'));
 export function loadEnv(file = path.join(root, '.env')) {
   if (!fs.existsSync(file)) return;
   for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
@@ -11,8 +12,18 @@ export function loadEnv(file = path.join(root, '.env')) {
   }
 }
 
+export function assertNoInterruptedRestore(targets) {
+  for(const target of targets){
+    const dir=path.dirname(target),name=path.basename(target);
+    if(fs.existsSync(dir)&&fs.readdirSync(dir).some(entry=>[name,`${name}-wal`,`${name}-shm`].some(prefix=>entry.startsWith(`${prefix}.restore-`)||entry.startsWith(`${prefix}.rollback-`))))
+      throw new Error(`Interrupted Workspace restore requires local recovery: ${target}`);
+  }
+}
+
 export function settings() {
-  loadEnv();
+  loadEnv(process.env.WORKSPACE_DATA_FILE&&process.env.WORKSPACE_BACKUP_ENV_FILE?process.env.WORKSPACE_BACKUP_ENV_FILE:path.join(root,'.env'));
+  const database=process.env.WORKSPACE_DATA_FILE||path.join(root,'data','workspace.sqlite');
+  assertNoInterruptedRestore([database,process.env.WORKSPACE_PROJECTS_FILE||path.join(root,'projects.json'),process.env.WORKSPACE_BACKUP_ENV_FILE||path.join(root,'.env'),screenshotDirectory()]);
   const host = process.env.WORKSPACE_HOST || '127.0.0.1';
   const port = Number(process.env.WORKSPACE_PORT || 4178);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid WORKSPACE_PORT');

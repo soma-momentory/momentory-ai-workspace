@@ -3,10 +3,12 @@ import path from 'node:path';
 import net from 'node:net';
 import {spawn} from 'node:child_process';
 import {randomBytes,randomUUID} from 'node:crypto';
+import {backupFixture} from './backup-fixture.mjs';
 const root=path.resolve(import.meta.dirname,'..'),run=randomUUID();
 const port=await new Promise(resolve=>{const server=net.createServer();server.listen(0,'127.0.0.1',()=>{const value=server.address().port;server.close(()=>resolve(value));});});
 const token=randomBytes(32).toString('hex'),workerToken=randomBytes(32).toString('hex'),base=`http://127.0.0.1:${port}`;
-const child=spawn(process.execPath,['src/local.mjs'],{cwd:root,env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_DATA_FILE:path.join(root,'data',`momentory-${run}.sqlite`)},stdio:['ignore','pipe','pipe','ipc']});
+const db=path.join(root,'data',`momentory-${run}.sqlite`);
+const child=spawn(process.execPath,['src/local.mjs'],{cwd:root,env:{...process.env,WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_DATA_FILE:db,...backupFixture(db,token,workerToken)},stdio:['ignore','pipe','pipe','ipc']});
 let logs='';for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>logs=(logs+chunk.toString()).slice(-16000));
 let cookie='';const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function api(route,method='GET',value){const response=await fetch(base+route,{method,headers:{Origin:base,Cookie:cookie,'Content-Type':'application/json'},body:value===undefined?undefined:JSON.stringify(value)});const body=await response.json();assert.ok(response.ok,`${route} ${response.status} ${JSON.stringify(body)}`);return {body,response};}
