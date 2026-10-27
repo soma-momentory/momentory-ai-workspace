@@ -13,10 +13,11 @@ function record(event,details={}){
 }
 if(!process.env.WORKSPACE_BACKUP_KEY)throw new Error('Backup key missing. Run npm run backup:init before starting the launcher.');
 if(process.env.WORKSPACE_DATA_FILE&&(!process.env.WORKSPACE_PROJECTS_FILE||!process.env.WORKSPACE_BACKUP_ENV_FILE||!process.env.WORKSPACE_SCREENSHOTS_DIR))throw new Error('Custom WORKSPACE_DATA_FILE requires explicit projects, backup environment and screenshots paths');
-let stopping=false,server=null;
+let stopping=false,server=null,childFailure=false;
 const workers=new Map();
 const unexpectedExits=new Map();
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const running=child=>child.exitCode===null&&child.signalCode===null;
 function mayRestart(name,details){
   if(stopping)return false;
   if(!controlLog)return true;
@@ -33,8 +34,8 @@ function mayRestart(name,details){
 function launch(name,file,onExit,env=process.env) {
   const child=spawn(process.execPath,[file],{cwd:root,env,stdio:['inherit','inherit','inherit','ipc'],windowsHide:true});
   record('child-start',{name,pid:child.pid,file});
-  child.on('error',error=>record('child-error',{name,pid:child.pid,message:error.message,code:error.code}));
-  child.on('exit',(code,signal)=>{record('child-exit',{name,pid:child.pid,code,signal,normalStopRequested:stopping});console.error(`${name} exited (${code})`);onExit({code,signal});});
+  child.on('error',error=>{childFailure=true;record('child-error',{name,pid:child.pid,message:error.message,code:error.code});});
+  child.on('exit',(code,signal)=>{if(code!==0||signal||!stopping)childFailure=true;record('child-exit',{name,pid:child.pid,code,signal,normalStopRequested:stopping});console.error(`${name} exited (${code})`);onExit({code,signal});});
   return child;
 }
 async function waitForServer(){for(let i=0;i<60&&!stopping;i++){try{const response=await fetch(`http://${config.host}:${config.port}/api/session`);if(response.status===401)return true;}catch{}await wait(500);}if(stopping)return false;throw new Error('Server did not start');}
@@ -45,15 +46,24 @@ async function stop(){
   stopping=true;
   record('stop-request');
   const children=[...workers.values(),server].filter(Boolean);
-  for(const child of children)child.send('stop');
-  for(let i=0;i<30&&children.some(child=>child.exitCode===null);i++)await wait(1000);
-  const remaining=children.filter(child=>child.exitCode===null);
+  for(const child of children)if(running(child)){
+    try{child.send('stop');}catch(error){childFailure=true;record('child-stop-error',{pid:child.pid,message:error.message});}
+  }
+  for(let i=0;i<30&&children.some(running);i++)await wait(1000);
+  const remaining=children.filter(running);
   for(const child of remaining)record('child-stop-timeout',{pid:child.pid});
+  if(remaining.length)process.exitCode=1;
   if(remaining.length&&controlLog){
     console.error('Controlled shutdown timed out; children were not killed');
     return;
   }
   for(const child of remaining)child.kill();
+  for(let i=0;i<5&&children.some(running);i++)await wait(1000);
+  if(children.some(running)){
+    console.error('Workspace child remained after forced shutdown');
+    return;
+  }
+  if(childFailure)process.exitCode=1;
   process.disconnect?.();
 }
 process.on('SIGINT',()=>{record('signal',{signal:'SIGINT'});stop();});process.on('SIGTERM',()=>{record('signal',{signal:'SIGTERM'});stop();});

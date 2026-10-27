@@ -49,3 +49,28 @@ test('launcher exits cleanly when stopped during and just after server startup',
     await assert.rejects(fetch(`http://127.0.0.1:${port}/api/session`));
   }
 });
+
+test('occupied port remains a failed startup, not a successful stop',async()=>{
+  const blocker=net.createServer();
+  blocker.on('connection',socket=>socket.destroy());
+  await new Promise(resolve=>blocker.listen(0,'127.0.0.1',resolve));
+  const port=blocker.address().port;
+  assert.ok(![4178,4195].includes(port));
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'workspace-start-fail-'));
+  const db=path.join(dir,'workspace.sqlite');
+  const token=randomBytes(32).toString('hex');
+  const workerToken=randomBytes(32).toString('hex');
+  const env={...process.env,WORKSPACE_HOST:'127.0.0.1',WORKSPACE_PORT:String(port),WORKSPACE_TOKEN:token,WORKER_TOKEN:workerToken,WORKSPACE_DATA_FILE:db,WORKSPACE_DESKTOP_CONTROL:'1',...backupFixture(db,token,workerToken)};
+  const child=spawn(process.execPath,['src/local.mjs'],{cwd:root,env,stdio:['ignore','pipe','pipe','ipc'],windowsHide:true});
+  let output='';
+  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>output=(output+chunk.toString()).slice(-4000));
+  const timeout=new Promise(resolve=>setTimeout(()=>resolve(null),15000).unref());
+  try{
+    const code=await Promise.race([new Promise(resolve=>child.once('exit',resolve)),timeout]);
+    assert.equal(code,1,`Occupied port was not reported as failed startup: ${output}`);
+    assert.match(output,/EADDRINUSE|Server did not start/);
+  }finally{
+    if(child.exitCode===null&&child.signalCode===null)child.send('stop');
+    await new Promise(resolve=>blocker.close(resolve));
+  }
+});
