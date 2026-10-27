@@ -116,12 +116,17 @@ test('live servers exclude restore while concurrent requests retain the current 
   const f=await fixture(t);await f.start();const cookie=await f.login(),backup=createBackup(f.options),snapshot=business(f.options.dbFile);
   const requests=Array.from({length:12},()=>f.status(cookie));
   assert.throws(()=>restoreBackup(backup.file,f.options),/database.*in use|Stop the Workspace/i);
+  // Even an incorrect/free configured port must not bypass the DB ownership guard.
+  const cli=f.spawn(['scripts/backup.mjs','restore',backup.file],{WORKSPACE_PORT:String(await freePort())});await cli.ended;
+  assert.notEqual(cli.child.exitCode,0);assert.match(cli.logs,/database.*in use/i);
   assert.deepEqual(await Promise.all(requests),Array(12).fill(200));assert.equal(await f.status(cookie),200);assert.deepEqual(business(f.options.dbFile),snapshot);
-  await f.stop();restoreBackup(backup.file,f.options);await f.start();assert.equal(await f.status(cookie),401);
+  await f.stop();const offlineCli=f.spawn(['scripts/backup.mjs','restore',backup.file]);await offlineCli.ended;assert.equal(offlineCli.child.exitCode,0,offlineCli.logs);
+  await f.start();assert.equal(await f.status(cookie),401);assert.equal(await f.status(await f.login()),200);
 });
 
 test('restore excludes server startup and a second restore before any staging file exists',async t=>{
   const f=await fixture(t);await f.start();const old=await f.login();await f.stop();const backup=createBackup(f.options);
+  const other=await fixture(t);await other.start();const otherCookie=await other.login(),otherHistory=business(other.options.dbFile);
   const ready=path.join(f.dir,'restore-ready'),release=path.join(f.dir,'restore-release');
   const code=`import fs from 'node:fs';import {restoreBackup} from './src/backup.mjs';const {file,options,ready,release}=JSON.parse(process.env.TEST_RESTORE);let first=true;restoreBackup(file,{...options,writeStage(target,content){if(first){first=false;fs.writeFileSync(ready,'ready');const until=Date.now()+15000;while(!fs.existsSync(release)){if(Date.now()>until)throw Error('Controlled restore pause timed out');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,20);}}fs.writeFileSync(target,content,{flag:'wx',mode:0o600});}});`;
   const restorer=f.spawn(['--input-type=module','-e',code],{TEST_RESTORE:JSON.stringify({file:backup.file,options:f.options,ready,release})});
@@ -132,6 +137,7 @@ test('restore excludes server startup and a second restore before any staging fi
     await waitUntil(()=>contender.child.exitCode!==null,'Server accepted startup during the pre-stage restore window');
     assert.notEqual(contender.child.exitCode,0);assert.match(contender.logs,/database.*in use/i);
     assert.throws(()=>restoreBackup(backup.file,f.options),/database.*in use/i);
+    assert.equal(await other.status(otherCookie),200);assert.deepEqual(business(other.options.dbFile),otherHistory,'Another database must remain unaffected');
   }finally{fs.writeFileSync(release,'release');await restorer.ended;}
   assert.equal(restorer.child.exitCode,0,restorer.logs);await f.start();assert.equal(await f.status(old),401);assert.equal(await f.status(await f.login()),200);
 });
