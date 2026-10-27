@@ -1,5 +1,15 @@
 # Test Report
 
+## T7 macOS release hardening candidate — 2026-10-26 KST
+
+The isolated `workspace/t7-macos-hardening` candidate starts from clean Workspace `dev` at `fd9cdcc`. The host is Windows; the configured SSH host did not answer within five seconds. **macOS execution is NOT_RUN/BLOCKED, and Workspace release remains NOT READY.** No FE checkout, pending design decision, protected branch, or deployment was changed.
+
+The candidate adds an explicit macOS trust policy for canonical, owner/root-owned, non-group/world-writable Node, npm CLI, Codex and Claude files with operator-pinned SHA-256. Node 22.13+ and CLI versions are checked before use. The existing reviewed lockfile policy and approval marker are reused. macOS npm setup is restricted to `npm ci --ignore-scripts --no-audit --no-fund`, with pinned runtime paths, isolated npm configuration, a root-deny network-enabled setup profile, direct and symlinked outside-data deny canaries, a read-only dependency policy for AI/check/Lab profiles, installed package-index verification, and symlink-escape scanning. Mac Design Lab launch uses the existing Codex sandbox with a dedicated profile and rejects capture on FE `main`. Incomplete or unmarked mounts stop before AI execution. Mac Gradle preparation explicitly fails closed; it is not claimed complete.
+
+Windows validation of this candidate: `npm test` passed **29, failed 0, skipped 1**, including four new macOS policy cases; `test:diff-reviewability` passed; `test:wsl-deps` passed after a task-local profile directory was installed and the candidate Worktree's shell script was written with its Git LF bytes. Logs are in ignored `data/t7-macos-hardening/` (`npm-test.log`, `diff-reviewability.log`, `wsl-deps.log`). The first WSL attempt had a profile path mismatch because an isolated Workspace root needs its own profile copy; the second exposed a CRLF checkout of `scripts/wsl-codex.sh`; neither was a macOS execution result.
+
+Real Mac acceptance remains open: setup and deny probe, successful Node/Design Lab preparation, real Claude/Codex tasks, project/Workspace data denial, cancellation and child cleanup, timeout and crash recovery, approval gate, log masking, encrypted backup/restore, and Mac Gradle policy. Follow [MANUAL_VALIDATION.md](MANUAL_VALIDATION.md) and retain stdout/stderr, task IDs and canary evidence. Windows WSL results do not count as Mac passes.
+
 ## T5 real Android app integration — 2026-10-26 KST
 
 **T5 status: DONE for the FE main baseline on an Android emulator. Workspace release: NOT READY.** A short-path detached worktree at `C:\SWM\mqt5` used Momentory FE `main` HEAD `01c3475`; the dirty `main` checkout (63 pre-existing entries) and clean structural branch `c55b782` were untouched. The real package `kr.momentory.app` version 1.3.0 built with `BUILD SUCCESSFUL in 3m 51s` and ran on an API 36 Android emulator. The ignored development environment pointed to `dev.momentory.co.kr` (health HTTP 200). The user entered a dedicated Kakao test account directly in the emulator OAuth page. The app then showed its authenticated home, not the Design Lab preview or the development wordmark bypass.
@@ -10,7 +20,7 @@ This run did **not** include the pending structural-design changes or uncommitte
 
 ## Windows finalization run — 2026-10-26 KST
 
-**Release decision: NOT READY.** Windows execution is substantially validated, but physical phone, locked-screen, macOS, and native-device acceptance remain open. The trusted macOS populated-dependency preparation path is not implemented. The detailed status classification is in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). This section supersedes older test totals below while retaining their historical evidence.
+**Release decision at the Windows finalization revision: NOT READY.** Windows execution was substantially validated, but physical phone, locked-screen, macOS, and native-device acceptance remained open. The trusted macOS populated-dependency preparation path was not implemented at that revision. T7 candidate status is recorded above. The detailed current classification is in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
 | Area | Current evidence | Status |
 | --- | --- | --- |
@@ -68,7 +78,7 @@ The latest `test:local-integration` passed with a real Codex source edit, two is
 
 `test:recovery-integration` passed on the same source: the old lease nonce was rejected, a new lease was accepted, an offline follow-up request was deduplicated after reconnect, a partial Worktree stayed `STALE`, and opaque or ignored recovery content was denied.
 
-Codex then found that the non-Windows fallback allowed a populated dependency directory merely because it existed. That fallback has been removed: all platforms require the validated marker. The current Mac setup path does not yet create the marker, so populated Node/Design Lab dependency tasks fail closed there. macOS functionality is **BLOCKED**, not passed, until a trusted setup path is implemented and tested on an actual Mac.
+Codex then found that the non-Windows fallback allowed a populated dependency directory merely because it existed. That fallback was removed: all platforms require the validated marker. At that revision, the Mac setup path did not create the marker, so populated Node/Design Lab dependency tasks failed closed. The T7 candidate adds a marker-issuing path, but macOS functionality remains **BLOCKED** until it is tested on an actual Mac.
 
 ## Integration evidence retained from the prior validated revision
 

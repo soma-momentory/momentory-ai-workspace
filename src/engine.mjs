@@ -3,13 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createWorktree, inheritApproved, sealTaskBaseline, diffSummary, recoveryFingerprint, ignoredWorktreeViolations } from './git.mjs';
-import { runProvider, stopTree, redact, childEnv } from './provider.mjs';
+import { runProvider, stopTree, redact, childEnv,macChildEnv } from './provider.mjs';
 import { git } from './git.mjs';
 import { project, repository } from './projects.mjs';
 import { Store } from './store.mjs';
 import { applySelectedDesign, validateExport } from './design.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {strictWslChecks,prepareWslDependency,runWslCheck,cleanupStaleBoundaryCanaries,approvedIgnoredMounts} from './wslChecks.mjs';
+import {prepareMacDependency} from './macDependency.mjs';
+import {trustedMacFile,trustedMacRuntime} from './macTrust.mjs';
 
 const forbidden = 'Do not commit, push, merge, deploy, delete user files, read secrets, modify .env files, or change files outside this worktree. Keep changes scoped to the goal.';
 export function reviewVerdict(text) { return /^\s*\W*(PASS|FIX_REQUIRED)\b/i.exec(text)?.[1]?.toUpperCase() || null; }
@@ -24,11 +26,14 @@ const context = (task) => `${project(task.project_id).name} development task. Go
 
 export function runCommand(cwd,command,args,timeoutMs,signal,{isolate=false}={}) {
   return new Promise(resolve=>{
-    if(isolate) verifyCodexProfile('check');
-    const executable=isolate?(process.platform==='win32'?'codex.cmd':'codex'):command;
-    const commandArgs=isolate?['sandbox','-p',codexProfileName('check'),'--permission-profile','workspace-check','--',command,...args]:args;
-    const env=childEnv();
-    if(isolate) env.NODE_OPTIONS=`--require=${JSON.stringify(path.join(path.resolve(import.meta.dirname,'..'),'scripts','sandbox-temp.cjs'))}`;
+    if(isolate) verifyCodexProfile(process.platform==='darwin'?'posix-check':'check');
+    const mac=isolate&&process.platform==='darwin'?trustedMacRuntime(cwd):null;
+    const actualCommand=mac&&command==='npm'?mac.node:mac&&command==='node'?mac.node:command;
+    const actualArgs=mac&&command==='npm'?[trustedMacFile('npm',cwd),...args]:args;
+    const executable=isolate?(mac?.codex||(process.platform==='win32'?'codex.cmd':'codex')):actualCommand;
+    const commandArgs=isolate?['sandbox','-p',codexProfileName(mac?'posix-check':'check'),'--permission-profile','workspace-check',...(mac?['-C',cwd]:[]),'--',actualCommand,...actualArgs]:actualArgs;
+    const env=mac?macChildEnv(mac.path):childEnv();
+    if(isolate&&process.platform!=='darwin') env.NODE_OPTIONS=`--require=${JSON.stringify(path.join(path.resolve(import.meta.dirname,'..'),'scripts','sandbox-temp.cjs'))}`;
     const child=spawn(executable,commandArgs,{cwd,windowsHide:true,shell:process.platform==='win32'&&executable!==process.execPath,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe'],env});
     let output='',timedOut=false,done=false,watchdog=null;
     for(const stream of [child.stdout,child.stderr]) stream.on('data',chunk=>{output=(output+chunk.toString('utf8')).slice(-12000);});
@@ -75,8 +80,10 @@ export async function executeTask(task,{emit=()=>{},save=()=>{},candidate=()=>{}
   const approvalBaseHead=sealTaskBaseline(task,location.dir,location.baseHead);
   await save({approval_base_head:approvalBaseHead});
   const repoConfig=repository(task.project_id,task.repo);
-  for(const step of repoConfig.setup||[]) if(strictWslChecks(repoConfig.stack)||!fs.existsSync(path.join(location.dir,step.ifMissing))) {
-    const setup=strictWslChecks(repoConfig.stack)?await prepareWslDependency(location.dir,step,signal):await runCommand(location.dir,step.command[0],step.command.slice(1),600000,signal);
+  for(const step of repoConfig.setup||[]) if(strictWslChecks(repoConfig.stack)||process.platform==='darwin'||!fs.existsSync(path.join(location.dir,step.ifMissing))) {
+    let setup;
+    try{setup=strictWslChecks(repoConfig.stack)?await prepareWslDependency(location.dir,step,signal):process.platform==='darwin'?await prepareMacDependency(location.dir,step,signal):await runCommand(location.dir,step.command[0],step.command.slice(1),600000,signal);}
+    catch(error){setup={ok:false,output:String(error)};}
     emit('dependencies',{step:step.ifMissing,ok:setup.ok,output:setup.output.slice(-2000)});
     if(!setup.ok) return {status:'FAILED',result:{error:'Dependency installation failed',step:step.ifMissing},verification:{ok:false,reason:setup.output.slice(-3000)}};
   }

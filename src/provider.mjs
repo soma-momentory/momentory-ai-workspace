@@ -1,9 +1,10 @@
-import { spawn } from 'node:child_process';
+import { spawn,spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
 import {wslCodexLaunch,stopWslCodex,finishWslCodex} from './wslCodex.mjs';
+import {trustedMacFile,trustedMacRuntime} from './macTrust.mjs';
 
 export function stopTree(child,signal='SIGTERM') {
   if(!child?.pid || child.exitCode!==null) return;
@@ -21,6 +22,11 @@ export const redact = (value) => {
   return output;
 };
 export function childEnv() {return {...Object.fromEntries(Object.entries(process.env).filter(([key])=>!/(?:TOKEN|KEY|SECRET|PASSWORD|CREDENTIAL|AUTH|^WORKSPACE_)/i.test(key))),CI:'1'};}
+export function macChildEnv(searchPath,overrides={}){
+  const env=childEnv();
+  for(const name of Object.keys(env))if(/^(?:NODE_OPTIONS|NODE_PATH|BASH_ENV|ENV|PYTHONPATH|GIT_CONFIG.*|npm_config_.*|NPM_CONFIG_.*|DYLD_.*|LD_.*)$/i.test(name))delete env[name];
+  return {...env,PATH:searchPath,...overrides};
+}
 export function createProviderLineParser(onLine,onOversized,maxLength=1_000_000){
   let pending='',discarding=false;
   return {
@@ -52,6 +58,7 @@ export function providerArgs(provider, {readOnly=false,sessionId=null}={}) {
   throw new Error('Unknown provider');
 }
 export function resolveClaudeExecutable(cwd) {
+  if(process.platform==='darwin')return trustedMacFile('claude',cwd);
   const inside=(candidate,parent)=>{
     const value=process.platform==='win32'?candidate.toLowerCase():candidate;
     const base=process.platform==='win32'?parent.toLowerCase():parent;
@@ -73,12 +80,18 @@ export function resolveClaudeExecutable(cwd) {
 }
 export async function runProvider({provider,cwd,prompt,readOnly=false,sessionId=null,timeoutMs=600000,onEvent=()=>{},signal}) {
   const args=providerArgs(provider,{readOnly,sessionId});
+  const mac=process.platform==='darwin'?trustedMacRuntime(cwd):null;
   if(provider==='codex'&&process.platform!=='win32') verifyCodexProfile(readOnly?'posix-readonly':'posix');
+  const macExecutable=mac&&(provider==='codex'?mac.codex:resolveClaudeExecutable(cwd));
+  if(mac){
+    const checked=spawnSync(macExecutable,['--version'],{cwd,env:macChildEnv(mac.path),encoding:'utf8',timeout:10000});
+    if(checked.status!==0||!/\d+\.\d+/.test(checked.stdout.trim()))throw new Error(`Pinned macOS ${provider} version check failed`);
+  }
   const launch=provider==='codex'&&process.platform==='win32'?await wslCodexLaunch(cwd,readOnly,args):null;
   if(signal?.aborted){finishWslCodex(launch);return {ok:false,code:null,timedOut:false,sessionId,result:'',usage:null,stderr:'Cancelled before provider start'};}
   return new Promise(resolve=>{
-    const exe=launch?.executable||(provider==='claude'?resolveClaudeExecutable(cwd):provider);
-    const child=spawn(exe,launch?.args||args,{cwd,windowsHide:true,shell:false,detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:childEnv()});
+    const exe=launch?.executable||macExecutable||(provider==='claude'?resolveClaudeExecutable(cwd):provider);
+    const child=spawn(exe,launch?.args||args,{cwd,windowsHide:true,shell:false,detached:process.platform!=='win32',stdio:['pipe','pipe','pipe'],env:mac?macChildEnv(mac.path):childEnv()});
     let stderr='',last='',threadId=sessionId,reportedThreadId=sessionId,usage=null,finished=false,timedOut=false,watchdog=null;
     const stop=()=>{if(launch)stopWslCodex(launch);stopTree(child);};
     const armWatchdog=()=>{if(!watchdog){watchdog=setTimeout(()=>{if(!finished){if(launch)stopWslCodex(launch,'KILL');stopTree(child);complete(null,'Provider wrapper did not exit after termination');}},5000);watchdog.unref();}};

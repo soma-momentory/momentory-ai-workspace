@@ -1,0 +1,22 @@
+default_permissions = "workspace-lab"
+
+[permissions.workspace-lab.filesystem]
+":root" = "deny"
+":minimal" = "read"
+":tmpdir" = "write"
+"__MAC_NODE_DIR__" = "read"
+"__MAC_NPM_ROOT__" = "read"
+glob_scan_max_depth = 32
+
+[permissions.workspace-lab.filesystem.":workspace_roots"]
+"." = "write"
+".git" = "read"
+"node_modules" = "read"
+"design-lab/node_modules" = "read"
+"**/.env*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/credentials.json" = "deny"
+
+[permissions.workspace-lab.network]
+enabled = true
