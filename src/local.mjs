@@ -37,9 +37,9 @@ function launch(name,file,onExit,env=process.env) {
   child.on('exit',(code,signal)=>{record('child-exit',{name,pid:child.pid,code,signal,normalStopRequested:stopping});console.error(`${name} exited (${code})`);onExit({code,signal});});
   return child;
 }
-async function waitForServer(){for(let i=0;i<60&&!stopping;i++){try{const response=await fetch(`http://${config.host}:${config.port}/api/session`);if(response.status===401)return;}catch{}await wait(500);}throw new Error('Server did not start');}
-async function startServer(){server=launch('server','src/server.mjs',async details=>{server=null;if(mayRestart('server',details)){await wait(2000);if(!stopping)startServer();}});}
-async function startWorker(slot){workers.set(slot,launch(`worker/${slot}`,'src/worker.mjs',async details=>{workers.delete(slot);if(mayRestart(`worker/${slot}`,details)){await wait(2000);if(!stopping)startWorker(slot);}},{...process.env,WORKER_SLOT:slot}));}
+async function waitForServer(){for(let i=0;i<60&&!stopping;i++){try{const response=await fetch(`http://${config.host}:${config.port}/api/session`);if(response.status===401)return true;}catch{}await wait(500);}if(stopping)return false;throw new Error('Server did not start');}
+async function startServer(){if(stopping)return;server=launch('server','src/server.mjs',async details=>{server=null;if(mayRestart('server',details)){await wait(2000);if(!stopping)startServer();}});}
+async function startWorker(slot){if(stopping)return;workers.set(slot,launch(`worker/${slot}`,'src/worker.mjs',async details=>{workers.delete(slot);if(mayRestart(`worker/${slot}`,details)){await wait(2000);if(!stopping)startWorker(slot);}},{...process.env,WORKER_SLOT:slot}));}
 async function stop(){
   if(stopping)return;
   stopping=true;
@@ -60,7 +60,11 @@ process.on('SIGINT',()=>{record('signal',{signal:'SIGINT'});stop();});process.on
 process.on('message',message=>{if(message==='stop')stop();});
 process.on('uncaughtException',error=>{record('exception',{message:error.message,stack:error.stack});console.error(error);process.exit(1);});
 process.on('exit',code=>record('process-exit',{code,normalStopRequested:stopping}));
-await startServer();await waitForServer();
-try{createBackup();}catch(error){await stop();throw new Error(`Initial Workspace backup failed: ${error.message}`);}
-setInterval(()=>{try{createBackup();}catch(error){console.error(`Scheduled Workspace backup failed: ${error.message}`);stop().then(()=>{process.exitCode=1;});}},24*60*60*1000).unref();
-await startWorker('claude');await startWorker('codex');
+await startServer();
+if(await waitForServer()&&!stopping){
+  try{createBackup();}catch(error){await stop();throw new Error(`Initial Workspace backup failed: ${error.message}`);}
+  if(!stopping){
+    setInterval(()=>{try{createBackup();}catch(error){console.error(`Scheduled Workspace backup failed: ${error.message}`);stop().then(()=>{process.exitCode=1;});}},24*60*60*1000).unref();
+    await startWorker('claude');await startWorker('codex');
+  }
+}
