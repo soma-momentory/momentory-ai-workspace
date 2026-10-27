@@ -1,0 +1,39 @@
+TAP version 13
+# Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/worktrees/recover/57c831b5-dd0e-46eb-b37c-1d46bfe29282'...
+# done.
+# (node:47785) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: reviewed stale Codex recovery starts a fresh provider thread and preserves its worktree
+not ok 1 - reviewed stale Codex recovery starts a fresh provider thread and preserves its worktree
+  ---
+  duration_ms: 603.840417
+  type: 'test'
+  location: '/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/tests/stale-codex-session.test.mjs:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '11111111-2222-4333-8444-555555555555'
+    - null
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: '11111111-2222-4333-8444-555555555555'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/tests/stale-codex-session.test.mjs:15:210)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 640.986459

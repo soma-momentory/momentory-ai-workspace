@@ -1,0 +1,33 @@
+{
+  "paths": [
+    "T9_DD5_RECOVERY_FIX_REPORT.md",
+    "evidence/t9-dd5-recovery-fix/SHA256SUMS.txt",
+    "evidence/t9-dd5-recovery-fix/after.txt",
+    "evidence/t9-dd5-recovery-fix/before.txt",
+    "evidence/t9-dd5-recovery-fix/changes.json",
+    "evidence/t9-dd5-recovery-fix/cleanup-final.json",
+    "evidence/t9-dd5-recovery-fix/evidence-safety.json",
+    "evidence/t9-dd5-recovery-fix/execution-context.json",
+    "evidence/t9-dd5-recovery-fix/focused-final.txt",
+    "evidence/t9-dd5-recovery-fix/focused.txt",
+    "evidence/t9-dd5-recovery-fix/full-automated-result.json",
+    "evidence/t9-dd5-recovery-fix/full-automated.txt",
+    "evidence/t9-dd5-recovery-fix/gradle-kill-result.json",
+    "evidence/t9-dd5-recovery-fix/gradle-kill.txt",
+    "evidence/t9-dd5-recovery-fix/gradle-resume-result.json",
+    "evidence/t9-dd5-recovery-fix/gradle-resume.txt",
+    "evidence/t9-dd5-recovery-fix/internal-canary.txt",
+    "evidence/t9-dd5-recovery-fix/native-kill-result.json",
+    "evidence/t9-dd5-recovery-fix/native-kill.txt",
+    "evidence/t9-dd5-recovery-fix/native-resume-result.json",
+    "evidence/t9-dd5-recovery-fix/native-resume.txt",
+    "evidence/t9-dd5-recovery-fix/results.json",
+    "evidence/t9-dd5-recovery-fix/run.mjs",
+    "evidence/t9-dd5-recovery-fix/thread-reset-observation.json"
+  ],
+  "productChanges": [
+    "src/provider.mjs",
+    "src/server.mjs"
+  ],
+  "reportScope": "REVIEW_CANDIDATE"
+}

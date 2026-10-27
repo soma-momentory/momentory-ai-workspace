@@ -1,0 +1,13 @@
+{
+  "commit": "f31dbc050109831c3286d17fdfab9608b5d3c728",
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+    "--input-type=module",
+    "-e",
+    "import fs from \"node:fs\";import {spawn} from \"node:child_process\";const files=fs.readdirSync(\"tests\").filter(x=>x.endsWith(\".test.mjs\")).sort().map(x=>\"tests/\"+x);const p=spawn(process.execPath,[\"--test\",...files],{stdio:\"inherit\",env:process.env});p.on(\"exit\",code=>process.exitCode=code??1);"
+  ],
+  "startedAt": "2026-10-27T18:40:38.569Z",
+  "endedAt": "2026-10-27T18:41:34.691Z",
+  "exitCode": 0,
+  "signal": null
+}

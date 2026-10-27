@@ -1,0 +1,3 @@
+(node:52737) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"status":"PASS","taskId":"de234aa6-3a29-4466-b88e-02ff611efb4c","attempts":2,"worktree":"/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/worktrees/sample/de234aa6-3a29-4466-b88e-02ff611efb4c","partialDiffReviewed":true,"changedFiles":["crash-mode","README-recovery.txt","partial-change.txt","worker-recovery-note.txt"],"checks":[{"command":"./gradlew test","ok":true}]}

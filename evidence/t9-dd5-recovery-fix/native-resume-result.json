@@ -1,0 +1,12 @@
+{
+  "commit": "dd5fe7ac129e2345f3268bc95ab3e0a1ebf675d2",
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+    "tests/resume-killed.integration.mjs",
+    "/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/data/worker-kill-f8cd31a0-e710-4bc4-bc3a-361b607b26f6.sqlite"
+  ],
+  "startedAt": "2026-10-27T18:38:31.897Z",
+  "endedAt": "2026-10-27T18:39:36.488Z",
+  "exitCode": 0,
+  "signal": null
+}

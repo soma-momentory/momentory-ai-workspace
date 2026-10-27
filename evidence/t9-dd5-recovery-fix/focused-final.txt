@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: macOS checkpoint write failure kills the child, fails closed and retains its cause
+ok 1 - macOS checkpoint write failure kills the child, fails closed and retains its cause
+  ---
+  duration_ms: 549.602917
+  type: 'test'
+  ...
+# Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/worktrees/recover/97d4ef5f-c932-4bd9-b86c-525872f72803'...
+# done.
+# (node:50161) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/worktrees/recover/9b3f41d8-7097-4f5e-b96e-1902b4011149'...
+# done.
+# Subtest: STALE codex reviewed recovery preserves its worktree and applies the scoped thread reset
+ok 2 - STALE codex reviewed recovery preserves its worktree and applies the scoped thread reset
+  ---
+  duration_ms: 496.020375
+  type: 'test'
+  ...
+# Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/worktrees/recover/63e1eafe-639a-45ec-9b8c-6c3ac36a47be'...
+# done.
+# Subtest: PAUSED codex reviewed recovery preserves its worktree and applies the scoped thread reset
+ok 3 - PAUSED codex reviewed recovery preserves its worktree and applies the scoped thread reset
+  ---
+  duration_ms: 479.555125
+  type: 'test'
+  ...
+# Subtest: STALE claude reviewed recovery preserves its worktree and applies the scoped thread reset
+ok 4 - STALE claude reviewed recovery preserves its worktree and applies the scoped thread reset
+  ---
+  duration_ms: 463.010334
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1472.085667

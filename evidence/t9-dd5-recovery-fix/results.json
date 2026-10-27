@@ -1,0 +1,85 @@
+{
+  "productCommit": "f31dbc050109831c3286d17fdfab9608b5d3c728",
+  "scope": "Separate candidate; does not promote frozen dd5fe7a",
+  "automatic": {
+    "PASS": 56,
+    "FAIL": 0,
+    "NOT_RUN": 1,
+    "total": 57
+  },
+  "focusedRegression": {
+    "PASS": 4,
+    "FAIL": 0
+  },
+  "actualNativeAndGradleRecovery": "PASS",
+  "windows": "NOT_RUN",
+  "preCommitNativeRuns": "Same modified source later committed as f31dbc0; original base HEAD in raw metadata is retained",
+  "originalCheckpointFailureCause": "Unresolved; diagnostics added without relaxing fail-closed policy",
+  "workspaceRelease": "NOT READY",
+  "runs": [
+    {
+      "commit": "f31dbc050109831c3286d17fdfab9608b5d3c728",
+      "command": [
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+        "--input-type=module",
+        "-e",
+        "import fs from \"node:fs\";import {spawn} from \"node:child_process\";const files=fs.readdirSync(\"tests\").filter(x=>x.endsWith(\".test.mjs\")).sort().map(x=>\"tests/\"+x);const p=spawn(process.execPath,[\"--test\",...files],{stdio:\"inherit\",env:process.env});p.on(\"exit\",code=>process.exitCode=code??1);"
+      ],
+      "startedAt": "2026-10-27T18:40:38.569Z",
+      "endedAt": "2026-10-27T18:41:34.691Z",
+      "exitCode": 0,
+      "signal": null,
+      "name": "full-automated"
+    },
+    {
+      "commit": "f31dbc050109831c3286d17fdfab9608b5d3c728",
+      "command": [
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+        "tests/worker-kill.integration.mjs"
+      ],
+      "startedAt": "2026-10-27T18:42:11.543Z",
+      "endedAt": "2026-10-27T18:43:25.980Z",
+      "exitCode": 0,
+      "signal": null,
+      "name": "gradle-kill"
+    },
+    {
+      "commit": "f31dbc050109831c3286d17fdfab9608b5d3c728",
+      "command": [
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+        "tests/resume-killed.integration.mjs",
+        "/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/data/worker-kill-8d7ebccf-9d19-4dc6-b407-abf4f64ab589.sqlite"
+      ],
+      "startedAt": "2026-10-27T18:43:53.358Z",
+      "endedAt": "2026-10-27T18:44:54.903Z",
+      "exitCode": 0,
+      "signal": null,
+      "name": "gradle-resume"
+    },
+    {
+      "commit": "dd5fe7ac129e2345f3268bc95ab3e0a1ebf675d2",
+      "command": [
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+        "tests/worker-kill.integration.mjs"
+      ],
+      "startedAt": "2026-10-27T17:41:17.504Z",
+      "endedAt": "2026-10-27T17:42:11.885Z",
+      "exitCode": 0,
+      "signal": null,
+      "name": "native-kill"
+    },
+    {
+      "commit": "dd5fe7ac129e2345f3268bc95ab3e0a1ebf675d2",
+      "command": [
+        "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+        "tests/resume-killed.integration.mjs",
+        "/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/data/worker-kill-f8cd31a0-e710-4bc4-bc3a-361b607b26f6.sqlite"
+      ],
+      "startedAt": "2026-10-27T18:38:31.897Z",
+      "endedAt": "2026-10-27T18:39:36.488Z",
+      "exitCode": 0,
+      "signal": null,
+      "name": "native-resume"
+    }
+  ]
+}

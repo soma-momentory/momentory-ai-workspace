@@ -1,0 +1,11 @@
+{
+  "status": "AWAITING_APPROVAL",
+  "attempts": 2,
+  "firstSession": "01a17e73-c28e-7b93-b7c9-b9852f78cfef",
+  "finalSession": "01a17ea8-2aeb-7e42-84cd-6c9932c9a2f5",
+  "threadChanged": true,
+  "worktreePreserved": true,
+  "requiresReviewedDiff": true,
+  "interruptedOldThreadMissingToolOutputCount": 1,
+  "transcriptContentExported": false
+}

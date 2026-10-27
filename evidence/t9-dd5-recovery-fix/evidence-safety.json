@@ -1,0 +1,8 @@
+{
+  "exactPrivateValueScan": "PASS",
+  "authFilesIncluded": false,
+  "privateEnvOrDbOrBackupIncluded": false,
+  "transcriptContentIncluded": false,
+  "providerSessionEvidence": "Only event types and tool call/output ID correspondence; no model reasoning text",
+  "logs": "Raw originals under ignored data; public copies normalize trailing whitespace"
+}

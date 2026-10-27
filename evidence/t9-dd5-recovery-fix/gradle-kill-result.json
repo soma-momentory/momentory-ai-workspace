@@ -1,0 +1,11 @@
+{
+  "commit": "f31dbc050109831c3286d17fdfab9608b5d3c728",
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+    "tests/worker-kill.integration.mjs"
+  ],
+  "startedAt": "2026-10-27T18:42:11.543Z",
+  "endedAt": "2026-10-27T18:43:25.980Z",
+  "exitCode": 0,
+  "signal": null
+}

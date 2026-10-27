@@ -1,0 +1,3 @@
+(node:49499) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"status":"PASS","taskId":"bb031a59-c490-4b92-91a9-733419020f96","attempts":2,"worktree":"/Users/kjh/Momentory/momentory-ai-workspace-t9-dd5-mac-recovery-fix/worktrees/sample/bb031a59-c490-4b92-91a9-733419020f96","partialDiffReviewed":true,"changedFiles":["index.test.mjs","controlled.pids","partial-change.txt"],"checks":[{"command":"node --check index.mjs","ok":true},{"command":"node --test","ok":true}]}

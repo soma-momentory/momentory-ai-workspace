@@ -1,0 +1,12 @@
+{
+  "branch": "workspace/t9-dd5-mac-recovery-fix",
+  "productCommit": "f31dbc050109831c3286d17fdfab9608b5d3c728",
+  "preCommitNativeRuns": "Native crash/resume ran with the same source patch in this separate fix worktree before commit; the recorded base HEAD remains dd5fe7a",
+  "sourceSha256": {
+    "src/server.mjs": "de38c7125da72a34fb48d4077fc2358a8db73caa349010fc4bfbc504572db4b4",
+    "src/provider.mjs": "3dc1f9a8e20f64249724cf166349870da99cf08703740b831207824683ae667f"
+  },
+  "sourceMatchesCommittedFix": true,
+  "frozenCandidateResultUnchanged": "FAIL; separate fix success does not promote dd5fe7a",
+  "trackingFailureOriginalCause": "Unknown: frozen interval catch discarded detail; checkpoint failure still fails closed and is now diagnosed"
+}

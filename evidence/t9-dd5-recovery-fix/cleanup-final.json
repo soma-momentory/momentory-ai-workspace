@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-27T18:45:57.259265+00:00",
+  "containers": [],
+  "macProcessMarkers": 0,
+  "workerLocks": 0,
+  "protectedPorts": [
+    4178,
+    4195
+  ],
+  "macProtectedListeners": [],
+  "productWorkingTreeDiff": []
+}
