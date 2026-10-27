@@ -12,7 +12,7 @@ const macProcessTrees=new WeakMap();
 const macRegistry=()=>path.join(root,'data','mac-processes');
 function macProcessTable(){
   const result=spawnSync('/usr/bin/python3',['-I',path.join(root,'scripts','mac-process-table.py')],{env:{PATH:'/usr/bin:/bin'},encoding:'utf8',timeout:3000,maxBuffer:4*1024*1024});
-  if(result.status!==0)throw new Error('Cannot inspect macOS child process tree');
+  if(result.status!==0)throw new Error(`Cannot inspect macOS child process tree (${result.error?.code||result.signal||`exit ${result.status}`}): ${result.stderr?.trim().slice(-500)||'no stderr'}`);
   const rows=new Map();
   for(const row of JSON.parse(result.stdout)){
     if(!Number.isInteger(row.pid)||!Number.isInteger(row.parent)||!/^\d+:\d+$/.test(row.identity))throw new Error('Invalid macOS process identity');
@@ -75,7 +75,7 @@ export function registerMacGradleContainer(cwd,container){
 export function trackMacProcess(child,cwd){
   if(process.platform!=='darwin')return {finish:()=>true};
   const tracked=new Map(),file=path.join(macRegistry(),`${process.pid}-${randomUUID()}.json`);
-  let timer,failed=false;
+  let timer,failed=false,failureReason='';
   const persist=()=>{
     const table=macProcessTable();rememberMacDescendants(table,child.pid,tracked);macProcessTrees.set(child,tracked);
     const record={version:2,workspace:root,cwd:path.resolve(cwd),owner:{pid:process.pid,identity:table.get(process.pid).identity},pid:child.pid,processes:[...tracked]};
@@ -85,9 +85,9 @@ export function trackMacProcess(child,cwd){
     fs.mkdirSync(macRegistry(),{recursive:true,mode:0o700});readMacProcessRecords();
     if(!child.pid)return {finish:()=>false};
     persist(); // Written before provider stdin is released to the CLI.
-    timer=setInterval(()=>{try{persist();}catch{failed=true;clearInterval(timer);stopTree(child,'SIGKILL');}},250);timer.unref();
+    timer=setInterval(()=>{try{persist();}catch(error){failed=true;failureReason=redact(`macOS process checkpoint failed: ${error.code||''} ${error.message}`);clearInterval(timer);stopTree(child,'SIGKILL');}},250);timer.unref();
   }catch(error){stopTree(child,'SIGKILL');throw error;}
-  return {finish:()=>{
+  return {failureReason:()=>failureReason,finish:()=>{
     clearInterval(timer);
     try{
     if(stopTree(child,'SIGKILL')===false)return false;
@@ -211,7 +211,7 @@ export async function runProvider({provider,cwd,prompt,readOnly=false,sessionId=
     const armWatchdog=()=>{if(!watchdog){watchdog=setTimeout(()=>{if(!finished){if(launch)stopWslCodex(launch,'KILL');stopTree(child,'SIGKILL');complete(null,'Provider wrapper did not exit after termination');}},5000);watchdog.unref();}};
     const timer=setTimeout(()=>{timedOut=true;stop();armWatchdog();},timeoutMs);
     const abort=()=>{stop();armWatchdog();}; signal?.addEventListener('abort',abort,{once:true});
-    const complete=(code,error)=>{if(finished)return;if((signal?.aborted||timedOut)&&stopTree(child,'SIGKILL')===false)cleanupFailed=true;if(!macTracker.finish())cleanupFailed=true;finished=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);const scopeStopped=finishWslCodex(launch);resolve({ok:code===0&&!signal?.aborted&&!timedOut&&!error&&scopeStopped&&!cleanupFailed,code,timedOut,sessionId:threadId,result:redact(last).slice(0,20000),usage,stderr:redact([stderr,error,cleanupFailed?'macOS descendant cleanup could not be verified':'',scopeStopped?'':'WSL process scope remained active'].filter(Boolean).join('\n')).slice(-4000)});};
+    const complete=(code,error)=>{if(finished)return;if((signal?.aborted||timedOut)&&stopTree(child,'SIGKILL')===false)cleanupFailed=true;if(!macTracker.finish())cleanupFailed=true;finished=true;clearTimeout(timer);clearTimeout(watchdog);signal?.removeEventListener('abort',abort);const scopeStopped=finishWslCodex(launch);resolve({ok:code===0&&!signal?.aborted&&!timedOut&&!error&&scopeStopped&&!cleanupFailed,code,timedOut,sessionId:threadId,result:redact(last).slice(0,20000),usage,stderr:redact([stderr,error,cleanupFailed?'macOS descendant cleanup could not be verified':'',macTracker.failureReason?.(),scopeStopped?'':'WSL process scope remained active'].filter(Boolean).join('\n')).slice(-4000)});};
     const parser=createProviderLineParser(line=>{
       try {
         const event=JSON.parse(line);

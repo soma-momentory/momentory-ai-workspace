@@ -276,7 +276,11 @@ async function handle(req,res) {
           const recovery=recoveryDiff(task);
           if(recovery?.error)return send(res,409,{error:recovery.error});
           if(recovery?.changedFiles.length&&input.reviewedDiffHash!==recovery.hash)return send(res,409,{error:'Review the preserved partial diff before resuming',recovery});
-          store.patch(task.id,{pause_requested:0,cancel_requested:0,status:'QUEUED'},'resumed');
+          const fields={pause_requested:0,cancel_requested:0,status:'QUEUED'};
+          // SIGKILL can leave a Codex tool call without its output. Resume the
+          // reviewed worktree in a fresh thread instead of replaying that state.
+          if(task.status==='STALE'&&task.provider==='codex')fields.session_id=null;
+          store.patch(task.id,fields,'resumed');
         }
         return send(res,200,{task:store.getTask(task.id)});
       }
