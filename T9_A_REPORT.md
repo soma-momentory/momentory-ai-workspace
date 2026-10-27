@@ -2,6 +2,8 @@
 
 **판정: PARTIAL. Workspace Release: NOT READY.** Windows T8 `a8664a3`와 Mac T7-H `aefb7b4`를 별도 `workspace/t9-integration` worktree에 병합했다. 이 보고서는 병합 후보의 Windows 검증과 T7-H 원본 브랜치에 남은 Mac 증거를 구분한다.
 
+후속 Windows 독립 실행 검증에서 실제 Codex·승인·거절·로그아웃·Worker 복구가 통과했다. 최신 결과와 수정 내역은 [T9 독립 실행 검증 보고서](T9_ISOLATED_VALIDATION.md)를 참조한다. 아래 표는 최초 T9-A 통합 시점의 결과다.
+
 ## 기준선과 통합
 
 | 대상 | 확인한 상태 |
