@@ -1,0 +1,22 @@
+default_permissions = "workspace-gradle"
+
+[permissions.workspace-gradle.filesystem]
+":root" = "deny"
+":minimal" = "read"
+":tmpdir" = "write"
+"__MAC_JDK_HOME__" = "read"
+"__MAC_GRADLE_HOME__" = "read"
+"__MAC_GRADLE_REPO__" = "read"
+glob_scan_max_depth = 32
+
+[permissions.workspace-gradle.filesystem.":workspace_roots"]
+"." = "write"
+".git" = "read"
+".gradle/workspace-repositories.init.gradle" = "read"
+"**/.env*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/credentials.json" = "deny"
+
+[permissions.workspace-gradle.network]
+enabled = false

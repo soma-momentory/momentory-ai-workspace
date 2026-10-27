@@ -1,0 +1,10 @@
+Captured 2026-10-26T09:53:22.804Z
+{"command":["/usr/bin/sw_vers"],"exitCode":0,"stdout":"ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83","stderr":""}
+{"command":["/usr/bin/uname","-m"],"exitCode":0,"stdout":"arm64","stderr":""}
+{"command":["/usr/bin/git","status","--short","--branch"],"cwd":"/Users/kjh/Momentory/momentory-ai-workspace","exitCode":0,"stdout":"## main...origin/main","stderr":""}
+{"command":["/usr/bin/git","rev-parse","HEAD"],"cwd":"/Users/kjh/Momentory/momentory-ai-workspace","exitCode":0,"stdout":"10d835a744734a0a9ed83c2956fde863887bc473","stderr":""}
+{"command":["/usr/bin/git","branch","--show-current"],"cwd":"/Users/kjh/Momentory/momentory-ai-workspace-t7-mac","exitCode":0,"stdout":"workspace/t7-macos-validation","stderr":""}
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","--version"],"exitCode":0,"stdout":"v22.23.2","stderr":""}
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node","/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/npm/bin/npm-cli.js","--version"],"exitCode":0,"stdout":"10.9.8","stderr":""}
+{"command":["/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex","--version"],"exitCode":0,"stdout":"codex-cli 0.163.0","stderr":""}
+{"command":["/Users/kjh/.local/share/claude/versions/2.1.296","--version"],"exitCode":0,"stdout":"2.1.296 (Claude Code)","stderr":""}

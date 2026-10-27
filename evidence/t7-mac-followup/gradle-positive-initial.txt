@@ -1,0 +1,11 @@
+file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradle.mjs:68
+      if(!Number.isFinite(length)||length<1||length>50*1024*1024)throw new Error('Gradle artifact exceeds download limit');
+                                                                       ^
+
+Error: Gradle artifact exceeds download limit
+    at ensureArtifacts (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradle.mjs:68:72)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async Module.prepareMacGradle (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradle.mjs:90:3)
+    at async file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/[eval1]:1:337
+
+Node.js v22.23.2

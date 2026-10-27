@@ -1,0 +1,4 @@
+{"status":"PASS","firstTask":"09ff59d5-db31-486f-90e4-679fa3bbc8bd","oldNonceRejected":true,"newNonceAccepted":true,"followupAfterReconnect":"4d67407f-9900-4a39-b2aa-776c2767db44","duplicateFollowupPrevented":true,"secondTask":"c717ed9d-b678-4daf-86b8-6c7fb13a7fb5","preservedStatus":"STALE","opaqueRecoveryDenied":true,"ignoredRecoveryDenied":true}
+
+(node:93926) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

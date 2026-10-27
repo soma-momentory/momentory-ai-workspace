@@ -1,0 +1,27 @@
+default_permissions = "gradle-ipc"
+[features]
+network_proxy = true
+[permissions.gradle-ipc.filesystem]
+":root" = "deny"
+":minimal" = "read"
+":tmpdir" = "write"
+"/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin" = "read"
+"/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home" = "read"
+"/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0" = "read"
+"/Users/kjh/.local/share/momentory-t7-mac-followup/tools/maven" = "read"
+glob_scan_max_depth = 32
+[permissions.gradle-ipc.filesystem.":workspace_roots"]
+"." = "write"
+".git" = "read"
+"**/.env*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+[permissions.gradle-ipc.network]
+enabled = true
+allow_local_binding = true
+allow_upstream_proxy = false
+enable_socks5 = false
+enable_socks5_udp = false
+dangerously_allow_non_loopback_proxy = false
+dangerously_allow_all_unix_sockets = false
+[permissions.gradle-ipc.network.domains]

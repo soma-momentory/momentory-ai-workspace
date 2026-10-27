@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+    "sandbox",
+    "-p",
+    "ai-dev-workspace-t7-g-probe",
+    "-P",
+    "gradle-ipc",
+    "-C",
+    "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/ipc-probe",
+    "--",
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+    "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/ipc-probe/probe.mjs"
+  ],
+  "exitCode": 0,
+  "stdout": "{\"proxyConfigured\":true,\"localTCP\":\"CONNECTED\",\"externalTCP4\":\"EPERM\",\"externalTCP6\":\"EPERM\",\"externalUDP4\":\"EPERM\",\"externalUDP6\":\"EPERM\"}\n",
+  "stderr": "(node:88669) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+}

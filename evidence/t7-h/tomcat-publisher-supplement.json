@@ -1,0 +1,297 @@
+{
+  "source": {
+    "checkedAt": "2026-10-26T16:21:11.437Z",
+    "url": "https://tomcat.apache.org/security-11.html",
+    "httpStatus": 200,
+    "bytes": 90253,
+    "sha256": "f5f03b4e37cb90b23a8870d08ed0d4c4c0bf4fa0e8fbe70d4d63dd8438e26b5c"
+  },
+  "installedVersion": "11.0.22",
+  "scope": "Publisher Tomcat product advisories; embedded core/websocket/EL applicability requires human review",
+  "candidates": [
+    {
+      "cves": [
+        "CVE-2026-101356"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-10-12 Fixed in Apache Tomcat 11.0.27",
+      "affectedRange": "Affects: 11.0.22 to 11.0.26",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-101296"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-10-12 Fixed in Apache Tomcat 11.0.27",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.26",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-74049"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-10-12 Fixed in Apache Tomcat 11.0.27",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.26",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-87022"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-86350"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.22 to 11.0.25",
+      "relatedCves": [
+        "CVE-2026-41293"
+      ]
+    },
+    {
+      "cves": [
+        "CVE-2026-79677"
+      ],
+      "publisherSeverity": "Moderate",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-78437"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.19 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-78383"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-77762"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-77756"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-76183"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-75973"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-73581"
+      ],
+      "publisherSeverity": "Moderate",
+      "fixedSection": "2026-09-15 Fixed in Apache Tomcat 11.0.26",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.25",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-73180"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-68763"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-68569"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-68525"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-66422"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-65927"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-65905"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-65637"
+      ],
+      "publisherSeverity": "Moderate",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.20 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-65183"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-65182"
+      ],
+      "publisherSeverity": "Important",
+      "fixedSection": "2026-08-18 Fixed in Apache Tomcat 11.0.25",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.24",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-59084"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-07-08 Fixed in Apache Tomcat 11.0.24",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.23",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-59083"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-07-08 Fixed in Apache Tomcat 11.0.24",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.23",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-55956"
+      ],
+      "publisherSeverity": "Moderate",
+      "fixedSection": "2026-06-22 Fixed in Apache Tomcat 11.0.23",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.22",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-55955"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-06-22 Fixed in Apache Tomcat 11.0.23",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.22",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-55276"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-06-22 Fixed in Apache Tomcat 11.0.23",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.22",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-53434"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-06-22 Fixed in Apache Tomcat 11.0.23",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.22",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-53404"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-06-22 Fixed in Apache Tomcat 11.0.23",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.22",
+      "relatedCves": []
+    },
+    {
+      "cves": [
+        "CVE-2026-50229"
+      ],
+      "publisherSeverity": "Low",
+      "fixedSection": "2026-06-22 Fixed in Apache Tomcat 11.0.23",
+      "affectedRange": "Affects: 11.0.0-M1 to 11.0.22",
+      "relatedCves": []
+    }
+  ],
+  "candidateCveCount": 31,
+  "approvalIssued": false,
+  "limitations": "Literal publisher range screening only; feature presence and embedded artifact mapping are not independently confirmed. Related CVEs mentioned in titles are excluded from the count."
+}

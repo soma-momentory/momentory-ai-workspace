@@ -1,0 +1,701 @@
+{
+  "execution": "UNAPPROVED_QUARANTINE_REVIEW_ONLY",
+  "formalBeStatus": "BLOCKED",
+  "approvalIssued": false,
+  "totals": {
+    "tests": 503,
+    "skipped": 237,
+    "failures": 0,
+    "errors": 0
+  },
+  "executed": 266,
+  "metadataSha256": "57c771118bc6cb167f2ea35de1794a7a73991603c208c903de87dcf0adaa3fb2",
+  "suites": [
+    {
+      "name": "com.momentory.user.domain.UserTest",
+      "tests": "4",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.236Z",
+      "hostname": "127.0.0.1",
+      "time": "0.003"
+    },
+    {
+      "name": "com.momentory.auth.apple.infrastructure.AppleTokenClientTest",
+      "tests": "5",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:45.822Z",
+      "hostname": "127.0.0.1",
+      "time": "0.041"
+    },
+    {
+      "name": "com.momentory.user.withdrawal.application.UserWithdrawalServiceTest",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.245Z",
+      "hostname": "127.0.0.1",
+      "time": "0.082"
+    },
+    {
+      "name": "com.momentory.diary.presentation.DiaryApiIntegrationTest",
+      "tests": "21",
+      "skipped": "21",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.933Z",
+      "hostname": "127.0.0.1",
+      "time": "0.002",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.application.RetrospectEngineTest",
+      "tests": "30",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.974Z",
+      "hostname": "127.0.0.1",
+      "time": "0.062"
+    },
+    {
+      "name": "com.momentory.memo.presentation.DailyMemoControllerIntegrationTest",
+      "tests": "8",
+      "skipped": "8",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.939Z",
+      "hostname": "127.0.0.1",
+      "time": "0.003",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.EmotionTest",
+      "tests": "5",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.041Z",
+      "hostname": "127.0.0.1",
+      "time": "0.003"
+    },
+    {
+      "name": "com.momentory.user.me.presentation.UserMeControllerIntegrationTest",
+      "tests": "6",
+      "skipped": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.242Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.worry.presentation.WorryControllerIntegrationTest",
+      "tests": "6",
+      "skipped": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.330Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.infrastructure.ai.GeminiEmbeddingDimensionRealIntegrationTest",
+      "tests": "1",
+      "skipped": "1",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.138Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing environment-variable condition; no real-service credentials supplied"
+    },
+    {
+      "name": "com.momentory.retrospect.presentation.RetrospectActionCardPersistenceIntegrationTest",
+      "tests": "2",
+      "skipped": "2",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.225Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.auth.kakao.application.KakaoLoginServiceIntegrationTest",
+      "tests": "9",
+      "skipped": "9",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:46.991Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.auth.apple.infrastructure.AppleIdentityTokenVerifierTest",
+      "tests": "16",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:44.184Z",
+      "hostname": "127.0.0.1",
+      "time": "1.582"
+    },
+    {
+      "name": "com.momentory.user.domain.UserProfileTest",
+      "tests": "5",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.235Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001"
+    },
+    {
+      "name": "com.momentory.user.withdrawal.presentation.UserWithdrawalControllerIntegrationTest",
+      "tests": "6",
+      "skipped": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.329Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.safety.AbuseGateTest",
+      "tests": "7",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.048Z",
+      "hostname": "127.0.0.1",
+      "time": "0.002"
+    },
+    {
+      "name": "com.momentory.auth.kakao.infrastructure.KakaoApiClientTest",
+      "tests": "10",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:46.991Z",
+      "hostname": "127.0.0.1",
+      "time": "0.279"
+    },
+    {
+      "name": "com.momentory.diary.infrastructure.MetWeatherProviderTest",
+      "tests": "5",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.874Z",
+      "hostname": "127.0.0.1",
+      "time": "0.056"
+    },
+    {
+      "name": "com.momentory.schedule.domain.ScheduleTest",
+      "tests": "7",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.228Z",
+      "hostname": "127.0.0.1",
+      "time": "0.004"
+    },
+    {
+      "name": "com.momentory.auth.apple.presentation.AppleLoginControllerIntegrationTest",
+      "tests": "13",
+      "skipped": "13",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:45.865Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "Guidance",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.061Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0"
+    },
+    {
+      "name": "com.momentory.retrospect.application.DiaryEmotionTagTest",
+      "tests": "4",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.963Z",
+      "hostname": "127.0.0.1",
+      "time": "0.003"
+    },
+    {
+      "name": "com.momentory.auth.google.presentation.GoogleLoginControllerIntegrationTest",
+      "tests": "12",
+      "skipped": "12",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:46.990Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.auth.kakao.infrastructure.KakaoUnlinkClientTest",
+      "tests": "5",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.272Z",
+      "hostname": "127.0.0.1",
+      "time": "0.029"
+    },
+    {
+      "name": "com.momentory.user.infrastructure.OAuthAccountPersistenceIntegrationTest",
+      "tests": "2",
+      "skipped": "2",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.240Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.actioncard.infrastructure.persistence.ActionCardRepositoryIntegrationTest",
+      "tests": "4",
+      "skipped": "4",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:44.051Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.application.RetrospectTopicDerivationTest",
+      "tests": "6",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.036Z",
+      "hostname": "127.0.0.1",
+      "time": "0.002"
+    },
+    {
+      "name": "com.momentory.retrospect.infrastructure.ai.PromptFactoryTest",
+      "tests": "18",
+      "skipped": "1",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.165Z",
+      "hostname": "127.0.0.1",
+      "time": "0.01",
+      "notRunReason": "Existing assumeTrue: eval/challenge/boundary-probes.txt is absent from the candidate"
+    },
+    {
+      "name": "com.momentory.report.domain.WeeklyWishesTest",
+      "tests": "8",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.950Z",
+      "hostname": "127.0.0.1",
+      "time": "0.007"
+    },
+    {
+      "name": "com.momentory.report.presentation.WeeklyReportApiIntegrationTest",
+      "tests": "12",
+      "skipped": "12",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.959Z",
+      "hostname": "127.0.0.1",
+      "time": "0.002",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.common.time.DayBoundaryTest",
+      "tests": "4",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.855Z",
+      "hostname": "127.0.0.1",
+      "time": "0.009"
+    },
+    {
+      "name": "com.momentory.auth.kakao.presentation.KakaoLoginControllerIntegrationTest",
+      "tests": "10",
+      "skipped": "10",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.304Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.RetrospectStateTest",
+      "tests": "12",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.045Z",
+      "hostname": "127.0.0.1",
+      "time": "0.003"
+    },
+    {
+      "name": "com.momentory.user.onboarding.presentation.UserOnboardingControllerIntegrationTest",
+      "tests": "13",
+      "skipped": "13",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.243Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.safety.PromptGuardTest",
+      "tests": "3",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.050Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001"
+    },
+    {
+      "name": "com.momentory.auth.apple.infrastructure.AppleRevokeClientTest",
+      "tests": "7",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:45.766Z",
+      "hostname": "127.0.0.1",
+      "time": "0.053"
+    },
+    {
+      "name": "com.momentory.report.domain.WeeklyMoodTest",
+      "tests": "10",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.943Z",
+      "hostname": "127.0.0.1",
+      "time": "0.007"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.safety.SafetyPolicyTest",
+      "tests": "12",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.054Z",
+      "hostname": "127.0.0.1",
+      "time": "0.006"
+    },
+    {
+      "name": "com.momentory.user.infrastructure.UserEmailMigrationIntegrationTest",
+      "tests": "1",
+      "skipped": "1",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.242Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.infrastructure.ai.GeminiEmotionExtractorTest",
+      "tests": "9",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.155Z",
+      "hostname": "127.0.0.1",
+      "time": "0.01"
+    },
+    {
+      "name": "com.momentory.config.OpenApiContractIntegrationTest",
+      "tests": "5",
+      "skipped": "5",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.873Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "SafetyLevel",
+      "tests": "4",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.060Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001"
+    },
+    {
+      "name": "com.momentory.auth.apple.infrastructure.AppleClientSecretGeneratorTest",
+      "tests": "7",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:44.078Z",
+      "hostname": "127.0.0.1",
+      "time": "0.105"
+    },
+    {
+      "name": "com.momentory.actioncard.presentation.ActionCardApiIntegrationTest",
+      "tests": "17",
+      "skipped": "17",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:44.062Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.treasure.presentation.TreasureControllerIntegrationTest",
+      "tests": "8",
+      "skipped": "8",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.235Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.schedule.presentation.ScheduleControllerIntegrationTest",
+      "tests": "24",
+      "skipped": "24",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.232Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.application.PickTopicTest",
+      "tests": "6",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.967Z",
+      "hostname": "127.0.0.1",
+      "time": "0.007"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.safety.PromptLeakGuardTest",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.051Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001"
+    },
+    {
+      "name": "com.momentory.retrospect.presentation.RetrospectApiIntegrationTest",
+      "tests": "9",
+      "skipped": "9",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.226Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.auth.token.application.RefreshTokenReissueServiceTest",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.314Z",
+      "hostname": "127.0.0.1",
+      "time": "0.538"
+    },
+    {
+      "name": "com.momentory.auth.security.RefreshTokenReissueIntegrationTest",
+      "tests": "9",
+      "skipped": "9",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.312Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.script.ScriptsTest",
+      "tests": "16",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.061Z",
+      "hostname": "127.0.0.1",
+      "time": "0.005"
+    },
+    {
+      "name": "com.momentory.retrospect.application.metering.LlmUsageLoggerTest",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.040Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001"
+    },
+    {
+      "name": "com.momentory.retrospecttopic.RetrospectTopicPersistenceIntegrationTest",
+      "tests": "3",
+      "skipped": "3",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.228Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.config.MetricsIntegrationTest",
+      "tests": "2",
+      "skipped": "2",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.870Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.infrastructure.ai.GeminiApiClientRealIntegrationTest",
+      "tests": "1",
+      "skipped": "1",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.067Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing environment-variable condition; no real-service credentials supplied"
+    },
+    {
+      "name": "com.momentory.inquiry.presentation.InquiryControllerIntegrationTest",
+      "tests": "6",
+      "skipped": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.937Z",
+      "hostname": "127.0.0.1",
+      "time": "0.001",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.auth.apple.application.AppleLoginServiceIntegrationTest",
+      "tests": "11",
+      "skipped": "11",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:44.073Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.ExtractedEventTest",
+      "tests": "3",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.045Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0"
+    },
+    {
+      "name": "com.momentory.retrospect.infrastructure.ai.GeminiApiClientTest",
+      "tests": "6",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.067Z",
+      "hostname": "127.0.0.1",
+      "time": "0.07"
+    },
+    {
+      "name": "com.momentory.auth.security.JwtAuthenticationIntegrationTest",
+      "tests": "8",
+      "skipped": "8",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.308Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.restrecord.presentation.RestRecordControllerIntegrationTest",
+      "tests": "7",
+      "skipped": "7",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:47.962Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0",
+      "notRunReason": "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent"
+    },
+    {
+      "name": "com.momentory.auth.google.infrastructure.GoogleIdTokenVerifierTest",
+      "tests": "16",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:45.866Z",
+      "hostname": "127.0.0.1",
+      "time": "1.122"
+    },
+    {
+      "name": "com.momentory.retrospect.infrastructure.persistence.RetrospectStateCodecTest",
+      "tests": "3",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.179Z",
+      "hostname": "127.0.0.1",
+      "time": "0.044"
+    },
+    {
+      "name": "com.momentory.retrospect.domain.ExtractedEmotionTest",
+      "tests": "4",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T16:07:48.044Z",
+      "hostname": "127.0.0.1",
+      "time": "0.0"
+    }
+  ],
+  "notRunReasons": {
+    "Existing Testcontainers disabledWithoutDocker=true; Docker control socket is intentionally absent": 234,
+    "Existing environment-variable condition; no real-service credentials supplied": 2,
+    "Existing assumeTrue: eval/challenge/boundary-probes.txt is absent from the candidate": 1
+  },
+  "unchangedCandidateSourceAndSuiteCounts": true
+}

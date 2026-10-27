@@ -1,0 +1,11 @@
+{
+  "retrievedAt": "2026-10-26T09:52:42.926Z",
+  "metadataUrl": "https://registry.npmjs.org/is-number/7.0.0",
+  "tarball": "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz",
+  "version": "7.0.0",
+  "registryIntegrity": "sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==",
+  "calculatedIntegrity": "sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==",
+  "tarballSha256": "7b75c1057198cf97696909a9bee176c9c5e9bcb5b03bf3ecef2f484defadd51e",
+  "bytes": 3730,
+  "reviewedTestFixtureMatches": true
+}

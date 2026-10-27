@@ -1,0 +1,144 @@
+{
+  "workspace": {
+    "branch": "workspace/t7-macos-release-blockers",
+    "base": "2eeff697b406578795e2fe6575d82aeb6893eb71",
+    "files": [
+      {
+        "file": "MANUAL_VALIDATION.md",
+        "sha256": "7f16edb50b447496edc76b3d39fc4a799cd9cfad5565bd3a1249fd4378d6b431"
+      },
+      {
+        "file": "OPERATIONS.md",
+        "sha256": "38aab396c9c9f33bf8d6275b0fd86ac879f8b7564c0c77d8a04ba96b18484016"
+      },
+      {
+        "file": "README.md",
+        "sha256": "01be3298e121060e68545ae7e42fc822c365ac8209500ea52cb918321ce6d571"
+      },
+      {
+        "file": "RELEASE_CHECKLIST.md",
+        "sha256": "6bab310c846a3868b278c28c4f103356d1b2016d1fb4f5f2fd614eda798e576f"
+      },
+      {
+        "file": "SECURITY.md",
+        "sha256": "1f36b066075714cfceda8017514d60dcae601ab3770a4ccab029ec0741a9ee04"
+      },
+      {
+        "file": "T7_MAC_FOLLOWUP_REPORT.md",
+        "sha256": "a865e0ab0fe4322b5fa615dd05fee07d38df0310f252fc0ef724205c4e66ab6a"
+      },
+      {
+        "file": "T7_MAC_REPORT.md",
+        "sha256": "6e31d78029aab652bbb0b240abf59a1aa84dd4b1db2d6643c4e329463c4dd83f"
+      },
+      {
+        "file": "TEST_REPORT.md",
+        "sha256": "84d46153fbc75747552012e781428080eb5333a23fb6662b7797dfb40b48045d"
+      },
+      {
+        "file": "profiles/ai-dev-workspace-posix-gradle.config.toml",
+        "sha256": "a500aaf6d2d4e4a365034929e26db00f4b77d828705415edec890c2004be08b2"
+      },
+      {
+        "file": "scripts/mac-process-table.py",
+        "sha256": "3e094dad5fad11a8553842954ea50227522dc1119c4e7d9b0151da20137a875b"
+      },
+      {
+        "file": "src/codexProfile.mjs",
+        "sha256": "7fe821a7c37c985a9b35df830fe19d01d64cc5e6ab38e87cf470c8a443766119"
+      },
+      {
+        "file": "src/design.mjs",
+        "sha256": "2bdf46e059cbcd704b76f13a836e7a80c7a2163630456325e169f9692743a0e8"
+      },
+      {
+        "file": "src/engine.mjs",
+        "sha256": "b6223c501a68518cc3a5bad9099a6d4a5053426b34575bbc913df98bf857ba31"
+      },
+      {
+        "file": "src/git.mjs",
+        "sha256": "bc41c56090817bf0099397729c9ce47ce3dc96d4a4197094928af728640ecb75"
+      },
+      {
+        "file": "src/macDependency.mjs",
+        "sha256": "79e8f29004ee1cd4f3c71292a7b208b36e4191851b9cae56965bbc79823b974a"
+      },
+      {
+        "file": "src/macGradle.mjs",
+        "sha256": "256e3692565ebeaefc33bbaa6af5d9709fe1ee4340c9720008071d2e87c7dfdd"
+      },
+      {
+        "file": "src/macTrust.mjs",
+        "sha256": "9b93fababe1aded733eaa28f53ec1110f1348f660c02300a2e48dca201b930cc"
+      },
+      {
+        "file": "src/provider.mjs",
+        "sha256": "155eb559e61e77ac3ee54a307a6f85186dfe337485a39f0624d1dd14f80187c9"
+      },
+      {
+        "file": "src/worker.mjs",
+        "sha256": "0a86d6124b11445bef768f208075e3556d65a7fe6d9cb62aaf93cdcabe55594d"
+      },
+      {
+        "file": "src/wslChecks.mjs",
+        "sha256": "fbefefc4c9113b055068c724438ebb9927c3b738f6b3cef26fd65258fb4e215e"
+      },
+      {
+        "file": "tests/mac-dependency.test.mjs",
+        "sha256": "78326e5a72b96d2f2f9a5b98fde13db53e7a150279d3e5eeed261024aaa7d18d"
+      },
+      {
+        "file": "tests/worker-kill.integration.mjs",
+        "sha256": "ec73967d5c2a7e571be5a0ca40df77b20375c51ac843a690e8507d94fa329980"
+      },
+      {
+        "file": "tests/wsl-orphan.integration.mjs",
+        "sha256": "3966f25ddc32dc2c08066347506b262083eec9a5b6913802385a13b3d46905ba"
+      }
+    ],
+    "evidenceDirectory": "evidence/t7-mac-followup",
+    "evidenceIntegrity": "SHA256SUMS.txt"
+  },
+  "frontend": {
+    "base": "e6f88ce528a0bdb270aee9b152bb47090f226ca5",
+    "branch": "workspace/t7-mac-latest-main",
+    "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+    "commits": [
+      "a9307fba272c7965d15d38475256c36564b90504 Keep Design Lab caches outside immutable dependencies",
+      "00fcc41641d60797c45a14bf37243a1bdf96c763 Use a private temporary cache for Vite dependency optimization",
+      "964902867504af150f300a4ff2f1594afac9875e Clean generated build files without deleting sandboxed directories",
+      "711f4e31f023320b469cffc7513b13e0aaa6badc Use UTF-8 paths when clearing generated Lab files"
+    ],
+    "files": [
+      {
+        "file": "design-lab/.gitignore",
+        "sha256": "d2b9948168106dbbf7954f91a840aa3d3cc7508366927d082797b73a66328a5d"
+      },
+      {
+        "file": "design-lab/package.json",
+        "sha256": "f2805e10fc4dfdbd78576b5fa376b2e53e18d21f8cb34b50e53a2ca9eb2e535c"
+      },
+      {
+        "file": "design-lab/tsconfig.app.json",
+        "sha256": "de0746ab7716258fb94031c2001dacf876285c1d3150cfb709408515f152db32"
+      },
+      {
+        "file": "design-lab/tsconfig.node.json",
+        "sha256": "ba1e4ee7b02168aafa8e8c72fd635d83a12256f735b603d7a79ed34dee911fdd"
+      },
+      {
+        "file": "design-lab/vite.config.ts",
+        "sha256": "9adb8eb93ba034f9bb411f04bafb299ad53c44c9a7a65ec2496633056b6f8c36"
+      }
+    ]
+  },
+  "localConfiguration": {
+    "ignoredFiles": [
+      "/Users/kjh/Momentory/momentory-ai-workspace/.env",
+      "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/.env"
+    ],
+    "mode": "0600",
+    "contentsExcluded": true
+  },
+  "preservation": "See final-environment.json and fe-current-snapshot.json"
+}

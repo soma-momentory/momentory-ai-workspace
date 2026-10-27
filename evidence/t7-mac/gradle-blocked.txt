@@ -1,0 +1,11 @@
+{"flow":"executeTask -> repository.setup -> prepareMacDependency","repository":"/Users/kjh/Momentory/momentory-be","setup":[{"ifMissing":".gradle/workspace-home","command":["./gradlew","dependencies","--configuration","testRuntimeClasspath","--no-daemon"]}],"checks":[["./gradlew","test"]]}
+BLOCKED: Error: Trusted macOS Gradle dependency preparation is not implemented
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.1.0-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+
+Dependency verification metadata exists: false

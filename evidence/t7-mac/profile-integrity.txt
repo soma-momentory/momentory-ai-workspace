@@ -1,0 +1,2 @@
+PASS: exact profile bytes required; altered profile rejected before launch
+PASS: original dedicated validation profile restored

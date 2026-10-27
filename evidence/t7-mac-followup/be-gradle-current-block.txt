@@ -1,0 +1,11 @@
+{"flow":"executeTask -> setup -> prepareMacDependency","repository":"/Users/kjh/Momentory/momentory-be","head":"ca3bc87f9d679ea6edd37fffa5e5390e307952b8","command":{"ifMissing":".gradle/workspace-home","command":["./gradlew","dependencies","--configuration","testRuntimeClasspath","--no-daemon"]},"checks":[["./gradlew","test"]],"reviewedInputNames":["build.gradle.kts","gradle.properties","gradle/wrapper/gradle-wrapper.jar","gradle/wrapper/gradle-wrapper.properties","gradlew","gradlew.bat","settings.gradle.kts"]}
+BLOCKED Error: Gradle Wrapper source or SHA-256 is not approved
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.1.0-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+
+verification-metadata.xml false

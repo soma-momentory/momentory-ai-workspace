@@ -1,0 +1,2 @@
+{"status":"PASS","unownedLabRejected":true}
+{"status":"NOT_RUN","test":"design-schema-parity.integration.mjs","reason":"Requires the separately approved structural FE branch; fetched main does not contain home.hero.structure"}

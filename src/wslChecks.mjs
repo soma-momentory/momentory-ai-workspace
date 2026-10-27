@@ -4,29 +4,48 @@ import {createHash,randomUUID} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
-import {childEnv,redact,stopTree} from './provider.mjs';
+import {childEnv,macChildEnv,redact,stopTree} from './provider.mjs';
 import {wslCodexConfig,wslTrustedCommandLaunch,stopWslCodex,finishWslCodex,asynchronousProbe,activeWslCodexForWorktree} from './wslCodex.mjs';
 
 export const strictWslChecks=stack=>process.platform==='win32'&&['node','react-native-expo','spring'].includes(stack);
 const checkedSetup=new Set();
-export function dependencyLinksSafe(mount){
+export function dependencyLinksSafe(mount,approvedLinks=new Map()){
   try{
     const base=fs.realpathSync(mount),stack=[base];
     if(base!==path.resolve(mount))return false;
+    const device=fs.statSync(base).dev;
+    if(device!==fs.statSync(path.dirname(base)).dev)return false;
     let visited=0;
     while(stack.length){
       const directory=stack.pop();
       for(const entry of fs.readdirSync(directory,{withFileTypes:true})){
         if(++visited>500000)return false;
         const location=path.join(directory,entry.name);
+        if(fs.statSync(location).dev!==device)return false;
         if(entry.isSymbolicLink()){
           const target=fs.realpathSync(location);
-          if(!target.startsWith(base+path.sep))return false;
+          if(!target.startsWith(base+path.sep)&&approvedLinks.get(location)!==target)return false;
         }else if(entry.isDirectory())stack.push(location);
       }
     }
     return true;
   }catch{return false;}
+}
+function reviewedWorkspaceLinks(cwd,prefix,locked){
+  const base=path.resolve(cwd,prefix),links=new Map(),manifests=[];
+  for(const [relative,meta] of Object.entries(locked.packages||{}))if(meta.link){
+    const location=path.resolve(base,relative),target=path.resolve(base,String(meta.resolved||''));
+    if(!relative.startsWith('node_modules/')||!location.startsWith(path.join(base,'node_modules')+path.sep)||!target.startsWith(base+path.sep)||!locked.packages[meta.resolved]||fs.realpathSync(target)!==target||fs.statSync(target).dev!==fs.statSync(base).dev)throw new Error('Unreviewed npm workspace link');
+    const manifest=path.join(target,'package.json');
+    if(fs.realpathSync(manifest)!==manifest||!fs.statSync(manifest).isFile())throw new Error('Unreviewed npm workspace manifest');
+    links.set(location,target);manifests.push(manifest);
+  }
+  return {links,manifests:[...new Set(manifests)].sort()};
+}
+function npmSetupDigest(lock,manifest,command,workspace){
+  const hash=createHash('sha256').update(fs.readFileSync(lock)).update(fs.readFileSync(manifest)).update(JSON.stringify(command));
+  for(const file of workspace?.manifests||[])hash.update('\0'+path.relative(path.dirname(manifest),file)+'\0').update(fs.readFileSync(file));
+  return hash.digest('hex');
 }
 export function cleanupStaleBoundaryCanaries(cwd){
   if(process.platform!=='win32')return [];
@@ -52,9 +71,10 @@ export function preparedNpmDependency(cwd,step,platform=process.platform){
   const marker=path.join(root,'data','check-deps',`${createHash('sha256').update(path.resolve(cwd)+'|'+step.ifMissing).digest('hex')}.json`);
   if(!fs.existsSync(marker))return false;
   try{
-    const digest=createHash('sha256').update(fs.readFileSync(lock)).update(fs.readFileSync(manifest)).update(JSON.stringify(step.command)).digest('hex');
     const installed=JSON.parse(fs.readFileSync(hiddenLock,'utf8'));
     const locked=JSON.parse(fs.readFileSync(lock,'utf8'));
+    const workspace=platform==='darwin'?reviewedWorkspaceLinks(cwd,prefix,locked):null;
+    const digest=npmSetupDigest(lock,manifest,step.command,workspace);
     const entries=Object.entries(installed.packages||{});
     const required=Object.entries(locked.packages||{}).filter(([name,meta])=>name&&!meta.optional);
     const base=path.resolve(cwd,prefix);
@@ -62,13 +82,17 @@ export function preparedNpmDependency(cwd,step,platform=process.platform){
     if(fs.lstatSync(mount).isSymbolicLink()||fs.realpathSync(mount)!==path.resolve(mount))return false;
     const complete=entries.length>0&&entries.every(([relative,meta])=>{
       if(!relative||relative.split(/[\\/]/).includes('..'))return false;
+      if(platform==='darwin'){
+        const reviewed=locked.packages?.[relative];
+        if(!reviewed||['version','resolved','integrity','link'].some(key=>reviewed[key]!==meta[key]))return false;
+      }
       const location=path.resolve(base,relative);
       if(!location.startsWith(base+path.sep))return false;
       const target=meta?.link?path.resolve(base,String(meta.resolved||'')):location;
       return target.startsWith(base+path.sep)&&fs.existsSync(path.join(target,'package.json'))&&fs.realpathSync(target).startsWith(base+path.sep);
     });
     const record=JSON.parse(fs.readFileSync(marker,'utf8'));
-    return record.digest===digest&&(platform!=='darwin'||record.platform==='darwin'&&dependencyLinksSafe(mount))&&complete&&required.every(([name])=>Object.hasOwn(installed.packages,name));
+    return record.digest===digest&&(platform!=='darwin'||record.platform==='darwin'&&dependencyLinksSafe(mount,workspace.links))&&complete&&required.every(([name])=>Object.hasOwn(installed.packages,name));
   }catch{return false;}
 }
 export function approvedIgnoredMounts(cwd,repoConfig){
@@ -189,9 +213,14 @@ export function validateReviewedNpmSetup(cwd,step){
   const expected=['npm','ci',...(prefix?['--prefix',prefix]:[]),'--ignore-scripts','--no-audit','--no-fund'];
   if(!prefix&&step.ifMissing!=='node_modules'||JSON.stringify(step.command)!==JSON.stringify(expected))throw new Error('Only the reviewed npm ci --ignore-scripts setup is allowed');
   const protectedFiles=['package.json','package-lock.json','.npmrc',...(prefix?[`${prefix}/package.json`,`${prefix}/package-lock.json`,`${prefix}/.npmrc`]:[])];
-  const changed=spawnSync('git',['diff','--name-only','HEAD','--',...protectedFiles],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
-  const untracked=spawnSync('git',['ls-files','--others','--exclude-standard','--',...protectedFiles],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
-  const ignoredConfig=spawnSync('git',['ls-files','--others','--ignored','--exclude-standard','--','.npmrc',...(prefix?[`${prefix}/.npmrc`]:[])],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
+  const earlyLock=path.join(cwd,prefix||'.','package-lock.json');
+  if(fs.realpathSync(earlyLock)!==path.resolve(earlyLock)||!fs.statSync(earlyLock).isFile())throw new Error('Dependency lockfile crosses a symbolic link');
+  const workspace=process.platform==='darwin'?reviewedWorkspaceLinks(cwd,prefix||'.',JSON.parse(fs.readFileSync(earlyLock,'utf8'))):null;
+  for(const manifest of workspace?.manifests||[])protectedFiles.push(path.relative(cwd,manifest),path.relative(cwd,path.join(path.dirname(manifest),'.npmrc')));
+  const reviewGit=args=>spawnSync(process.platform==='darwin'?'/usr/bin/git':'git',process.platform==='darwin'?['-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null',...args]:args,{cwd,encoding:'utf8',timeout:10000,windowsHide:true,...(process.platform==='darwin'?{env:macChildEnv('/usr/bin:/bin',{GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'})}:{})});
+  const changed=reviewGit(['diff','--no-ext-diff','--no-textconv','--name-only','HEAD','--',...protectedFiles]);
+  const untracked=reviewGit(['ls-files','--others','--exclude-standard','--',...protectedFiles]);
+  const ignoredConfig=reviewGit(['ls-files','--others','--ignored','--exclude-standard','--',...protectedFiles.filter(file=>path.basename(file)==='.npmrc')]);
   if(changed.status!==0||untracked.status!==0||ignoredConfig.status!==0||changed.stdout.trim()||untracked.stdout.trim()||ignoredConfig.stdout.trim())throw new Error('Dependency manifest or npm configuration changed in the task worktree');
   const lock=path.join(cwd,prefix||'.','package-lock.json'),manifest=path.join(cwd,prefix||'.','package.json');
   if([lock,manifest].some(file=>fs.realpathSync(file)!==path.resolve(file)||!fs.statSync(file).isFile()))throw new Error('Dependency manifest or lockfile crosses a symbolic link');
@@ -201,7 +230,7 @@ export function validateReviewedNpmSetup(cwd,step){
     if(resolved.includes('://')){const url=new URL(resolved);if(url.protocol!=='https:'||url.hostname!=='registry.npmjs.org'||!/^sha(?:256|384|512)-[A-Za-z0-9+/=]+$/.test(item.integrity||''))throw new Error('Dependency lockfile contains an unapproved remote registry or missing integrity hash');}
     else if(resolved.startsWith('/')||resolved.split(/[\\/]/).includes('..')||resolved.includes(':'))throw new Error('Dependency lockfile contains an unsafe local source');
   }
-  const digest=createHash('sha256').update(fs.readFileSync(lock)).update(fs.readFileSync(manifest)).update(JSON.stringify(step.command)).digest('hex');
+  const digest=npmSetupDigest(lock,manifest,step.command,workspace);
   const markerDir=path.join(root,'data','check-deps');fs.mkdirSync(markerDir,{recursive:true});
   const marker=path.join(markerDir,`${createHash('sha256').update(path.resolve(cwd)+'|'+step.ifMissing).digest('hex')}.json`);
   return {prefix,digest,marker,lock,manifest};

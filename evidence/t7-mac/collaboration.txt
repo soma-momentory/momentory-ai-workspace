@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "parallel": true,
+  "newTasksWhileAiRunning": true,
+  "humanStatus": "DONE",
+  "claude": "7953efb4-0cef-485a-93b5-5e1843ead358",
+  "codex": "3ceedb1b-4aa7-4ea7-8af9-a0ebc44bbae9",
+  "followup": "299156dc-3199-4a8b-98c4-3abf08aebe05",
+  "events": 75,
+  "decisionPacket": "Accept this verified result?"
+}

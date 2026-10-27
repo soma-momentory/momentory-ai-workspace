@@ -1,0 +1,17 @@
+{
+  "scope": "controlled fixture only; not Momentory BE approval",
+  "artifacts": [
+    {
+      "path": "org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.pom",
+      "sha256": "bdd706e1431854fb088f9f7cb80c24739aabee1aed1cc8733de5ffb7d9a0de84",
+      "publishedSha256": "bdd706e1431854fb088f9f7cb80c24739aabee1aed1cc8733de5ffb7d9a0de84"
+    },
+    {
+      "path": "org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.jar",
+      "sha256": "3fdfc37e29744a9a67dd5365e81467e26fbde0b7aa204e6f8bbe79eeaa7ae892",
+      "publishedSha256": "3fdfc37e29744a9a67dd5365e81467e26fbde0b7aa204e6f8bbe79eeaa7ae892"
+    }
+  ]
+}

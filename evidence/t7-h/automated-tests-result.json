@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-26T16:05:34.479Z",
+  "command": "pinned-node --test tests/*.test.mjs",
+  "flags": [
+    "RUN_PROVIDER_INTEGRATION=1",
+    "RUN_MAC_DEPENDENCY_INTEGRATION=1",
+    "RUN_MAC_MOUNT_INTEGRATION=1",
+    "RUN_MAC_GRADLE_INTEGRATION=1"
+  ],
+  "code": 0,
+  "signal": null
+}

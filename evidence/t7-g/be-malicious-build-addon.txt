@@ -1,0 +1,31 @@
+import java.io.IOException as T7IOException
+import java.nio.file.Files as T7Files
+import java.nio.file.Path as T7Path
+import java.net.InetSocketAddress as T7InetSocketAddress
+import java.net.DatagramSocket as T7DatagramSocket
+import java.net.DatagramPacket as T7DatagramPacket
+import java.net.InetAddress as T7InetAddress
+import java.net.Socket as T7Socket
+import java.io.File as T7File
+// Controlled adversarial validation in the disposable T7-G fixture only.
+val workspaceBoundaryAttack = tasks.register("workspaceBoundaryAttackProbe") {
+    doLast {
+        fun denied(label: String, action: () -> Unit) {
+            try { action(); error("Boundary escape: " + label) } catch (expected: T7IOException) { println("BE_ATTACK_DENIED=" + label) }
+        }
+        denied("workspaceDataRead") { T7Files.readString(T7Path.of("/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/host-canary")) }
+        denied("otherProjectRead") { T7Files.readString(T7Path.of("/Users/kjh/Momentory/momentory-fe/README.md")) }
+        denied("secretPatternRead") { T7Files.readString(T7Path.of("/source/.env.local.example")) }
+        denied("hostSourceWrite") { T7Files.writeString(T7Path.of("/source/forbidden-write.txt"), "BAD") }
+        denied("toolWrite") { T7Files.writeString(T7Path.of("/trusted/jdk/release"), "BAD") }
+        denied("artifactWrite") { T7Files.writeString(T7Path.of("/trusted/maven/unapproved.jar"), "BAD") }
+        denied("externalTcp4") { T7Socket().use { it.connect(T7InetSocketAddress("1.1.1.1",443),500) } }
+        denied("externalTcp6") { T7Socket().use { it.connect(T7InetSocketAddress("2606:4700:4700::1111",443),500) } }
+        for (address in listOf("192.0.2.1","2001:db8::1")) denied("externalUdp:" + address) { T7DatagramSocket().use { it.send(T7DatagramPacket(byteArrayOf(1),1,T7InetAddress.getByName(address),9)) } }
+        denied("hostLoopback") { T7Socket().use { it.connect(T7InetSocketAddress("127.0.0.1",63532),500) } }
+        check(!T7File("/var/run/docker.sock").exists())
+        check(System.getenv("WORKSPACE_TOKEN") == null && System.getenv("WORKER_TOKEN") == null)
+        println("BE_MALICIOUS_SCRIPT_DENIED")
+    }
+}
+tasks.named("check") { dependsOn(workspaceBoundaryAttack) }

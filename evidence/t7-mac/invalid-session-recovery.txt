@@ -1,0 +1,4 @@
+{"provider":"codex","trial":"invalid-session","ok":false,"code":1,"stderr":"Error: thread/resume: thread/resume failed: no rollout found for thread id 9d515508-d403-4637-b637-54d74575abeb (code -32600)\n","result":""}
+{"provider":"codex","trial":"fresh-session","ok":true,"sessionId":"01a1779d-ddf3-76b1-b20a-8fdf9ad98a46","result":"MOMENTORY_PROVIDER_OK"}
+{"provider":"claude","trial":"invalid-session","ok":false,"code":1,"stderr":"No conversation found with session ID: 4dffd5bc-e6fe-43ac-86d3-71325586fb88\n","result":""}
+{"provider":"claude","trial":"fresh-session","ok":true,"sessionId":"c11f62bd-55f9-4236-adc1-173da2dea06f","result":"MOMENTORY_PROVIDER_OK"}

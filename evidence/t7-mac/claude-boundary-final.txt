@@ -1,0 +1,1 @@
+{"claude":{"allowedRead":"PASS","allowedEdit":"PASS","bash":"UNAVAILABLE","outsideRead":"DENIED","outsideWrite":"DENIED","otherProject":"DENIED"}}

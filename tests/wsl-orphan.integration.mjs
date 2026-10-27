@@ -5,7 +5,21 @@ import {randomUUID} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {root} from '../src/config.mjs';
 import {activeWslCodexForWorktree,reapStaleWslCodex} from '../src/wslCodex.mjs';
+import {activeMacProcessesForWorktree,reapStaleMacProcesses,trackMacProcess,stopTree} from '../src/provider.mjs';
 
+if(process.platform==='darwin'){
+  const child=spawn('/bin/sh',['-c','sleep 0.5; exec /bin/sleep 60'],{cwd:root,detached:true,stdio:'ignore'});
+  const tracker=trackMacProcess(child,root);let marker;
+  try{
+    const dir=path.join(root,'data','mac-processes');marker=fs.readdirSync(dir).find(name=>name.startsWith(`${process.pid}-`)&&name.endsWith('.json'));assert.ok(marker);
+    const file=path.join(dir,marker),original=fs.readFileSync(file);await new Promise(r=>setTimeout(r,900));
+    const afterExec=JSON.parse(fs.readFileSync(file));assert.ok(afterExec.processes.some(([pid])=>pid===child.pid));
+    assert.ok(activeMacProcessesForWorktree(root).includes(marker));assert.ok(!reapStaleMacProcesses().includes(marker),'Live owner must not be reaped');process.kill(child.pid,0);
+    const fake={...afterExec,owner:{pid:99999999,identity:'1:1'},processes:[[child.pid,'1:1']]};fs.writeFileSync(file,JSON.stringify(fake));assert.ok(reapStaleMacProcesses().includes(marker));process.kill(child.pid,0);
+    fs.writeFileSync(file,'malformed checkpoint',{mode:0o600});assert.throws(()=>reapStaleMacProcesses());process.kill(child.pid,0);fs.writeFileSync(file,original);
+    console.log(JSON.stringify({status:'PASS',platform:'darwin',execIdentityStable:true,liveOwnerPreserved:true,reusedPidIdentityDenied:true,malformedCheckpointBlocked:true}));
+  }finally{stopTree(child,'SIGKILL');assert.equal(tracker.finish(),true);}
+}else{
 if(process.platform!=='win32')throw new Error('Windows WSL2 required');
 const distro=process.env.WORKSPACE_WSL_DISTRO||'Ubuntu',id=randomUUID(),unit=`ai-dev-workspace-${id}.scope`;
 const pidDir=path.join(root,'data','codex-processes');fs.mkdirSync(pidDir,{recursive:true});
@@ -44,3 +58,4 @@ try {
   assert.equal(activeWslCodexForWorktree(root).length,0,'Quarantined marker still blocks resume');
   console.log(JSON.stringify({status:'PASS',unit,childExit:child.exitCode,damagedMetadataQuarantined:true}));
 } finally {if(child.exitCode===null)child.kill();}
+}

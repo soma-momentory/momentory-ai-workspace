@@ -1,0 +1,7 @@
+Error: Isolated Gradle Docker control failed: Error response from daemon: invalid mount config for type "bind": bind source path does not exist: /private/var/folders/5c/_gsm1fr96l79g8zwfrv8zhh40000gn/T/workspace-mac-gradle-VcSvh6/repositories.init.gradle
+
+    at command (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradleContainer.mjs:29:30)
+    at Object.create (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradleContainer.mjs:76:5)
+    at invoke (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradle.mjs:134:31)
+    at Module.prepareMacGradle (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-followup/src/macGradle.mjs:155:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

@@ -1,0 +1,826 @@
+{
+  "archiveEntries": 541,
+  "home": "/Users/kjh/.local/share/momentory-t7-g/tools/jdk-21.0.13+9",
+  "internalLegalLinksMaterialized": [
+    {
+      "name": "legal/java.compiler/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.compiler/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.compiler/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.datatransfer/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.datatransfer/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.datatransfer/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.desktop/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.desktop/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.desktop/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.instrument/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.instrument/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.instrument/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.logging/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.logging/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.logging/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.management/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.management/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.management/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.management.rmi/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.management.rmi/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.management.rmi/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.naming/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.naming/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.naming/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.net.http/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.net.http/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.net.http/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.prefs/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.prefs/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.prefs/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.rmi/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.rmi/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.rmi/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.scripting/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.scripting/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.scripting/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.se/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.se/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.se/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.security.jgss/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.security.jgss/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.security.jgss/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.security.sasl/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.security.sasl/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.security.sasl/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.smartcardio/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.smartcardio/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.smartcardio/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.sql/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.sql/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.sql/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.sql.rowset/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.sql.rowset/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.sql.rowset/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.transaction.xa/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.transaction.xa/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.transaction.xa/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.xml/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.xml/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.xml/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/java.xml.crypto/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/java.xml.crypto/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/java.xml.crypto/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.accessibility/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.accessibility/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.accessibility/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.attach/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.attach/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.attach/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.charsets/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.charsets/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.charsets/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.compiler/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.compiler/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.compiler/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.crypto.cryptoki/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.crypto.cryptoki/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.crypto.cryptoki/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.crypto.ec/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.crypto.ec/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.crypto.ec/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.dynalink/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.dynalink/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.dynalink/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.editpad/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.editpad/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.editpad/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.hotspot.agent/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.hotspot.agent/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.hotspot.agent/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.httpserver/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.httpserver/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.httpserver/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.incubator.vector/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.incubator.vector/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.incubator.vector/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.internal.ed/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.internal.ed/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.internal.jvmstat/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.internal.jvmstat/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.internal.jvmstat/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.internal.le/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.internal.le/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.internal.opt/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.internal.opt/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.internal.vm.ci/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.internal.vm.ci/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.internal.vm.ci/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.internal.vm.compiler/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.internal.vm.compiler.management/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.internal.vm.compiler.management/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.internal.vm.compiler.management/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jartool/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jartool/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jartool/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.javadoc/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.javadoc/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jcmd/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jcmd/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jcmd/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jconsole/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jconsole/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jconsole/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jdeps/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jdeps/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jdeps/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jdi/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jdi/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jdi/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jdwp.agent/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jdwp.agent/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jdwp.agent/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jfr/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jfr/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jfr/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jlink/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jlink/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jlink/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jpackage/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jpackage/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jpackage/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jshell/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jshell/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jshell/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jsobject/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jsobject/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jsobject/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.jstatd/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.jstatd/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.jstatd/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.localedata/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.localedata/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.localedata/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.localedata/cldr.md",
+      "target": "legal/java.base/cldr.md"
+    },
+    {
+      "name": "legal/jdk.management/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.management/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.management/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.management.agent/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.management.agent/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.management.agent/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.management.jfr/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.management.jfr/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.management.jfr/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.naming.dns/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.naming.dns/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.naming.dns/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.naming.rmi/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.naming.rmi/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.naming.rmi/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.net/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.net/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.net/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.nio.mapmode/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.random/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.random/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.random/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.sctp/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.sctp/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.sctp/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.security.auth/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.security.auth/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.security.auth/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.security.jgss/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.security.jgss/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.security.jgss/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.unsupported/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.unsupported/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.unsupported/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.unsupported.desktop/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.unsupported.desktop/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.unsupported.desktop/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.xml.dom/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.xml.dom/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.xml.dom/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    },
+    {
+      "name": "legal/jdk.zipfs/ADDITIONAL_LICENSE_INFO",
+      "target": "legal/java.base/ADDITIONAL_LICENSE_INFO"
+    },
+    {
+      "name": "legal/jdk.zipfs/ASSEMBLY_EXCEPTION",
+      "target": "legal/java.base/ASSEMBLY_EXCEPTION"
+    },
+    {
+      "name": "legal/jdk.zipfs/LICENSE",
+      "target": "legal/java.base/LICENSE"
+    }
+  ]
+}

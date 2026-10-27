@@ -1,0 +1,279 @@
+TAP version 13
+# (node:64123) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: encrypted backup restores tasks, dependencies, decisions, settings and screenshots
+ok 1 - encrypted backup restores tasks, dependencies, decisions, settings and screenshots
+  ---
+  duration_ms: 65.43425
+  type: 'test'
+  ...
+# (node:64124) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: automatic routing avoids multiple agents for tiny edits and explores design alternatives
+ok 2 - automatic routing avoids multiple agents for tiny edits and explores design alternatives
+  ---
+  duration_ms: 0.588958
+  type: 'test'
+  ...
+# Subtest: provider commands use supported structured streaming and an explicit isolation profile
+ok 3 - provider commands use supported structured streaming and an explicit isolation profile
+  ---
+  duration_ms: 0.312166
+  type: 'test'
+  ...
+# Subtest: Claude executable resolution ignores worktree shims
+not ok 4 - Claude executable resolution ignores worktree shims
+  ---
+  duration_ms: 1.971042
+  type: 'test'
+  location: '/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/core.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Trusted Claude executable missing/. Input:
+
+    'Error: WORKSPACE_MAC_CLAUDE and its SHA256 must be configured'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: 'WORKSPACE_MAC_CLAUDE and its SHA256 must be configured'
+  stack: |-
+    trustedMacFile (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/src/macTrust.mjs:13:76)
+    resolveClaudeExecutable (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/src/provider.mjs:61:41)
+    file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/core.test.mjs:36:23
+    getActual (node:assert:609:5)
+    Function.throws (node:assert:757:24)
+    TestContext.<anonymous> (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/core.test.mjs:36:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/core.test.mjs:36:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WSL Codex package path rejects an unreviewed link target
+ok 5 - WSL Codex package path rejects an unreviewed link target
+  ---
+  duration_ms: 0.056792
+  type: 'test'
+  ...
+# Subtest: WSL agent launch rejects unreviewed CLI overrides before starting a process
+ok 6 - WSL agent launch rejects unreviewed CLI overrides before starting a process
+  ---
+  duration_ms: 0.377708
+  type: 'test'
+  ...
+# Subtest: provider stream discards an oversized line without losing later events
+ok 7 - provider stream discards an oversized line without losing later events
+  ---
+  duration_ms: 0.086375
+  type: 'test'
+  ...
+# Subtest: non-WSL verification command has a finite timeout
+ok 8 - non-WSL verification command has a finite timeout
+  ---
+  duration_ms: 509.334
+  type: 'test'
+  ...
+# Subtest: review cannot silently pass an ambiguous or fix-required answer
+ok 9 - review cannot silently pass an ambiguous or fix-required answer
+  ---
+  duration_ms: 0.537125
+  type: 'test'
+  ...
+# Subtest: selected design approval excludes unrelated edits, moved commits, and ignored files
+ok 10 - selected design approval excludes unrelated edits, moved commits, and ignored files
+  ---
+  duration_ms: 1.075666
+  type: 'test'
+  ...
+# Subtest: design proposals require structured, distinct candidates before evaluation
+ok 11 - design proposals require structured, distinct candidates before evaluation
+  ---
+  duration_ms: 1.287042
+  type: 'test'
+  ...
+# Subtest: design capture status survives a process restart and gates selection
+ok 12 - design capture status survives a process restart and gates selection
+  ---
+  duration_ms: 15.835375
+  type: 'test'
+  ...
+# Subtest: persistent queue claims once, recovers lease, limits attempts and records approval
+ok 13 - persistent queue claims once, recovers lease, limits attempts and records approval
+  ---
+  duration_ms: 12.589542
+  type: 'test'
+  ...
+# Subtest: a stale worktree is preserved and never automatically claimed by another worker
+ok 14 - a stale worktree is preserved and never automatically claimed by another worker
+  ---
+  duration_ms: 6.550833
+  type: 'test'
+  ...
+# Subtest: an uncheckpointed physical worktree is not automatically claimed after lease loss
+ok 15 - an uncheckpointed physical worktree is not automatically claimed after lease loss
+  ---
+  duration_ms: 5.28125
+  type: 'test'
+  ...
+# Subtest: human work stays out of AI claims and completion unlocks a dependent task
+ok 16 - human work stays out of AI claims and completion unlocks a dependent task
+  ---
+  duration_ms: 6.24775
+  type: 'test'
+  ...
+# Subtest: failed or rejected parents block queued dependents until the dependency is resolved
+ok 17 - failed or rejected parents block queued dependents until the dependency is resolved
+  ---
+  duration_ms: 6.13175
+  type: 'test'
+  ...
+# Subtest: Momentory design selection requires a rendered candidate
+ok 18 - Momentory design selection requires a rendered candidate
+  ---
+  duration_ms: 4.626417
+  type: 'test'
+  ...
+# Subtest: HTTP auth, task API, duplicate claim, bounded retry and approval
+not ok 19 - HTTP auth, task API, duplicate claim, bounded retry and approval
+  ---
+  duration_ms: 146.592166
+  type: 'test'
+  location: '/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/http.test.mjs:12:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'status')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/http.test.mjs:36:23)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: reviewed npm setup rejects modified inputs and symbolic-link escapes
+not ok 20 - reviewed npm setup rejects modified inputs and symbolic-link escapes
+  ---
+  duration_ms: 59.005875
+  type: 'test'
+  location: '/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/mac-dependency.test.mjs:14:1'
+  failureType: 'testCodeFailure'
+  error: 'Dependency worktree must have a canonical path'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateReviewedNpmSetup (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/src/wslChecks.mjs:187:53)
+    TestContext.<anonymous> (file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/mac-dependency.test.mjs:24:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: macOS child environment discards executable and npm configuration injection
+ok 21 - macOS child environment discards executable and npm configuration injection
+  ---
+  duration_ms: 0.409875
+  type: 'test'
+  ...
+# Subtest: macOS dependency commands refuse to run on Windows
+ok 22 - macOS dependency commands refuse to run on Windows
+  ---
+  duration_ms: 0.078667
+  type: 'test'
+  ...
+# Subtest: pinned macOS executable policy rejects missing config and worktree shims
+ok 23 - pinned macOS executable policy rejects missing config and worktree shims
+  ---
+  duration_ms: 0.779333
+  type: 'test'
+  ...
+# node:internal/modules/cjs/loader:1430
+#   const err = new Error(message);
+#               ^
+# Error: Cannot find module 'playwright'
+# Require stack:
+# - /Users/kjh/Momentory/momentory/momentory/momentory-fe/package.json
+#     at Function._resolveFilename (node:internal/modules/cjs/loader:1430:15)
+#     at defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)
+#     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)
+#     at Function._load (node:internal/modules/cjs/loader:1216:25)
+#     at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+#     at Module.require (node:internal/modules/cjs/loader:1527:12)
+#     at require (node:internal/modules/helpers:147:16)
+#     at file:///Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/mobile.test.mjs:14:18
+#     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+#     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26) {
+#   code: 'MODULE_NOT_FOUND',
+#   requireStack: [
+#     '/Users/kjh/Momentory/momentory/momentory/momentory-fe/package.json'
+#   ]
+# }
+# Node.js v22.23.2
+# Subtest: tests/mobile.test.mjs
+not ok 5 - tests/mobile.test.mjs
+  ---
+  duration_ms: 33.312958
+  type: 'test'
+  location: '/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/tests/mobile.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: real Claude and Codex CLI authentication and streaming
+ok 25 - real Claude and Codex CLI authentication and streaming # SKIP
+  ---
+  duration_ms: 0.55875
+  type: 'test'
+  ...
+# (node:64129) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: provider subprocesses never inherit workspace authentication tokens
+ok 26 - provider subprocesses never inherit workspace authentication tokens
+  ---
+  duration_ms: 1.766875
+  type: 'test'
+  ...
+# Subtest: provider session IDs cannot inject shell metacharacters
+ok 27 - provider session IDs cannot inject shell metacharacters
+  ---
+  duration_ms: 0.40475
+  type: 'test'
+  ...
+# Subtest: reviewable diffs mask common credential assignments
+ok 28 - reviewable diffs mask common credential assignments
+  ---
+  duration_ms: 102.837291
+  type: 'test'
+  ...
+# Subtest: persisted events mask workspace credentials
+ok 29 - persisted events mask workspace credentials
+  ---
+  duration_ms: 3.202291
+  type: 'test'
+  ...
+# (node:64130) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: event storage failure rolls back task creation and approval atomically
+ok 30 - event storage failure rolls back task creation and approval atomically
+  ---
+  duration_ms: 7.643625
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 25
+# fail 4
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 624.604166

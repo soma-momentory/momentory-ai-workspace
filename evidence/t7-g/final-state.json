@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-10-26T15:36:27.381Z",
+  "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+  "arch": "arm64",
+  "workspaceOriginal": {
+    "head": "10d835a744734a0a9ed83c2956fde863887bc473",
+    "status": ""
+  },
+  "workspacePriorCandidate": {
+    "branch": "workspace/t7-macos-release-blockers",
+    "head": "5372d41c9e74048a9ebc0a8f7e06d11c8c25c52a"
+  },
+  "workspaceCandidate": {
+    "branch": "workspace/t7-g-secure-gradle",
+    "base": "5372d41c9e74048a9ebc0a8f7e06d11c8c25c52a",
+    "commit": "the commit containing this evidence"
+  },
+  "beOriginal": {
+    "head": "ca3bc87f9d679ea6edd37fffa5e5390e307952b8",
+    "status": ""
+  },
+  "beCandidate": {
+    "branch": "workspace/t7-g-gradle-checksums",
+    "head": "b2be605ecacc2fc2fe1427b7f6437ccabb534e78",
+    "status": "",
+    "changedFiles": [
+      "gradle/wrapper/gradle-wrapper.properties"
+    ]
+  },
+  "feCandidate": {
+    "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+    "status": ""
+  },
+  "originalFeTrackedAndUntrackedPreserved": true,
+  "cleanup": {
+    "ownedContainers": 0,
+    "processRecords": 0,
+    "controlDirectories": 0,
+    "rejectedNativeProfileRemoved": true
+  },
+  "beDependencyApprovalIssued": false,
+  "beVerificationXmlApplied": false,
+  "merged": false,
+  "pushed": false,
+  "deployed": false
+}

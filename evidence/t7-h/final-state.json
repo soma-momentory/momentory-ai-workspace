@@ -1,0 +1,69 @@
+{
+  "capturedBeforeReviewCommit": true,
+  "approvalIssued": false,
+  "workspaceRelease": "NOT_READY",
+  "t7h": "DONE_APPROVAL_PREPARATION_ONLY",
+  "repositories": {
+    "workspaceOriginal": {
+      "path": "/Users/kjh/Momentory/momentory-ai-workspace",
+      "branch": "main",
+      "head": "10d835a744734a0a9ed83c2956fde863887bc473",
+      "clean": true,
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "workspaceReview": {
+      "path": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup",
+      "branch": "workspace/t7-h-be-dependency-trust-review",
+      "head": "bccd7553da9ec9a4d2b4aed11b44f3290ef29dd4",
+      "clean": false,
+      "statusSha256": "bcb983da7e4a03b6dc9f62808e2bf4d50f5fb5d5a9cb063e9750e09b435ce486"
+    },
+    "beMain": {
+      "path": "/Users/kjh/Momentory/momentory-be",
+      "branch": "main",
+      "head": "ca3bc87f9d679ea6edd37fffa5e5390e307952b8",
+      "clean": true,
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "beCandidate": {
+      "path": "/Users/kjh/Momentory/momentory-be-t7-g",
+      "branch": "workspace/t7-g-gradle-checksums",
+      "head": "b2be605ecacc2fc2fe1427b7f6437ccabb534e78",
+      "clean": true,
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "feCandidate": {
+      "path": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+      "branch": "workspace/t7-mac-latest-main",
+      "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+      "clean": true,
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "feOriginalUserWork": {
+      "path": "/Users/kjh/Momentory/momentory-fe",
+      "branch": "feat/p4-weather-sticker-assets",
+      "head": "4c80a947d42bf0ae90756c40801d21dfff67cc3c",
+      "clean": false,
+      "statusSha256": "7246273172c203e654806a337b7aac7085b60a96289a08ff7cc48118a3649d31"
+    }
+  },
+  "workspaceProductSourceUnchanged": true,
+  "beCandidateMetadataApplied": false,
+  "beLockfilesApplied": false,
+  "quarantineFiles": 756,
+  "remainingMacProcessCheckpoints": 0,
+  "remainingGradleControlDirectories": 0,
+  "remainingOwnedGradleContainers": [],
+  "toolDigests": {
+    "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home/bin/java": "0f642542ea1f0be6957557c0db96653ec128113bb5a4aaa7c2534d1d72ddb51f",
+    "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home/bin/javac": "40425235eaac99cccf8ed57522d946313d8b5200161d1faf846b3e60d554c2ed",
+    "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0/lib/plugins/bcprov-jdk18on-1.81.jar": "249f396412b0c0ce67f25c8197da757b241b8be3ec4199386c00704a2457459b",
+    "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0/lib/plugins/bcutil-jdk18on-1.81.jar": "31a5fe3a7ba42e3457b83930f0ff8d679fb5b76eaadf2b51f5740c92a394bf52",
+    "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0/lib/plugins/bcpg-jdk18on-1.81.jar": "ac2ddae3a844c1e2378604616dbe7cc17c64caaf9115d8c9c3b29db8b2982411"
+  },
+  "privateKeyAndApiTokenPatternFindings": [],
+  "bePreparationApprovalMarkersPresent": {
+    "/Users/kjh/Momentory/momentory-be": false,
+    "/Users/kjh/Momentory/momentory-be-t7-g": false
+  }
+}

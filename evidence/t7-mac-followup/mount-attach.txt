@@ -1,0 +1,2 @@
+/dev/disk8          	GUID_partition_scheme
+/dev/disk8s1        	Apple_HFS                      	/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-followup/mount-target

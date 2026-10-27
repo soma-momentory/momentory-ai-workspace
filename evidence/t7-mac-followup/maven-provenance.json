@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/26.0.2/annotations-26.0.2.pom",
+    "status": 200,
+    "size": 1686,
+    "sha256": "7ebeceade8dada7cb17eff3e014922c39022d2a378e3e2d2461f28f016ffc7f7",
+    "publishedSha256Status": 200,
+    "publishedSha256": "7ebeceade8dada7cb17eff3e014922c39022d2a378e3e2d2461f28f016ffc7f7"
+  },
+  {
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar",
+    "status": 200,
+    "size": 31170,
+    "sha256": "2037be378980d3ba9333e97955f3b2cde392aa124d04ca73ce2eee6657199297",
+    "publishedSha256Status": 200,
+    "publishedSha256": "2037be378980d3ba9333e97955f3b2cde392aa124d04ca73ce2eee6657199297"
+  }
+]

@@ -1,0 +1,79 @@
+{
+  "checkedAt": "2026-10-26T12:13:25.088Z",
+  "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+  "architecture": "arm64",
+  "python": "Python 3.9.6",
+  "workspaceOriginal": {
+    "head": "10d835a744734a0a9ed83c2956fde863887bc473",
+    "status": "",
+    "trackedSourcePreserved": true
+  },
+  "workspaceBaseline": {
+    "head": "2eeff697b406578795e2fe6575d82aeb6893eb71",
+    "status": ""
+  },
+  "workspaceCandidate": {
+    "branch": "workspace/t7-macos-release-blockers",
+    "base": "2eeff697b406578795e2fe6575d82aeb6893eb71"
+  },
+  "fe": {
+    "fetchedOriginMain": "e6f88ce528a0bdb270aee9b152bb47090f226ca5",
+    "validationHead": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+    "validationBranch": "workspace/t7-mac-latest-main",
+    "validationStatus": "",
+    "originalHead": "4c80a947d42bf0ae90756c40801d21dfff67cc3c",
+    "originalTrackedPatchPreserved": true,
+    "originalUntrackedPreserved": true
+  },
+  "persistentFrontendConfiguration": {
+    "status": "PASS",
+    "checkedAt": "2026-10-26T12:05:18.314Z",
+    "configuredWorkspaces": [
+      {
+        "workspace": "/Users/kjh/Momentory/momentory-ai-workspace",
+        "repository": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+        "status": {
+          "dir": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+          "branch": "workspace/t7-mac-latest-main",
+          "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+          "dirty": ""
+        }
+      },
+      {
+        "workspace": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup",
+        "repository": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+        "status": {
+          "dir": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+          "branch": "workspace/t7-mac-latest-main",
+          "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+          "dirty": ""
+        }
+      }
+    ],
+    "fetchedMain": "e6f88ce528a0bdb270aee9b152bb47090f226ca5",
+    "candidate": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+    "mainIsAncestor": true,
+    "mainAppSrcExpoLabUnchanged": true,
+    "studioApprovedMatchesMain": true,
+    "localConfigMode": "0600",
+    "credentialsLogged": false
+  },
+  "cleanup": {
+    "staleRecordsReaped": 0,
+    "remainingProcessRecords": 0,
+    "ownedMountsDetached": true,
+    "gradleNetworkEnabled": false
+  },
+  "jdkSignature": {
+    "command": [
+      "/usr/bin/codesign",
+      "--verify",
+      "--strict",
+      "--verbose=2",
+      "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home/bin/java"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home/bin/java: valid on disk\n/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home/bin/java: satisfies its Designated Requirement\n"
+  }
+}

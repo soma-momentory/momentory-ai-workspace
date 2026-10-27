@@ -1,0 +1,9 @@
+{
+  "source": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_aarch64_linux_hotspot_21.0.13_9.tar.gz",
+  "release": "jdk-21.0.13+9",
+  "architecture": "aarch64",
+  "os": "linux",
+  "sha256": "e3522e707fc7dbe2a72c30746b1e7068301a0213ecd213d4491f35a14eb55578",
+  "publishedSha256": "e3522e707fc7dbe2a72c30746b1e7068301a0213ecd213d4491f35a14eb55578",
+  "bytes": 205995218
+}

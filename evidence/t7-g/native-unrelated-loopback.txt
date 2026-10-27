@@ -1,0 +1,8 @@
+{
+  "option": "A",
+  "accepted": false,
+  "reason": "Loopback allow rule also reaches unrelated host services",
+  "exitCode": 0,
+  "stdout": "SYNTHETIC_OTHER_PROJECT_SERVICE\n",
+  "stderr": "(node:89177) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+}

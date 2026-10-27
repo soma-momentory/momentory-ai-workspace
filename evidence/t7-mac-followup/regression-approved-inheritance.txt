@@ -1,0 +1,9 @@
+{"status":"PASS","approvedPatchInherited":true,"postApprovalTamperDenied":true,"linkedDestinationDenied":true}
+Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/approved-inheritance-4dcad3f9-9af4-4b62-b147-0789d0d9c62f/child'...
+done.
+Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/approved-inheritance-4dcad3f9-9af4-4b62-b147-0789d0d9c62f/tampered-child'...
+done.
+Cloning into '/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/approved-inheritance-4dcad3f9-9af4-4b62-b147-0789d0d9c62f/linked-child'...
+done.
+(node:78753) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

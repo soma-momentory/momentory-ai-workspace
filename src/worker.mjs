@@ -6,6 +6,7 @@ import { root, loadEnv } from './config.mjs';
 import { projects } from './projects.mjs';
 import { executeTask } from './engine.mjs';
 import {reapStaleWslCodex} from './wslCodex.mjs';
+import {reapStaleMacProcesses} from './provider.mjs';
 
 loadEnv();
 const base=`http://127.0.0.1:${process.env.WORKSPACE_PORT || 4178}`;
@@ -24,6 +25,7 @@ catch(error){
 }
 process.on('exit',()=>{try{if(fs.readFileSync(lockFile,'utf8')===String(process.pid))fs.rmSync(lockFile);}catch{}});
 for(const name of reapStaleWslCodex()) console.error(`Reaped stale Codex process: ${name}`);
+for(const name of reapStaleMacProcesses())console.error(`Reaped stale macOS process: ${name}`);
 const idFile=path.join(dataDir,`worker-${slot}-id`);
 const id=process.env.WORKER_ID || (fs.existsSync(idFile)?fs.readFileSync(idFile,'utf8').trim():(()=>{const value=randomUUID();fs.writeFileSync(idFile,value);return value;})());
 const kind='local';

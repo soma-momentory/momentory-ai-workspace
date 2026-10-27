@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "taskId": "6a0e80c3-2505-4852-b584-e14b02c45a74",
+  "repo": "/Users/kjh/Momentory/momentory-ai-workspace-t7-mac/data/local-integration-ebae8dee-24c3-464a-875d-13f8ec30a8a8",
+  "changedFiles": [
+    "index.mjs"
+  ],
+  "checks": [
+    {
+      "command": "node --check index.mjs",
+      "ok": true
+    },
+    {
+      "command": "node --test",
+      "ok": true
+    }
+  ],
+  "events": 25,
+  "checkMutationDenied": true
+}

@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "jdk": {
+    "major": 21,
+    "home": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk-21.0.13+9/Contents/Home",
+    "archive": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/jdk.tar.gz",
+    "source": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.13_9.tar.gz",
+    "sha256": "bf036b35b071bfb2f54f2c0af8ee8d88afa95ee6eb3dce02c0f94cfc2524d04a",
+    "treeSha256": "9bb85a1f22b8ab7429106805565484db055088fccfa89c5b9ffc3e70b2cb7186"
+  },
+  "gradle": {
+    "version": "9.1.0",
+    "home": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0",
+    "archive": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle.zip",
+    "source": "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip",
+    "sha256": "a17ddd85a26b6a7f5ddb71ff8b05fc5104c0202c6e64782429790c933686c806",
+    "treeSha256": "8c199f494d3ebca9291b5a3243d354815b8407da9e05976b6251765b87ba9158",
+    "wrapperSha256": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3"
+  },
+  "repository": "/Users/kjh/.local/share/momentory-t7-g/tools/maven-fixture",
+  "artifacts": [
+    {
+      "path": "org/jetbrains/annotations/26.0.2/annotations-26.0.2.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/26.0.2/annotations-26.0.2.pom",
+      "sha256": "7ebeceade8dada7cb17eff3e014922c39022d2a378e3e2d2461f28f016ffc7f7"
+    },
+    {
+      "path": "org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar",
+      "sha256": "2037be378980d3ba9333e97955f3b2cde392aa124d04ca73ce2eee6657199297"
+    },
+    {
+      "path": "org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.pom",
+      "sha256": "bdd706e1431854fb088f9f7cb80c24739aabee1aed1cc8733de5ffb7d9a0de84"
+    },
+    {
+      "path": "org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-console-standalone/1.13.4/junit-platform-console-standalone-1.13.4.jar",
+      "sha256": "3fdfc37e29744a9a67dd5365e81467e26fbde0b7aa204e6f8bbe79eeaa7ae892"
+    }
+  ],
+  "inputs": {
+    "build.gradle": "d6ff28e50df7327a2a4739a8acb0935a3ff9550b5dabbb79bd000b055252eed0",
+    "gradle/verification-metadata.xml": "83a1f97f4adbc3b579a1bcae002f07c9f9b52f5fbf76a703c27a8423957d6791",
+    "gradle/wrapper/gradle-wrapper.jar": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3",
+    "gradle/wrapper/gradle-wrapper.properties": "612fa5439c76d0a08900be0a909de674755cd0ff067ff3364610d6466ad29065",
+    "gradlew": "fb68debc1b1acf8ec55dc0d5e5495e1dedd0bd6b61f304bee61613eeb2bd9b92",
+    "settings.gradle": "37a8b57aba2bc0812e32f3e8463fbcd17c894b3bf4aa98b149d84738c467ec4c"
+  },
+  "verificationMetadataSha256": "83a1f97f4adbc3b579a1bcae002f07c9f9b52f5fbf76a703c27a8423957d6791",
+  "linuxJdk": {
+    "major": 21,
+    "home": "/Users/kjh/.local/share/momentory-t7-g/tools/jdk-21.0.13+9",
+    "archive": "/Users/kjh/.local/share/momentory-t7-g/tools/jdk-linux.tar.gz",
+    "source": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_aarch64_linux_hotspot_21.0.13_9.tar.gz",
+    "sha256": "e3522e707fc7dbe2a72c30746b1e7068301a0213ecd213d4491f35a14eb55578",
+    "treeSha256": "d78339b9abdd94e71bce856346e9b9d72756c96d11742f4672f8ff51a4b7d1a9"
+  },
+  "execution": {
+    "type": "colima-network-none",
+    "docker": "/Users/kjh/.local/share/momentory-t7-g/tools/docker",
+    "dockerSha256": "ca3d323d16d8e62b3cbf63ed246c57b2d2c9dc3ccfbd3a790203e9d46aae0db4",
+    "socket": "/Users/kjh/.colima/default/docker.sock",
+    "image": "ubuntu@sha256:18b33ff3829707f31ada654a963b9ee35f2e6f0241b964bd17a22a9b330cb63d",
+    "imageId": "sha256:18b33ff3829707f31ada654a963b9ee35f2e6f0241b964bd17a22a9b330cb63d"
+  }
+}

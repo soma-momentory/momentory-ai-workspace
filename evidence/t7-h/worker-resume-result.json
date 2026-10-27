@@ -1,0 +1,7 @@
+{
+  "command": "pinned-node tests/resume-killed.integration.mjs",
+  "flag": "WORKSPACE_TEST_GRADLE_CRASH=1",
+  "startedAt": "2026-10-26T16:17:14.186Z",
+  "code": 1,
+  "signal": null
+}

@@ -1,0 +1,45 @@
+import javax.inject.Inject
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
+import org.gradle.workers.WorkerExecutor
+
+plugins { id 'java' }
+repositories { mavenCentral() }
+dependencies {
+    implementation 'org.jetbrains:annotations:26.0.2'
+    testImplementation 'org.junit.platform:junit-platform-console-standalone:1.13.4'
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+
+abstract class IsolatedAction implements WorkAction<WorkParameters.None> {
+    void execute() { println 'WORKER_API_IPC_OK' }
+}
+abstract class WorkerProbe extends DefaultTask {
+    @Inject abstract WorkerExecutor getWorkerExecutor()
+    @TaskAction void runProbe() {
+        workerExecutor.processIsolation().submit(IsolatedAction) {}
+        workerExecutor.await()
+    }
+}
+tasks.register('workerProbe', WorkerProbe)
+tasks.register('maliciousBuildProbe') {
+    doLast {
+        def denied = { action ->
+            boolean failed = false
+            try { action() } catch (IOException expected) { failed = true }
+            assert failed : 'A build-script attack escaped its isolation'
+        }
+        denied { new File('/source/command-attempt.txt').text = 'BAD' }
+        denied { new File('/work/.env.canary').text }
+        denied { new Socket().withCloseable { socket -> socket.connect(new InetSocketAddress('1.1.1.1', 443), 500) } }
+        denied { new DatagramSocket().withCloseable { socket -> socket.send(new DatagramPacket(new byte[1], 1, InetAddress.getByName('192.0.2.1'), 9)) } }
+        assert !new File('/var/run/docker.sock').exists()
+        println 'MALICIOUS_BUILD_INPUTS_DENIED'
+    }
+}
+tasks.register('crashProbe', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'CrashProbe'
+}
+if (file('crash-mode').exists()) tasks.withType(Test).configureEach { dependsOn 'crashProbe' }
+check.dependsOn 'workerProbe', 'maliciousBuildProbe'

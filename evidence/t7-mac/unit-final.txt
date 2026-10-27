@@ -1,0 +1,232 @@
+TAP version 13
+# (node:69484) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: encrypted backup restores tasks, dependencies, decisions, settings and screenshots
+ok 1 - encrypted backup restores tasks, dependencies, decisions, settings and screenshots
+  ---
+  duration_ms: 84.501833
+  type: 'test'
+  ...
+# (node:69485) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: automatic routing avoids multiple agents for tiny edits and explores design alternatives
+ok 2 - automatic routing avoids multiple agents for tiny edits and explores design alternatives
+  ---
+  duration_ms: 1.538625
+  type: 'test'
+  ...
+# Subtest: provider commands use supported structured streaming and an explicit isolation profile
+ok 3 - provider commands use supported structured streaming and an explicit isolation profile
+  ---
+  duration_ms: 0.443167
+  type: 'test'
+  ...
+# Subtest: Claude executable resolution ignores worktree shims
+ok 4 - Claude executable resolution ignores worktree shims
+  ---
+  duration_ms: 0.309958
+  type: 'test'
+  ...
+# Subtest: WSL Codex package path rejects an unreviewed link target
+ok 5 - WSL Codex package path rejects an unreviewed link target
+  ---
+  duration_ms: 0.053
+  type: 'test'
+  ...
+# Subtest: WSL agent launch rejects unreviewed CLI overrides before starting a process
+ok 6 - WSL agent launch rejects unreviewed CLI overrides before starting a process
+  ---
+  duration_ms: 0.115875
+  type: 'test'
+  ...
+# Subtest: provider stream discards an oversized line without losing later events
+ok 7 - provider stream discards an oversized line without losing later events
+  ---
+  duration_ms: 0.202583
+  type: 'test'
+  ...
+# Subtest: non-WSL verification command has a finite timeout
+ok 8 - non-WSL verification command has a finite timeout
+  ---
+  duration_ms: 559.824542
+  type: 'test'
+  ...
+# Subtest: an already cancelled verification command never starts
+ok 9 - an already cancelled verification command never starts
+  ---
+  duration_ms: 0.191042
+  type: 'test'
+  ...
+# Subtest: macOS timeout kills a detached child that ignores SIGTERM
+ok 10 - macOS timeout kills a detached child that ignores SIGTERM
+  ---
+  duration_ms: 1053.969375
+  type: 'test'
+  ...
+# Subtest: review cannot silently pass an ambiguous or fix-required answer
+ok 11 - review cannot silently pass an ambiguous or fix-required answer
+  ---
+  duration_ms: 0.322375
+  type: 'test'
+  ...
+# Subtest: selected design approval excludes unrelated edits, moved commits, and ignored files
+ok 12 - selected design approval excludes unrelated edits, moved commits, and ignored files
+  ---
+  duration_ms: 0.09825
+  type: 'test'
+  ...
+# Subtest: design proposals require structured, distinct candidates before evaluation
+ok 13 - design proposals require structured, distinct candidates before evaluation
+  ---
+  duration_ms: 0.090125
+  type: 'test'
+  ...
+# Subtest: design capture status survives a process restart and gates selection
+ok 14 - design capture status survives a process restart and gates selection
+  ---
+  duration_ms: 5.012375
+  type: 'test'
+  ...
+# Subtest: persistent queue claims once, recovers lease, limits attempts and records approval
+ok 15 - persistent queue claims once, recovers lease, limits attempts and records approval
+  ---
+  duration_ms: 6.783292
+  type: 'test'
+  ...
+# Subtest: a stale worktree is preserved and never automatically claimed by another worker
+ok 16 - a stale worktree is preserved and never automatically claimed by another worker
+  ---
+  duration_ms: 3.121
+  type: 'test'
+  ...
+# Subtest: an uncheckpointed physical worktree is not automatically claimed after lease loss
+ok 17 - an uncheckpointed physical worktree is not automatically claimed after lease loss
+  ---
+  duration_ms: 2.879417
+  type: 'test'
+  ...
+# Subtest: human work stays out of AI claims and completion unlocks a dependent task
+ok 18 - human work stays out of AI claims and completion unlocks a dependent task
+  ---
+  duration_ms: 3.28125
+  type: 'test'
+  ...
+# Subtest: failed or rejected parents block queued dependents until the dependency is resolved
+ok 19 - failed or rejected parents block queued dependents until the dependency is resolved
+  ---
+  duration_ms: 4.026834
+  type: 'test'
+  ...
+# Subtest: Momentory design selection requires a rendered candidate
+ok 20 - Momentory design selection requires a rendered candidate
+  ---
+  duration_ms: 6.077417
+  type: 'test'
+  ...
+# Subtest: HTTP auth, task API, duplicate claim, bounded retry and approval
+ok 21 - HTTP auth, task API, duplicate claim, bounded retry and approval
+  ---
+  duration_ms: 383.440333
+  type: 'test'
+  ...
+# {"fixtureHead":"2a4ba8d0d3c1092561e90985bea0961912917303","reviewedDigest":"e8769efc3c5afcf904f69a2567cef306480b711cba8e4be3118013c9991fb6c1","lockSha256":"01b410c96f1b5f0f5f4b557248091222bd331092bfece89375ee2f79b2d4778b","command":["npm","ci","--ignore-scripts","--no-audit","--no-fund"]}
+# Subtest: reviewed npm setup rejects modified inputs and symbolic-link escapes
+ok 22 - reviewed npm setup rejects modified inputs and symbolic-link escapes
+  ---
+  duration_ms: 270.457459
+  type: 'test'
+  ...
+# Subtest: macOS child environment discards executable and npm configuration injection
+ok 23 - macOS child environment discards executable and npm configuration injection
+  ---
+  duration_ms: 0.180667
+  type: 'test'
+  ...
+# Subtest: macOS dependency commands refuse to run on other platforms
+ok 24 - macOS dependency commands refuse to run on other platforms # SKIP
+  ---
+  duration_ms: 0.032708
+  type: 'test'
+  ...
+# Subtest: macOS executable pins reject replacement, writable files, links and PATH shims
+ok 25 - macOS executable pins reject replacement, writable files, links and PATH shims
+  ---
+  duration_ms: 1.377167
+  type: 'test'
+  ...
+# Subtest: macOS Gradle preparation stays explicitly blocked
+ok 26 - macOS Gradle preparation stays explicitly blocked
+  ---
+  duration_ms: 0.226208
+  type: 'test'
+  ...
+# {"npmInstall":"PASS","lifecycle":"NOT_EXECUTED","markerReuse":"PASS","markerTamper":"DENIED","linkEscape":"DENIED"}
+# Subtest: real macOS locked npm preparation and marker validation
+ok 27 - real macOS locked npm preparation and marker validation
+  ---
+  duration_ms: 1538.80925
+  type: 'test'
+  ...
+# Subtest: pinned macOS executable policy rejects missing config and worktree shims
+ok 28 - pinned macOS executable policy rejects missing config and worktree shims
+  ---
+  duration_ms: 0.437334
+  type: 'test'
+  ...
+# (node:69488) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 390px browser manages Momentory and a separate project
+ok 29 - 390px browser manages Momentory and a separate project
+  ---
+  duration_ms: 6149.004833
+  type: 'test'
+  ...
+# Subtest: real Claude and Codex CLI authentication and streaming
+ok 30 - real Claude and Codex CLI authentication and streaming
+  ---
+  duration_ms: 16008.837
+  type: 'test'
+  ...
+# (node:69490) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: provider subprocesses never inherit workspace authentication tokens
+ok 31 - provider subprocesses never inherit workspace authentication tokens
+  ---
+  duration_ms: 1.238417
+  type: 'test'
+  ...
+# Subtest: provider session IDs cannot inject shell metacharacters
+ok 32 - provider session IDs cannot inject shell metacharacters
+  ---
+  duration_ms: 0.235583
+  type: 'test'
+  ...
+# Subtest: reviewable diffs mask common credential assignments
+ok 33 - reviewable diffs mask common credential assignments
+  ---
+  duration_ms: 129.909458
+  type: 'test'
+  ...
+# Subtest: persisted events mask workspace credentials
+ok 34 - persisted events mask workspace credentials
+  ---
+  duration_ms: 4.402708
+  type: 'test'
+  ...
+# (node:69491) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: event storage failure rolls back task creation and approval atomically
+ok 35 - event storage failure rolls back task creation and approval atomically
+  ---
+  duration_ms: 7.795042
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 16068.779417

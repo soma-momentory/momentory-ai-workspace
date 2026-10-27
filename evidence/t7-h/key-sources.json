@@ -1,0 +1,892 @@
+[
+  {
+    "name": "gradlePolicy",
+    "url": "https://raw.githubusercontent.com/gradle/gradle/v9.1.0/gradle/verification-metadata.xml",
+    "status": 200,
+    "bytes": 94370,
+    "sha256": "09c027fe650617af733d94216631f0521c9bf61866f6dfdb8a75e0f4c2b509b8",
+    "purpose": "independent consumer scope mapping"
+  },
+  {
+    "name": "gradleKeys",
+    "url": "https://raw.githubusercontent.com/gradle/gradle/v9.1.0/gradle/verification-keyring.keys",
+    "status": 200,
+    "bytes": 567504,
+    "sha256": "fd39559409125e9517a1147f664cea39a51b6429f93ccbbaffab2762ce4d5c35",
+    "purpose": "independent consumer key material; not publisher identity by itself"
+  },
+  {
+    "name": "tomcat",
+    "url": "https://downloads.apache.org/tomcat/KEYS",
+    "status": 404,
+    "bytes": 196,
+    "sha256": "80c3fe2ae1062abf56456f52518bd670f9ec3917b7f85e152b347ac6b6faf880",
+    "purpose": "publisher project public signing keys"
+  },
+  {
+    "name": "httpcomponents",
+    "url": "https://downloads.apache.org/httpcomponents/KEYS",
+    "status": 200,
+    "bytes": 14463,
+    "sha256": "37ccd6d056d3ae2bdd91a1aa26cd3a031e0d5e2256eabd9cead31d2bc2501f3e",
+    "purpose": "publisher project public signing keys"
+  },
+  {
+    "name": "log4j",
+    "url": "https://downloads.apache.org/logging/KEYS",
+    "status": 200,
+    "bytes": 103681,
+    "sha256": "997a0850af7612b2e9f2643e47fdc4efb6dec190bf83a95af8785ca91475b850",
+    "purpose": "publisher project public signing keys"
+  },
+  {
+    "name": "maven",
+    "url": "https://downloads.apache.org/maven/KEYS",
+    "status": 200,
+    "bytes": 279457,
+    "sha256": "1e53a10e6b65c64ae0f5a241c8ef289c7578f1109d8a78512dff7de2b29117b3",
+    "purpose": "publisher project public signing keys"
+  },
+  {
+    "name": "commons",
+    "url": "https://downloads.apache.org/commons/KEYS",
+    "status": 200,
+    "bytes": 642017,
+    "sha256": "f154a693df7d01290487b3bf4c045481cdde6bd310b9eeb37b7a533b03b3299a",
+    "purpose": "publisher project public signing keys"
+  },
+  {
+    "name": "keyserver-3F1EB974E7AB9B37",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC668130C58722C9DC1C0FC633F1EB974E7AB9B37",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1728,
+    "sha256": "fa031c9241eab986ffe2700fd2df417b005b117522ffdbdd86e57cf65fe96260"
+  },
+  {
+    "name": "keyserver-E7D88DB8427DE651",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6E7F910017655622A899639EE7D88DB8427DE651",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 729,
+    "sha256": "f18c10a080b7555b0663e6b62c96970320357b4c458e318b6f19042d52d34734"
+  },
+  {
+    "name": "keyserver-3EFD9D223D715E9A",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x82F0964816AD7319CB0CCCF93EFD9D223D715E9A",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1740,
+    "sha256": "36bcb85343d5425d8af59b7508bb8e858a6da83e855f3ea02b986fe94b5a37bb"
+  },
+  {
+    "name": "keyserver-3684155E9365C30E",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3684155E9365C30E",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1744,
+    "sha256": "79f40e5c6151c4d52e698a88d9929440e17140377a5cc99b29f4ff9b22118112"
+  },
+  {
+    "name": "keyserver-90D5CE79E1DE6A2C",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x57312C37B064EE0FDAB0130490D5CE79E1DE6A2C",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1805,
+    "sha256": "2ace040a705d67297a91829537ea2b5e6b3fa087828aaf21ee8ef9c5a95e0861"
+  },
+  {
+    "name": "keyserver-17A27CE7A60FF5F0",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x17A27CE7A60FF5F0",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1769,
+    "sha256": "411a015f4fffdc71b53c8f4a341f14b53daf785eef917f0f3626f64c777306f6"
+  },
+  {
+    "name": "keyserver-EE5F0C3805A24B16",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE74BC778A315F77D0E89E42FEE5F0C3805A24B16",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 729,
+    "sha256": "34577591b4514abb885f11a971aeccfc197dd78352d3e8719e2a3892de462c69"
+  },
+  {
+    "name": "keyserver-928FBF39003C0425",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x928FBF39003C0425",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 8334,
+    "sha256": "fedf01b52dc3d070633736dd1776171cf518cd4a1e3113aaa774f4822315d450"
+  },
+  {
+    "name": "keyserver-F3D1600878E85A3D",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF3D1600878E85A3D",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3215,
+    "sha256": "5b30363215e09f83308efb2026b2d416455839823f18392c7a1c059ae5ced38c"
+  },
+  {
+    "name": "keyserver-793FD5751A0F0780",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x793FD5751A0F0780",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 729,
+    "sha256": "993f811f847082c36f7f7cfce96c7030b411127b7b1af0dd870c103f4651a5f0"
+  },
+  {
+    "name": "keyserver-CA62973FBF0451C0",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xCA62973FBF0451C0",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 2382,
+    "sha256": "71403034917a9e9ec6e0a16d949cfc2943fe1aeb4e9c49ef0742d409387e67fe"
+  },
+  {
+    "name": "keyserver-21871D2A9AB66A31",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x21871D2A9AB66A31",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 2496,
+    "sha256": "01f7cfdafcb1de5e00ffd67c5bfa44f5cd5bb711d83423e984d022e3eec3af12"
+  },
+  {
+    "name": "keyserver-DB901B24CAD38BC4",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3E61D8C230332482009D7F0EDB901B24CAD38BC4",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3174,
+    "sha256": "3cd4689d043847203df65fe83a81703638afbc30306d99c75243a691c128b083"
+  },
+  {
+    "name": "keyserver-F0D228D8FF31B515",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0B1B71E813C226033B16D8C5F0D228D8FF31B515",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3187,
+    "sha256": "fa2ff9deac3265afff9e412f2805acfd357788a8e5696f414178940d373bf088"
+  },
+  {
+    "name": "keyserver-0E325BECB6962A24",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x59A8E169739301FD48139CA00E325BECB6962A24",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 7115,
+    "sha256": "47262f6302acfa3729a29e0b01e352604199f6d22a7dc050f877c2d77dd06224"
+  },
+  {
+    "name": "keyserver-0AA3E5C3D232E79B",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x4021EEEAFF5DE8404DCD0A270AA3E5C3D232E79B",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3999,
+    "sha256": "85e273575493409fef87092beab8c08074213d3627a2724f55eff92d0b901f03"
+  },
+  {
+    "name": "keyserver-B7DC526C17E3608B",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x71EBF1CA4125B10AAB1E17CDB7DC526C17E3608B",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 7099,
+    "sha256": "94fe948873b5dc2921d4ebecd8dfbede3a74f6bc03b54e3cece6b7d71253df3d"
+  },
+  {
+    "name": "keyserver-953E02E4F573B46F",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2B34821418CF19CF1F2A8352953E02E4F573B46F",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3999,
+    "sha256": "e020eeb2a38fabc7565d1e3422aa255fa765be415c9f43b7534190854de4d462"
+  },
+  {
+    "name": "keyserver-2753A900612D3FF1",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x21D09437979F5953FFEEA59C2753A900612D3FF1",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 4755,
+    "sha256": "b956310827fc1ae509fc9396aad402b0138efffef49f41f65df2c0535a111455"
+  },
+  {
+    "name": "keyserver-B7AE15C15C321C44",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x47EF0EC60C210BC6DFAA5819B7AE15C15C321C44",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 7099,
+    "sha256": "8431bbeba9fd69018ce09283419cc73a031fa4eed6ca9cd50ef55d5cd8124c10"
+  },
+  {
+    "name": "keyserver-9757D7E7E06DD2AC",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2518174F4111F02779592A6F9757D7E7E06DD2AC",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 62942,
+    "sha256": "228f5c3b599eef9ce49580c82bd34cef40aa66e0d5930b1ec6078ee5c854b149"
+  },
+  {
+    "name": "keyserver-1D0690E353BE126D",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x1D04A424F505394DBED15D451D0690E353BE126D",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3187,
+    "sha256": "85acbc2c907b7f701376ca42bd14b32aba533c879adeafe292fb89b5a7027bb6"
+  },
+  {
+    "name": "keyserver-54A43F3254868410",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x28417C95E8906D108392822354A43F3254868410",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1777,
+    "sha256": "53b86d83e740e1e30a7d33397b8444f52dc36062db8cd0206bef421fb72e3f26"
+  },
+  {
+    "name": "keyserver-BFF2EE42C8282E76",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x1AA8CF92D409A73393D0B736BFF2EE42C8282E76",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3861,
+    "sha256": "434ecb659584f32d30afad8954ad68ebf85ae2e2d6c043e53ae74a08c7df1ea9"
+  },
+  {
+    "name": "keyserver-B6E83A2D2E447E56",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x498AAC354AA5CB36FAAB7608B6E83A2D2E447E56",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3191,
+    "sha256": "fada154683a38545d57423540e921cac233fa746e8f1dc5c7bebf011496d9083"
+  },
+  {
+    "name": "keyserver-A4B9C195907CB45B",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF43BD1DCA7D5F5AFF5BBEC1EA4B9C195907CB45B",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3280,
+    "sha256": "672a6d172b5df87992cf12df7016245d1a8f8a4ccd795631526119c1df1ae46d"
+  },
+  {
+    "name": "keyserver-D3FA67D522C55256",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC663D2F64DA2CA09DB28D9ABD3FA67D522C55256",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 5080,
+    "sha256": "b661ec3e45d1df6c8bf1024887bc05d98f898057ff3ed1940f512b8b3e76cd6e"
+  },
+  {
+    "name": "keyserver-30C4AFF0AF1DADE1",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xDB5D8331654BFCC24475252F30C4AFF0AF1DADE1",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 713,
+    "sha256": "17351a651c164978c27bcc5704eeb1a130975d1700dde23cb3799b2c6643c501"
+  },
+  {
+    "name": "keyserver-C485C5A843FADB15",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF79157DB93697AA32CD4C46CC485C5A843FADB15",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 5384,
+    "sha256": "849106d137f8c30c59ad9d0a2eb4f4448779893870a84c76873c41502f54b206"
+  },
+  {
+    "name": "keyserver-18D239B1CBCD2236",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0B743A794876D3C78AB542A118D239B1CBCD2236",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 7091,
+    "sha256": "bc6b7a315fc3b8e9fe00e4ffccce125057c04929608aa0319a60fc4f947ae7ef"
+  },
+  {
+    "name": "keyserver-153E7A3C2B4E5118",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x153E7A3C2B4E5118",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 6940,
+    "sha256": "982788841195dbfb7d28a0c331d991acc080c88e75c7ab0916c07745c74609f9"
+  },
+  {
+    "name": "keyserver-2F732027B9B0B96C",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x99E73B179E66D217E4C969152F732027B9B0B96C",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 700,
+    "sha256": "a66eeae2bbc512f6ec3c2fb11b40311e92ffc008237961cfda01835a9f3b6106"
+  },
+  {
+    "name": "keyserver-9E31AB27445478DB",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF5FEBA84EB26C56457B2CF819E31AB27445478DB",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1367,
+    "sha256": "faccd738cb87c2d157e7f55c366ba0f3dd99469156da651c832ce6fe4e72a504"
+  },
+  {
+    "name": "keyserver-6F29F72839B3A8E7",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6D2AF456B8CB597387901C786F29F72839B3A8E7",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 4040,
+    "sha256": "3c826613996972299334a8eab7bc77c71c103f5adefea78cb9da11ee63c09039"
+  },
+  {
+    "name": "keyserver-B54011358B352F85",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x1452F35849B50750F6A3BBB4B54011358B352F85",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 704,
+    "sha256": "1714677b19dda4057c89feedd6438a74296faa93cc2fe8b1c2eccd1c96880235"
+  },
+  {
+    "name": "keyserver-960D2E8635A91268",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE113159331A1F87BFC2A93D0960D2E8635A91268",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 37173,
+    "sha256": "18b3d7f7aeea139cddff47ee5800d35777b8747446e81b6a1c79691e673f1ebb"
+  },
+  {
+    "name": "keyserver-76E0008D166740A8",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x76E0008D166740A8",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1708,
+    "sha256": "f9d8205f2222704901e4f4598f5313790b584829bb18729a00a54e1f732d67c7"
+  },
+  {
+    "name": "keyserver-66F8E4860BF74983",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x7C7271B83AAE727A2941690666F8E4860BF74983",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 2691,
+    "sha256": "e845d07ebeb1b9ae3c50cdf016f3c409567d095b2a01cc7d203c7393f7c28da6"
+  },
+  {
+    "name": "keyserver-9EB72C54FB72F2A7",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x7BC4E55593A4E7E5F991BE0E9EB72C54FB72F2A7",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3195,
+    "sha256": "ec89bcdf0d5a8becd03c162d021d6d1ba79b19a8d89b0ba3c78119da38b7659e"
+  },
+  {
+    "name": "keyserver-734AEF3D43509290",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xEAFC1F3B2FCED6AFD046C7D5734AEF3D43509290",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1773,
+    "sha256": "a21932d94d6bd89f4204459125c65de22441b930bfe67c7e653ebecb2924232e"
+  },
+  {
+    "name": "keyserver-991EFB94DB91127D",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x10F3C7A02ECA55E502BADCF3991EFB94DB91127D",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 404,
+    "bytes": 10,
+    "sha256": "7515bf959b73b956ceb967351c7e299cbb3668a53d35f9c770eb72e00d93ced6"
+  },
+  {
+    "name": "keyserver-305F296EAC47556B",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x305F296EAC47556B",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 4808,
+    "sha256": "02db72c7cd4fd58ff127213cc4e34733fb36f780a2fb40578a0140f4d9485ff8"
+  },
+  {
+    "name": "keyserver-4C2AFF633F3A7223",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x81BE0C38ACE8AEDC7735A05F4C2AFF633F3A7223",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3191,
+    "sha256": "7c81212058f4b5ed0e73d0d1dfae8e39af5197142c514a1ce754bf883be6adae"
+  },
+  {
+    "name": "keyserver-F8052E4E1BD0DB31",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x07A4FA67A8222F1B39F9EDAEF8052E4E1BD0DB31",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 24251,
+    "sha256": "24e58364b4c142ab97042c87c9ba1d985dd6d97f9edf3f112e52d0d7b12999a7"
+  },
+  {
+    "name": "keyserver-586654072EAD6677",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x586654072EAD6677",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1716,
+    "sha256": "ffcced6fbfece948e86aa8484330db70d27e65d194ab88462df4846023e7e76a"
+  },
+  {
+    "name": "keyserver-787F3A057B828D36",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA41A5960555F8CBBC7D8B2D7787F3A057B828D36",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3743,
+    "sha256": "72e789a1910baaf48bb5f171f254ea61e11a39cc4ebb3d9d759a6b09c3f1ec50"
+  },
+  {
+    "name": "keyserver-F461A32102C936BB",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x328B1E61822CF53DB1EA7C47F461A32102C936BB",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 3207,
+    "sha256": "4a7231bf1b291bb653b35512e286923924406037fa074a2920959e3f3d3bfb74"
+  },
+  {
+    "name": "keyserver-E0130A3ED5A2079E",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE0130A3ED5A2079E",
+    "purpose": "key material by 64-bit ID discovery; full fingerprint and identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1724,
+    "sha256": "e4ca3cb8fcd9b1ff1e3869014a2220bf59104a406f72356c2aaf15ee6f7d393a"
+  },
+  {
+    "name": "keyserver-4C5EED3C53B75933",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC89074FC8BE681B7C7EAAB6E4C5EED3C53B75933",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1765,
+    "sha256": "a9ff6f8e7c5c763c0d0e23a2b2105bcc7296f5984cfcf2dff98bb2a10b5c3cfc"
+  },
+  {
+    "name": "spring-official-fingerprint",
+    "url": "https://spring.io/GPG-KEY-spring.txt",
+    "purpose": "publisher fingerprint identity anchor; not a key block",
+    "status": 200,
+    "bytes": 461,
+    "sha256": "fcdb886dfbd516af54c79a9b0abd0fd90ca079957e4bcff4c95b728659fe6efe"
+  },
+  {
+    "name": "keyserver-23738DFD7C40DE43",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6A93161EB1990E8346E7BA2B23738DFD7C40DE43",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1964,
+    "sha256": "4d67824f9ee29d51cec89114f880ed0b2e173a5d08049710037093ec436206fc"
+  },
+  {
+    "name": "spring-security-policy",
+    "url": "https://raw.githubusercontent.com/spring-projects/spring-framework/main/SECURITY.md",
+    "purpose": "official project identity binding",
+    "status": 200,
+    "bytes": 612,
+    "sha256": "229d3b42a8dbdbeec53d779014f019a0a4362f897f5ef953a626a3ffcd71a1c7"
+  },
+  {
+    "name": "keyserver-F5C81DE10A0B8ECC",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2FC53E6B1F681184F4CCD637F5C81DE10A0B8ECC",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1375,
+    "sha256": "450f2d63a0fd53ce39b69117e8465d13d69017d3407bd3b75c5d0ee8de9f2f04"
+  },
+  {
+    "name": "keyserver-9A0B94DEC0FFA7EE",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x82F94BBDF95C247BBD21396B9A0B94DEC0FFA7EE",
+    "purpose": "key material by signature-declared fingerprint; identity UNVERIFIED",
+    "status": 200,
+    "bytes": 1692,
+    "sha256": "2e15216cf0e8cc9645c4c3623cd06863018be15b877618032169c3cc5f4a07ac"
+  },
+  {
+    "name": "tomcat-project",
+    "url": "https://downloads.apache.org/tomcat/tomcat-11/KEYS",
+    "purpose": "publisher project public signing keys",
+    "status": 200,
+    "bytes": 32010,
+    "sha256": "1ed482b6e5d22c1cd794cd30d216089eeafdc2b828915263ae50fcd5016ea9a7"
+  },
+  {
+    "name": "jackson-project",
+    "url": "https://raw.githubusercontent.com/FasterXML/jackson/main/KEYS",
+    "purpose": "publisher Jackson release signer fingerprints and key blocks",
+    "status": 200,
+    "bytes": 11827,
+    "sha256": "7e7a8e5a5fcb75102e6712e17b7b98b61629205803a9d8b76e6fb16e566ebc52"
+  },
+  {
+    "name": "logback-project",
+    "url": "https://logback.qos.ch/download.html",
+    "purpose": "publisher download and signature instructions",
+    "status": 200,
+    "bytes": 5863,
+    "sha256": "beff816f88d02ea6f52fb437d6748f8c0bfacdc4e92c94619242a9c2f12341c0"
+  },
+  {
+    "name": "junit4-maintenance",
+    "url": "https://raw.githubusercontent.com/junit-team/junit4/main/README.md",
+    "purpose": "official maintenance policy",
+    "status": 200,
+    "bytes": 842,
+    "sha256": "fb0ccdaf14aa2a84331aa10925844018cb1bf9dfb428ef76cf527d8bd876ae0e"
+  },
+  {
+    "name": "spring-boot-security",
+    "url": "https://raw.githubusercontent.com/spring-projects/spring-boot/main/SECURITY.md",
+    "purpose": "official publisher signing policy",
+    "status": 404,
+    "bytes": 14,
+    "sha256": "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
+  },
+  {
+    "name": "gradle91-verification-doc",
+    "url": "https://raw.githubusercontent.com/gradle/gradle/v9.1.0/platforms/documentation/docs/src/docs/userguide/dep-man/controlling-dependency-resolution/dependency_verification.adoc",
+    "purpose": "pinned Gradle verification guidance",
+    "status": 404,
+    "bytes": 14,
+    "sha256": "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
+  },
+  {
+    "name": "gradle91-locking-doc",
+    "url": "https://raw.githubusercontent.com/gradle/gradle/v9.1.0/platforms/documentation/docs/src/docs/userguide/dep-man/controlling-dependency-resolution/dependency_locking.adoc",
+    "purpose": "pinned Gradle locking guidance",
+    "status": 404,
+    "bytes": 14,
+    "sha256": "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
+  },
+  {
+    "name": "keyserver-D364ABAA39A47320",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xEE0CA873074092F806F59B65D364ABAA39A47320",
+    "status": 200,
+    "bytes": 3215,
+    "sha256": "081cea7f3236dc08355b2c0844e2335a10c21cba196eee275c070f3d66a75a65",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-3D12CA2AC19F3181",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x28118C070CB22A0175A2E8D43D12CA2AC19F3181",
+    "status": 200,
+    "bytes": 3219,
+    "sha256": "2017655d672784592388d7148e7c98b66b2f5e7f7f68f5f4fc3cc8a6eb09aaab",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-59A252FB1199D873",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x7616EB882DAF57A11477AAF559A252FB1199D873",
+    "status": 200,
+    "bytes": 1720,
+    "sha256": "57e2a196d1796523e7db557b7b6fc935783d3cc621eb8cdcb99b22dc3d2b3cc0",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-7905DE25C78AD456",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x1A55F091AD28C07F831FA44D7905DE25C78AD456",
+    "status": 200,
+    "bytes": 3780,
+    "sha256": "315b7251452f20310d5ef0ec65e3b237097dcf06ef2c3aa8a337bd138f047dbe",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-66D68DAA073BE985",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x60200AC4AE761F1614D6C46766D68DAA073BE985",
+    "status": 200,
+    "bytes": 1111,
+    "sha256": "84919737490d7f717b4065ce4328150bee05063dfb586a3fd7e5295c0f41369a",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-4CC08E7F47C3EC76",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF3A90E6B10E809F851AB4FC54CC08E7F47C3EC76",
+    "status": 200,
+    "bytes": 1761,
+    "sha256": "93e5c80bf5b77f2c19d57bae1908f6b4f5e646cbbbe001ddcfe89b7f91a5fcde",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-530AA5F25C25011F",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF4DD59C90148BDC52BEB90A4530AA5F25C25011F",
+    "status": 200,
+    "bytes": 2463,
+    "sha256": "43f330abce1206a413142e8f98abd846256ec92f8a2cb6bd76c1a45f0846731f",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-D9C565AA72BA2FDD",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xB02335AA54CCF21E52BBF9ABD9C565AA72BA2FDD",
+    "status": 200,
+    "bytes": 2520,
+    "sha256": "7aa98fe52ac2b7f3e2b8d35b87772f0fe76959599b1f24d769000f05281cf50b",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-8118B3BCDB1A5000",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFC411CD3CB7DCB0ABC9801058118B3BCDB1A5000",
+    "status": 200,
+    "bytes": 7099,
+    "sha256": "6fe03bb4c344d2db806f4dd4256c356272698415c672e0c4949bde4bbb17ad10",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-D908A43FB7EC07AC",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6DD3B8C64EF75253BEB2C53AD908A43FB7EC07AC",
+    "status": 200,
+    "bytes": 7099,
+    "sha256": "6c9f35b25eaa949be7c306aa702e5ae25223dba16ac978595eaa418dc13ccea7",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-85911F425EC61B51",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFF6E2C001948C5F2F38B0CC385911F425EC61B51",
+    "status": 200,
+    "bytes": 7355,
+    "sha256": "a6ab8ae34a96615ce01d1e8417365fbde2acd71be7aead1fa171d74ba1b9f027",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-86FDC7E2A11262CB",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2DB4F1EF0FA761ECC4EA935C86FDC7E2A11262CB",
+    "status": 200,
+    "bytes": 2528,
+    "sha256": "1d155d5e90bf2316ed1d1ae61d1f814dda3ba02876df2817d2d677a5d1c0974b",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-7ECBD740FF06AEB5",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x04543577D6A9CC626239C50C7ECBD740FF06AEB5",
+    "status": 200,
+    "bytes": 6969,
+    "sha256": "668e9b4600f50463b0e1097bd0dcefeb3a33b553289c837d598736f0c8bf1048",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-7999BEFBA1039E8B",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA7892505CF1A58076453E52D7999BEFBA1039E8B",
+    "status": 200,
+    "bytes": 7757,
+    "sha256": "cdee667b11de99266e16264bb720e5a110a10f647d15f78eca5ad7466e96d08e",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-2A742740E08E7F8D",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x5719E50EAC5A4B1DD390B72C2A742740E08E7F8D",
+    "status": 200,
+    "bytes": 2358,
+    "sha256": "23ab8dca4a2fe832f2757880ca8849c284163072dd6794238405c88b54318d58",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-15C71C0A4E0B8EDD",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFA7929F83AD44C4590F6CC6815C71C0A4E0B8EDD",
+    "status": 200,
+    "bytes": 3130,
+    "sha256": "75f1cfbe30e774165b50855b90f01bda1b3cbcaf8a1d28fcef1b3760e405194c",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-6B1B008864323B92",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xD54A395B5CF3F86EB45F6E426B1B008864323B92",
+    "status": 200,
+    "bytes": 1753,
+    "sha256": "cb5da97998474ab49527a0310bb362c87a9d3744565f8d2af5f083e4da2ca35b",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-9EB80E92EB2135B1",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x84789D24DF77A32433CE1F079EB80E92EB2135B1",
+    "status": 200,
+    "bytes": 4072,
+    "sha256": "7f19a87dc44c7d509d48e9448f99d6ea29bc1e76a98debd1820b2e0663b01bc7",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-6A65176A0FB1CD0B",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x34441E504A937F43EB0DAEF96A65176A0FB1CD0B",
+    "status": 200,
+    "bytes": 13558,
+    "sha256": "5cec3fb5ca2806409eb8f3c164f5fea362b79d6ec0f7c0c5694c7c4656d0a06b",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-7C25280EAE63EBE5",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0785B3EFF60B1B1BEA94E0BB7C25280EAE63EBE5",
+    "status": 200,
+    "bytes": 2610,
+    "sha256": "537c771621192b3571d88c106f218f9b744f17426c28fd2b8899d007e37ff9d8",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-56E73BA9A0B592D0",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x077E8893A6DCC33DD4A4D5B256E73BA9A0B592D0",
+    "status": 200,
+    "bytes": 1716,
+    "sha256": "4209bdb8a6187dd4cca327ec6a4fd75858c2291a3f7c7dd1ee52d4c36c560e8d",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-0CC0B712FEE75827",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBE685132AFD2740D9095F9040CC0B712FEE75827",
+    "status": 200,
+    "bytes": 3601,
+    "sha256": "df953f72b5ed8e98ca501628caf1df1e8d205afde69173ce1d68c18be1527025",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-368557390486F2C5",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x07E20F0103D9DFC697C490D0368557390486F2C5",
+    "status": 200,
+    "bytes": 1732,
+    "sha256": "5bbee745eb5c4aaf04e80cda83f5875971d6abd0e4a8b2562de48369587e71e5",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-0459A2B383ED8C11",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBCA1F17506AF088F3A964A9C0459A2B383ED8C11",
+    "status": 200,
+    "bytes": 4738,
+    "sha256": "3b5e63889086e38e6132368604db9eb7eb7aeb89d3a620d4cfa0c0007aa02320",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-873A8E86B4372146",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF254B35617DC255D9344BCFA873A8E86B4372146",
+    "status": 200,
+    "bytes": 3142,
+    "sha256": "037fa44ae8c70a1d888491c816c80f41cdfb8ad02a6bf8e04b607207101ef1d2",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-10C01C5A2F6059E7",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA9C5DF4D22E99998D9875A5110C01C5A2F6059E7",
+    "status": 200,
+    "bytes": 28350,
+    "sha256": "22ac15db96ac2c5c5ad769ff90c2a76b887b756f875ca241729e1305eecd2025",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-BEDE11EAF1164480",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE3A9F95079E84CE201F7CF60BEDE11EAF1164480",
+    "status": 200,
+    "bytes": 2496,
+    "sha256": "d4c6c61e570ac52dc59acf368fd6241834f115021c9bb8283b0f2549cec6ce55",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-BCF4173966770193",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2E3A1AFFE42B5F53AF19F780BCF4173966770193",
+    "status": 200,
+    "bytes": 1793,
+    "sha256": "18056df6e52699242d1db0e3693b3451822e6fb5ec5afe632fa982abb0c170b1",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-379CE192D401AB61",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x8756C4F765C9AC3CB6B85D62379CE192D401AB61",
+    "status": 200,
+    "bytes": 3889,
+    "sha256": "3c78cddd0ef7c90535c08a0eb74c84da4059288c76a6a33562f9dc347b958468",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-6A0975F8B1127B83",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6F538074CCEBF35F28AF9B066A0975F8B1127B83",
+    "status": 200,
+    "bytes": 17576,
+    "sha256": "8380f1c7b1e1592b0ea1f0d6ba6ff5f6662dab3c8cd4f0ed74bdd1ea05841509",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-689CBE64F4BC997F",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x147B691A19097624902F4EA9689CBE64F4BC997F",
+    "status": 200,
+    "bytes": 3743,
+    "sha256": "456dba8803d7ca365be873062eaff35fb8a57abca4d254f2d7bb71e25d53da06",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-BAC30622339994C4",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x41CD49B4EF5876F9E9F691DABAC30622339994C4",
+    "status": 200,
+    "bytes": 1728,
+    "sha256": "1510fed5d183c08192fb42589219038e69b8f8202536a369bb898134fbb836a8",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-7C7D8456294423BA",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE85AED155021AF8A6C6B7A4A7C7D8456294423BA",
+    "status": 200,
+    "bytes": 1704,
+    "sha256": "a1d13aba5322b3db923e8237e9a77a8ee8825c96dae7796c2d62a6bc5560e7b9",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-3D5839A2262CBBFB",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xE7DC75FC24FB3C8DFE8086AD3D5839A2262CBBFB",
+    "status": 200,
+    "bytes": 14553,
+    "sha256": "3bb5d5537b7969635f2e8eb5ca918c34cdcf4382d5ab06bda7bdeecb8ed13690",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-5F69AD087600B22C",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA5BD02B93E7A40482EB1D66A5F69AD087600B22C",
+    "status": 200,
+    "bytes": 1728,
+    "sha256": "04944dedb154a71442b2f77a91a4a2043d616141dd580b584af440abf4960b7e",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-2C7B12F2A511E325",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x475F3B8E59E6E63AA78067482C7B12F2A511E325",
+    "status": 200,
+    "bytes": 1716,
+    "sha256": "1a64850093b6f130efb74aa0e7317dd8f67da68622b6818abb5d925f671ff095",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "keyserver-B5A9E81B565E89E0",
+    "url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x80F6D6B0D90C6747753344CAB5A9E81B565E89E0",
+    "status": 200,
+    "bytes": 7286,
+    "sha256": "10c3854e0c49784e951684ecd05b0154a44f0874a5ae4f0356f0280b11931960",
+    "purpose": "current key material refresh; publisher identity is separate"
+  },
+  {
+    "name": "groovy-project",
+    "url": "https://downloads.apache.org/groovy/KEYS",
+    "status": 200,
+    "sha256": "58c697eb441e32288b80b9ff4c175b07b6bd4879363e8b5499a75dbdf89662a8",
+    "bytes": 34448,
+    "purpose": "publisher project signing-key identity scope"
+  },
+  {
+    "name": "activemq-project",
+    "url": "https://downloads.apache.org/activemq/KEYS",
+    "status": 200,
+    "sha256": "a52d5749430aaf35ac922f056fb9996b78a81d7febb1f9b9c91a9054376fea83",
+    "bytes": 119024,
+    "purpose": "publisher project signing-key identity scope"
+  },
+  {
+    "name": "pulsar-project",
+    "url": "https://downloads.apache.org/pulsar/KEYS",
+    "status": 200,
+    "sha256": "ac2289793453b0defbc6ea708f0fc81e0fc178ab23e7e55bc1f045aa42425ab6",
+    "bytes": 504085,
+    "purpose": "publisher project signing-key identity scope"
+  },
+  {
+    "name": "cassandra-project",
+    "url": "https://downloads.apache.org/cassandra/KEYS",
+    "status": 200,
+    "sha256": "9ccf5895301b320b08d3e7538eab4f110b26627d7177e002a0c2f394c0d89514",
+    "bytes": 287308,
+    "purpose": "publisher project signing-key identity scope"
+  },
+  {
+    "name": "gradle91-dependency_verification",
+    "url": "https://docs.gradle.org/9.1.0/userguide/dependency_verification.html",
+    "status": 200,
+    "bytes": 259125,
+    "sha256": "4d770e2fb9c23d978ce827c641c1f5cba20d6fedfcb94eb240f4e42164e6c359",
+    "purpose": "pinned Gradle 9.1.0 official documentation",
+    "location": null
+  },
+  {
+    "name": "gradle91-dependency_locking",
+    "url": "https://docs.gradle.org/9.1.0/userguide/dependency_locking.html",
+    "status": 200,
+    "bytes": 211367,
+    "sha256": "823c0121f5b81bc245e199ad4b0409de6fe6bcfd34d69c6654c23373d6aa6003",
+    "purpose": "pinned Gradle 9.1.0 official documentation",
+    "location": null
+  }
+]

@@ -1,0 +1,221 @@
+{
+  "collectedAt": "2026-10-26T12:15:13.532Z",
+  "host": {
+    "os": "macOS",
+    "version": "26.6.2",
+    "build": "25G83",
+    "architecture": "arm64"
+  },
+  "classification": [
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_RUN"
+  ],
+  "t7Mac": "PARTIAL",
+  "workspaceRelease": "NOT_READY",
+  "sources": {
+    "workspace": {
+      "branch": "workspace/t7-macos-release-blockers",
+      "base": "2eeff697b406578795e2fe6575d82aeb6893eb71",
+      "resultCommit": "the commit containing this evidence"
+    },
+    "frontend": {
+      "path": "/Users/kjh/Momentory/momentory-fe-t7-mac-main",
+      "fetchedMain": "e6f88ce528a0bdb270aee9b152bb47090f226ca5",
+      "branch": "workspace/t7-mac-latest-main",
+      "head": "711f4e31f023320b469cffc7513b13e0aaa6badc"
+    }
+  },
+  "tests": [
+    {
+      "item": "workspace-existing-unit-and-opt-in-integration",
+      "status": "PASS",
+      "counts": {
+        "pass": 36,
+        "fail": 0,
+        "notRun": 1
+      },
+      "command": "node --test tests/*.test.mjs",
+      "environment": {
+        "RUN_PROVIDER_INTEGRATION": "1",
+        "RUN_MAC_DEPENDENCY_INTEGRATION": "1",
+        "RUN_MAC_MOUNT_INTEGRATION": "1"
+      },
+      "log": "final-unit.txt",
+      "note": "One Node SKIP is classified separately as NOT_RUN; other rows may overlap this suite."
+    },
+    {
+      "item": "other-platform-refusal-case",
+      "status": "NOT_RUN",
+      "reason": "Requires a non-macOS platform",
+      "log": "final-unit.txt"
+    },
+    {
+      "item": "existing-security-recovery-integrations",
+      "status": "PASS",
+      "counts": {
+        "commands": 9,
+        "failed": 0
+      },
+      "log": "integration-summary.txt",
+      "command": "Existing tests/codex-boundary, provider-boundary, codex-cancel, local, recovery, diff-reviewability, approved-inheritance, sandbox-check, pause .integration.mjs"
+    },
+    {
+      "item": "mounted-volume-and-symlink-preflight",
+      "status": "PASS",
+      "command": "RUN_MAC_DEPENDENCY_INTEGRATION=1 RUN_MAC_MOUNT_INTEGRATION=1 node --test tests/mac-dependency.test.mjs",
+      "log": "final-mount-regression.txt"
+    },
+    {
+      "item": "runtime-outside-image-mount-broker",
+      "status": "PASS",
+      "command": "codex sandbox -p ai-dev-workspace-posix -P workspace-locked -C <fixture> -- /bin/sh -c <outside-image-read-and-hdiutil-attach>",
+      "log": "runtime-mount-attack.txt",
+      "evidence": "Outside image read denied; hdiutil attach exit 1; no synthetic canary disclosed; no mount created"
+    },
+    {
+      "item": "worker-SIGKILL-descendants-and-reviewed-resume",
+      "status": "PASS",
+      "command": "node tests/worker-kill.integration.mjs; node tests/resume-killed.integration.mjs <recorded-db>",
+      "log": "worker-crash-and-resume.txt",
+      "evidence": "Children survive Worker-only SIGKILL; restart reaps them; partial diff and same worktree preserved; unreviewed resume rejected; reviewed attempt 2 awaits approval"
+    },
+    {
+      "item": "stable-process-identity-and-invalid-checkpoint",
+      "status": "PASS",
+      "command": "node tests/wsl-orphan.integration.mjs",
+      "log": "orphan-security.txt"
+    },
+    {
+      "item": "final-process-helper-core-regression",
+      "status": "PASS",
+      "counts": {
+        "pass": 19,
+        "fail": 0
+      },
+      "command": "node --test tests/core.test.mjs",
+      "log": "core-final.txt",
+      "note": "Overlaps the full suite; do not sum counts"
+    },
+    {
+      "item": "frontend-typecheck-lint-jest",
+      "status": "PASS",
+      "counts": {
+        "suites": 127,
+        "tests": 1625,
+        "fail": 0
+      },
+      "command": "npm run typecheck; npm run lint; npm run test -- --ci --runInBand",
+      "log": "fe-final-checks.txt"
+    },
+    {
+      "item": "design-lab-typecheck-repeated-build-lint",
+      "status": "PASS",
+      "command": "npm run typecheck:lab; npm run build --prefix design-lab (twice); npm run lint",
+      "log": "lab-final-checks.txt"
+    },
+    {
+      "item": "design-lab-linked-output-rejection",
+      "status": "PASS",
+      "command": "Existing runCommand sandbox executes npm run build --prefix design-lab with in-project dist link, then restored normal output",
+      "log": "lab-output-link-attack.txt"
+    },
+    {
+      "item": "design-lab-standard-dev-render",
+      "status": "PASS",
+      "command": "codex sandbox -p ai-dev-workspace-posix-lab -P workspace-lab -C <FE> -- <pinned-node> <pinned-npm-cli> run dev --prefix design-lab -- --host 127.0.0.1 --port 14173 --strictPort",
+      "log": "final-design-lab-runtime.txt",
+      "screenshot": "screenshots/design-lab-390.png"
+    },
+    {
+      "item": "existing-workspace-expo-studio-capture",
+      "status": "PASS",
+      "command": "node tests/design.capture.mjs",
+      "log": "final-design-capture.txt",
+      "viewports": [
+        375,
+        390,
+        402,
+        430
+      ],
+      "states": [
+        "many-375",
+        "long-375"
+      ],
+      "maximumOverflowPx": 0,
+      "approvalJsonChanged": false
+    },
+    {
+      "item": "unowned-loopback-lab-rejection",
+      "status": "PASS",
+      "command": "node tests/design-lab-boundary.integration.mjs",
+      "log": "final-design-boundaries.txt"
+    },
+    {
+      "item": "structure-schema-parity",
+      "status": "NOT_RUN",
+      "command": "node tests/design-schema-parity.integration.mjs",
+      "log": "final-design-boundaries.txt",
+      "reason": "Fetched main lacks home.hero.structure from a separately approved structural FE branch"
+    },
+    {
+      "item": "persistent-latest-main-binding",
+      "status": "PASS",
+      "command": "Without WORKSPACE_* process overrides: settings(); repository(); repoStatus() in both Workspace checkouts",
+      "log": "frontend-main-binding.json",
+      "evidence": "Main is ancestor of candidate; app/src/expo-lab and Studio approval JSON match fetched main"
+    },
+    {
+      "item": "JDK-Gradle-Wrapper-Maven-material-integrity",
+      "status": "PASS",
+      "command": "verifyMacGradleMaterials(<reviewed-fixture>); codesign --verify --strict <pinned-java>",
+      "log": "gradle-material-final.txt",
+      "supportingLogs": [
+        "tool-provenance.json",
+        "tool-download.txt",
+        "maven-provenance.json",
+        "jdk-signature.txt",
+        "gradle-material-security.txt"
+      ],
+      "note": "Materials validation only; no successful Gradle dependency resolution or BE test"
+    },
+    {
+      "item": "macOS-Gradle-dependency-preparation",
+      "status": "BLOCKED",
+      "command": "prepareMacDependency(<fresh-reviewed-fixture>, existing-BE-Gradle-setup)",
+      "log": "gradle-final-block.txt",
+      "reason": "Gradle lock listener requires a UDP socket denied by network=false; no successful marker or host fallback"
+    },
+    {
+      "item": "actual-BE-Gradle-policy",
+      "status": "BLOCKED",
+      "command": "verifyMacGradleMaterials(<actual-BE>) against audited input inventory",
+      "log": "be-gradle-current-block.txt",
+      "reason": "Wrapper lacks distributionSha256Sum and complete reviewed dependency metadata is unavailable"
+    },
+    {
+      "item": "BE-normal-build-and-malicious-build-script-runtime",
+      "status": "NOT_RUN",
+      "reason": "Dependency preparation remains blocked"
+    },
+    {
+      "item": "Windows-rerun-native-physical-device-and-24hour-operations",
+      "status": "NOT_RUN",
+      "reason": "Outside verified Mac web scenarios; not substituted by historical Windows or synthetic capture results"
+    }
+  ],
+  "remainingReleaseBlockers": [
+    "Safe Gradle lock/test-worker IPC under the existing network restrictions",
+    "Reviewed full Momentory BE Wrapper/build/plugin/artifact policy and successful benign/malicious runtime checks",
+    "Remaining native/device/long-duration release conditions"
+  ],
+  "security": {
+    "networkRestrictionsRelaxed": false,
+    "unrestrictedGradleFallbackUsed": false,
+    "mainDevMerged": false,
+    "productionDeployed": false,
+    "designAutoApproved": false,
+    "credentialsCommitted": false
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "ok": false,
+  "code": 1,
+  "timedOut": false,
+  "output": "\nWelcome to Gradle 9.1.0!\n\nHere are the highlights of this release:\n - Full Java 25 support\n - Native task graph visualization\n - Enhanced console output\n\nFor more details see https://docs.gradle.org/9.1.0/release-notes.html\n\nTo honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nDaemon will be stopped at the end of the build \n\nFAILURE: Build completed with 2 failures.\n\n1: Task failed with an exception.\n-----------\n* What went wrong:\nConfiguring project ':' without an existing directory is not allowed. The configured projectDirectory '/work' does not exist, can't be written to or is not a directory.\n\n* Try:\n> Make sure the project directory exists and is writable.\n> Run with --scan to generate a Build Scan (Powered by Develocity).\n==============================================================================\n\n2: Task failed with an exception.\n-----------\n* What went wrong:\njava.lang.IllegalArgumentException: Could not create problems-report directory '/work/build/reports/problems'\n\n* Try:\n> Run with --stacktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to generate a Build Scan (Powered by Develocity).\n> Get more help at https://help.gradle.org.\n==============================================================================\n\nBUILD FAILED in 2s\n",
+  "isolation": {
+    "id": "91f4b7832c7659be23119017be75de14304c4ac7bedfe819e2b43e2fa12ff763",
+    "network": "none",
+    "user": "65532:65532",
+    "readOnly": true,
+    "capabilities": [
+      "ALL"
+    ],
+    "security": [
+      "no-new-privileges=true"
+    ],
+    "mounts": [
+      {
+        "source": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/gradle-runs/momentory-gradle-af0a410f-bf61-431f-bb0c-8737b400cc61/denied-file",
+        "target": "/work/.env.canary",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/gradle-runs/momentory-gradle-af0a410f-bf61-431f-bb0c-8737b400cc61/denied-directory",
+        "target": "/work/.git",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/gradle-runs/momentory-gradle-af0a410f-bf61-431f-bb0c-8737b400cc61/denied-file",
+        "target": "/work/canary.pem",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/t7-g/container-fixture",
+        "target": "/work",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/.local/share/momentory-t7-g/tools/jdk-21.0.13+9",
+        "target": "/trusted/jdk",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/.local/share/momentory-t7-mac-followup/tools/gradle-9.1.0",
+        "target": "/trusted/gradle",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/.local/share/momentory-t7-g/tools/maven-fixture",
+        "target": "/trusted/maven",
+        "writable": false
+      },
+      {
+        "source": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup/data/gradle-runs/momentory-gradle-af0a410f-bf61-431f-bb0c-8737b400cc61/repositories.init.gradle",
+        "target": "/trusted/init.gradle",
+        "writable": false
+      }
+    ]
+  }
+}

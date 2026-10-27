@@ -1,0 +1,202 @@
+{
+  "checkedAt": "2026-10-26T15:36:27.381Z",
+  "t7G": "PARTIAL",
+  "workspaceRelease": "NOT_READY",
+  "host": "macOS 26.6.2 arm64",
+  "guest": "existing Colima VZ Linux arm64 VM",
+  "source": {
+    "workspaceBase": "5372d41c9e74048a9ebc0a8f7e06d11c8c25c52a",
+    "workspaceBranch": "workspace/t7-g-secure-gradle",
+    "workspaceCommit": "the commit containing this evidence",
+    "beBase": "ca3bc87f9d679ea6edd37fffa5e5390e307952b8",
+    "beBranch": "workspace/t7-g-gradle-checksums",
+    "beCommit": "b2be605ecacc2fc2fe1427b7f6437ccabb534e78"
+  },
+  "options": [
+    {
+      "option": "A",
+      "status": "FAIL",
+      "scope": "strict project-local IPC isolation",
+      "reason": "Experimental local-binding profile also reached an unrelated active host loopback service",
+      "productionApplied": false,
+      "log": "native-unrelated-loopback.txt"
+    },
+    {
+      "option": "B",
+      "status": "PASS",
+      "scope": "controlled fixture isolation and recovery in network-none container",
+      "log": "final-gradle-regression.txt"
+    },
+    {
+      "option": "C",
+      "status": "BLOCKED",
+      "scope": "required fallback when runtime/approval/cleanup prerequisites are absent",
+      "unrestrictedFallback": false
+    }
+  ],
+  "tests": [
+    {
+      "item": "existing automatic tests plus opt-ins",
+      "status": "PASS",
+      "pass": 38,
+      "fail": 0,
+      "notRun": 1,
+      "command": "node --test tests/*.test.mjs",
+      "log": "final-unit.txt"
+    },
+    {
+      "item": "other-OS refusal case",
+      "status": "NOT_RUN",
+      "reason": "This host is macOS",
+      "log": "final-unit.txt"
+    },
+    {
+      "item": "focused Gradle/npm/mount regression",
+      "status": "PASS",
+      "pass": 10,
+      "fail": 0,
+      "notRun": 1,
+      "command": "node --test tests/mac-dependency.test.mjs",
+      "log": "final-gradle-regression.txt",
+      "overlapsFullSuite": true
+    },
+    {
+      "item": "actual Test Worker, Worker API and malicious Gradle fixture",
+      "status": "PASS",
+      "javaTests": 5,
+      "log": "container-fixture-check.txt"
+    },
+    {
+      "item": "external IPv4/IPv6 TCP/UDP, active host loopback, secrets and file writes denied",
+      "status": "PASS",
+      "log": "final-gradle-regression.txt"
+    },
+    {
+      "item": "oversize source, metadata/artifact/origin/cache/marker tamper and wrong ownership rejected",
+      "status": "PASS",
+      "log": "final-gradle-regression.txt"
+    },
+    {
+      "item": "cancel, timeout and fresh recovery",
+      "status": "PASS",
+      "log": "final-gradle-regression.txt"
+    },
+    {
+      "item": "real Worker-only SIGKILL, guest descendants, restart cleanup and reviewed resume",
+      "status": "PASS",
+      "commands": [
+        "node tests/worker-kill.integration.mjs",
+        "node tests/resume-killed.integration.mjs <printed-db>"
+      ],
+      "logs": [
+        "worker-gradle-kill.txt",
+        "worker-gradle-resume.txt"
+      ]
+    },
+    {
+      "item": "existing security/recovery integrations",
+      "status": "PASS",
+      "commands": 10,
+      "log": "integration-summary.json"
+    },
+    {
+      "item": "native AI profiles preserved",
+      "status": "PASS",
+      "log": "ai-profile-preservation.json"
+    },
+    {
+      "item": "BE official Wrapper checksum candidate",
+      "status": "PASS",
+      "log": "be-wrapper-review.json"
+    },
+    {
+      "item": "actual BE offline metadata discovery",
+      "status": "PASS",
+      "scope": "quarantined discovery only; not trusted dependency preparation",
+      "artifacts": 626,
+      "approvalIssued": false,
+      "log": "be-metadata-review.json"
+    },
+    {
+      "item": "actual BE trusted dependency preparation and acceptance",
+      "status": "BLOCKED",
+      "reason": "No independently approved 626-artifact baseline; generated metadata remains unapproved",
+      "diagnosticCheck": {
+        "exitCode": 0,
+        "passed": 266,
+        "failed": 0,
+        "notRun": 237
+      },
+      "logs": [
+        "be-check-UNAPPROVED.json",
+        "be-test-summary.UNAPPROVED.json"
+      ]
+    },
+    {
+      "item": "actual BE adversarial build in disposable review clone",
+      "status": "PASS",
+      "scope": "sandbox denials only, not dependency approval",
+      "deniedAttacks": 11,
+      "approvalIssued": false,
+      "log": "be-malicious-review.json"
+    },
+    {
+      "item": "BE Docker integration conditions",
+      "status": "NOT_RUN",
+      "count": 234,
+      "reason": "Existing disabledWithoutDocker condition; control socket intentionally not exposed"
+    },
+    {
+      "item": "BE real-service conditions",
+      "status": "NOT_RUN",
+      "count": 2,
+      "reason": "Existing credential/environment condition"
+    },
+    {
+      "item": "BE challenge-data condition",
+      "status": "NOT_RUN",
+      "count": 1,
+      "reason": "Existing assumeTrue; approved challenge file absent"
+    },
+    {
+      "item": "native macOS Gradle production execution",
+      "status": "BLOCKED",
+      "reason": "Option A was rejected; accepted execution is inside the existing VM"
+    },
+    {
+      "item": "FE/Lab rebuild, Windows rerun, physical/native devices and 24-hour operations",
+      "status": "NOT_RUN",
+      "reason": "Outside T7-G; no new PASS inferred from prior results"
+    }
+  ],
+  "dependencyReview": {
+    "status": "BLOCKED_PENDING_APPROVAL",
+    "quarantineFiles": 756,
+    "usedFiles": 626,
+    "unusedNotApproved": 130,
+    "publishedStrongChecksumMatches": 282,
+    "currentCentralBytesMatches": 343,
+    "currentPluginPortalBytesMatches": 1,
+    "unexplainedMismatches": 0,
+    "approvalIssued": false,
+    "markerIssuedForBE": false,
+    "verificationXmlAppliedToBE": false
+  },
+  "security": {
+    "hostGradleExecuted": false,
+    "productNetworkBoundaryRelaxed": false,
+    "dockerSocketExposed": false,
+    "hostSourceWritable": false,
+    "credentialsCommitted": false,
+    "unrestrictedFallback": false,
+    "mainDevMerged": false,
+    "pushed": false,
+    "deployed": false
+  },
+  "remainingBlockers": [
+    "Review and approve the exact BE artifact/source/hash baseline and canonical verification metadata",
+    "Build an immutable approved-only BE repository and execute normal v2 preparation/checks",
+    "Complete the 237 existing DB/real-service/challenge conditions using approved isolation and inputs",
+    "Other Workspace device and long-duration release requirements remain open"
+  ]
+}

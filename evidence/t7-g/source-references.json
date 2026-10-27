@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Gradle file-lock UDP",
+    "url": "https://github.com/gradle/gradle/blob/v9.1.0/platforms/core-execution/persistent-cache/src/main/java/org/gradle/cache/internal/locklistener/DefaultFileLockCommunicator.java"
+  },
+  {
+    "title": "Gradle wildcard/local addresses",
+    "url": "https://github.com/gradle/gradle/blob/v9.1.0/platforms/core-runtime/messaging/src/main/java/org/gradle/internal/remote/internal/inet/InetAddressFactory.java"
+  },
+  {
+    "title": "Gradle TCP connector",
+    "url": "https://github.com/gradle/gradle/blob/v9.1.0/platforms/core-runtime/messaging/src/main/java/org/gradle/internal/remote/internal/inet/TcpIncomingConnector.java"
+  },
+  {
+    "title": "Gradle TestWorker",
+    "url": "https://github.com/gradle/gradle/blob/v9.1.0/platforms/software/testing-base-infrastructure/src/main/java/org/gradle/api/internal/tasks/testing/worker/TestWorker.java"
+  },
+  {
+    "title": "Gradle verification",
+    "url": "https://docs.gradle.org/current/userguide/dependency_verification.html"
+  },
+  {
+    "title": "Docker none networking",
+    "url": "https://docs.docker.com/engine/network/drivers/none/"
+  },
+  {
+    "title": "Codex permission profiles",
+    "url": "https://learn.chatgpt.com/docs/permissions"
+  },
+  {
+    "title": "Installed Codex source tag",
+    "url": "https://github.com/openai/codex/blob/rust-v0.163.0/codex-rs/sandboxing/src/seatbelt.rs"
+  }
+]

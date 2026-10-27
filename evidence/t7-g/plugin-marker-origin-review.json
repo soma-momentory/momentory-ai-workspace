@@ -1,0 +1,60 @@
+{
+  "cachedSha256": "5ef480aa5ef561b8a4d0e338fdd5a81fab8d14d42422581ad4ad403165b02d24",
+  "centralSha256": "c8ab823fd7e3ea54b34093a2467d8f092a61402b81a0e70999f6e62cbd5cad01",
+  "approvalIssued": false,
+  "sources": [
+    {
+      "suffix": "",
+      "chain": [
+        {
+          "url": "https://plugins.gradle.org/m2/org/springframework/boot/org.springframework.boot.gradle.plugin/4.1.0/org.springframework.boot.gradle.plugin-4.1.0.pom",
+          "status": 200
+        }
+      ],
+      "sha256": "5ef480aa5ef561b8a4d0e338fdd5a81fab8d14d42422581ad4ad403165b02d24",
+      "bytes": 680
+    },
+    {
+      "suffix": ".sha256",
+      "chain": [
+        {
+          "url": "https://plugins.gradle.org/m2/org/springframework/boot/org.springframework.boot.gradle.plugin/4.1.0/org.springframework.boot.gradle.plugin-4.1.0.pom.sha256",
+          "status": 303,
+          "location": "https://repo.maven.apache.org/maven2/org/springframework/boot/org.springframework.boot.gradle.plugin/4.1.0/org.springframework.boot.gradle.plugin-4.1.0.pom.sha256"
+        },
+        {
+          "url": "https://repo.maven.apache.org/maven2/org/springframework/boot/org.springframework.boot.gradle.plugin/4.1.0/org.springframework.boot.gradle.plugin-4.1.0.pom.sha256",
+          "status": 404
+        }
+      ],
+      "sha256": "e791ccfcfee9c0d299d07474d9bfcbfcbebf1181323be601220c8a823062ab99",
+      "bytes": 554
+    },
+    {
+      "suffix": ".sha512",
+      "chain": [
+        {
+          "url": "https://plugins.gradle.org/m2/org/springframework/boot/org.springframework.boot.gradle.plugin/4.1.0/org.springframework.boot.gradle.plugin-4.1.0.pom.sha512",
+          "status": 303,
+          "location": "https://repo.maven.apache.org/maven2/org/springframework/boot/org.springframework.boot.gradle.plugin/4.1.0/org.springframework.boot.gradle.plugin-4.1.0.pom.sha512"
+        },
+        {
+          "url": "https://repo.maven.apache.org/maven2/org/springframework/boot/org.springframework.boot.gradle.plugin/4.1.0/org.springframework.boot.gradle.plugin-4.1.0.pom.sha512",
+          "status": 404
+        }
+      ],
+      "sha256": "e791ccfcfee9c0d299d07474d9bfcbfcbebf1181323be601220c8a823062ab99",
+      "bytes": 554
+    }
+  ],
+  "finding": "DIFFERENT_OFFICIAL_ORIGIN_VARIANTS",
+  "cachedBytesMatchOfficialPluginPortal": true,
+  "samePluginDependency": [
+    [
+      "org.springframework.boot",
+      "spring-boot-gradle-plugin",
+      "4.1.0"
+    ]
+  ],
+  "automaticApproval": false
+}
