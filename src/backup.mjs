@@ -5,6 +5,7 @@ import {createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID} f
 import {DatabaseSync} from 'node:sqlite';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {root,assertNoInterruptedRestore,screenshotDirectory} from './config.mjs';
+import {acquireDatabaseLock} from './databaseLock.mjs';
 
 const format=1;
 const schema=1;
@@ -134,6 +135,24 @@ export function verifyBackup(file,options={}){
 export function restoreBackup(file,options={}){
   const {dbFile,projectsFile,envFile,screenshotsDir}=locations(options);
   if(!projectsFile||!envFile||!screenshotsDir)throw new Error('Custom database requires WORKSPACE_PROJECTS_FILE, WORKSPACE_BACKUP_ENV_FILE and WORKSPACE_SCREENSHOTS_DIR');
+  const releaseDatabase=acquireDatabaseLock(dbFile);
+  try{return restoreStoppedDatabase(file,options,{dbFile,projectsFile,envFile,screenshotsDir});}
+  finally{releaseDatabase();}
+}
+function invalidateRestoredSessions(file){
+  const db=new DatabaseSync(file);
+  try{
+    // Stage-only connection: checkpoint session removal into the main DB file
+    // before it can be renamed into place. Older backups may lack this table.
+    db.exec('PRAGMA journal_mode=DELETE; BEGIN IMMEDIATE');
+    if(db.prepare("SELECT 1 FROM sqlite_master WHERE name='browser_sessions'").get()){
+      db.exec('DELETE FROM browser_sessions');
+      if(db.prepare('SELECT count(*) AS n FROM browser_sessions').get().n!==0)throw new Error('Restored browser sessions could not be invalidated');
+    }
+    db.exec('COMMIT');
+  }finally{db.close();}
+}
+function restoreStoppedDatabase(file,options,{dbFile,projectsFile,envFile,screenshotsDir}){
   assertNoInterruptedRestore([dbFile,projectsFile,envFile,screenshotsDir]);
   const data=decrypt(file,options.key||process.env.WORKSPACE_BACKUP_KEY);
   const id=randomUUID(), staged=[],replaced=[],installed=[];
@@ -144,6 +163,7 @@ export function restoreBackup(file,options={}){
     fs.mkdirSync(path.dirname(dbFile),{recursive:true});
     staged.push([dbStage,dbFile]);writeStage(dbStage,data.database);
     metadata=inspectDatabase(dbStage);
+    invalidateRestoredSessions(dbStage);
     for(const name of metadata.screenshotRefs)if(!data.screenshots[name])throw new Error(`Referenced screenshot missing from backup: ${name}`);
     for(const row of metadata.worktrees){
       const worktree=row.worktree,expected=path.join(root,'worktrees',row.project_id,row.id);

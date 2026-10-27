@@ -33,7 +33,9 @@ fs.writeFileSync(projectFile,JSON.stringify({projects:[{id:'release',name:'Relea
 const browser=await chromium.launch({headless:true});
 try{
   start();await ready();
-  const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});await page.goto(base);
+  const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
+  page.on('dialog',dialog=>dialog.type()==='confirm'?dialog.accept():dialog.dismiss());
+  await page.goto(base);
   await page.locator('#token').fill(token);await page.locator('#login-form button').click();
   await page.locator('#project option[value="release"]').waitFor({state:'attached'});
   assert.equal(await page.locator('#project').inputValue(),'release');
@@ -73,9 +75,14 @@ try{
   const corrupted=new Store(db);corrupted.patch(taskId,{status:'FAILED'},'injected_post_backup_change');corrupted.close();
   assert.equal(restoreBackup(saved.file,backupOptions).tasks,1);
   start();await ready();
-  assert.equal((await detail(taskId,cookieHeader)).task.status,'APPROVED');
+  assert.equal((await fetch(base+'/api/session',{headers:{Cookie:cookieHeader,Origin:base}})).status,401,'Restore must invalidate existing browser cookies');
+  await page.goto(base);await page.locator('#token').fill(token);await page.locator('#login-form button').click();
+  await page.locator('#project option[value="release"]').waitFor({state:'attached'});
+  const newCookie=(await page.context().cookies()).find(item=>item.name==='workspace_session');assert.ok(newCookie);
+  assert.notEqual(newCookie.value,cookie.value);
+  assert.equal((await detail(taskId,`workspace_session=${newCookie.value}`)).task.status,'APPROVED');
   passed=true;
-  console.log(JSON.stringify({status:'PASS',taskId,provider:'codex',checks:outcome.task.verification.checks.map(item=>({command:item.command,ok:item.ok})),events:restored.events.length,mobileWidth:dimensions.width,historyAfterRestart:true,backupRestored:true,project:repo},null,2));
+  console.log(JSON.stringify({status:'PASS',taskId,provider:'codex',checks:outcome.task.verification.checks.map(item=>({command:item.command,ok:item.ok})),events:restored.events.length,mobileWidth:dimensions.width,historyAfterRestart:true,backupRestored:true,oldCookieRejectedAfterRestore:true,freshLoginAfterRestore:true,project:repo},null,2));
 }finally{
   await stop();await browser.close();
   if(passed&&taskWorktree){

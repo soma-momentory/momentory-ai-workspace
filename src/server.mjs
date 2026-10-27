@@ -12,8 +12,11 @@ import { repoStatus, createWorktree, inheritApproved, sealTaskBaseline, diffSumm
 import { activeWslCodexForWorktree, reapStaleWslCodex } from './wslCodex.mjs';
 import {approvedIgnoredMounts} from './wslChecks.mjs';
 import {redact} from './provider.mjs';
+import {acquireDatabaseLock} from './databaseLock.mjs';
 
 const config=settings();
+const releaseDatabase=acquireDatabaseLock(process.env.WORKSPACE_DATA_FILE||path.join(root,'data','workspace.sqlite'));
+process.once('exit',releaseDatabase);
 const store=new Store();
 const publicDir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../public');
 const safeEqual=(a,b)=>{const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length && timingSafeEqual(x,y);};
@@ -335,7 +338,7 @@ async function handle(req,res) {
 setInterval(()=>store.recoverExpired(),5000).unref();
 const server=http.createServer((req,res)=>handle(req,res).catch(error=>send(res,400,{error:redact(String(error.message||error))})));
 server.listen(config.port,config.host,()=>{console.log(`AI Development Workspace http://${config.host}:${config.port}`);for(const id of store.pendingCaptures())queueCapture(id);});
-function shutdown(){server.closeAllConnections();server.close(()=>{store.close();process.disconnect?.();});}
+function shutdown(){server.closeAllConnections();server.close(()=>{store.close();releaseDatabase();process.disconnect?.();});}
 process.on('SIGINT',shutdown);
 process.on('SIGTERM',shutdown);
 process.on('message',message=>{if(message==='stop')shutdown();});
