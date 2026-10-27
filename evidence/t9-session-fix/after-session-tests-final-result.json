@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+    "--test",
+    "tests/session-restore.test.mjs"
+  ],
+  "baseCommit": "ee1d498beb65cf71a0a3d2c6246e49fb69dea571",
+  "startedAt": "2026-10-27T15:33:25.286316+00:00",
+  "endedAt": "2026-10-27T15:33:26.872490+00:00",
+  "exitCode": 0
+}

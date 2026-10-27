@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+    "--test",
+    "tests/session-restore.test.mjs"
+  ],
+  "commit": "d0c9b00d2068b6435352362a0376ffa372a12a91",
+  "platform": "darwin arm64",
+  "startedAt": "2026-10-27T15:43:39.313664+00:00",
+  "endedAt": "2026-10-27T15:43:41.103766+00:00",
+  "exitCode": 0,
+  "realUserAccountsUsed": false,
+  "protectedPortsUsed": false
+}

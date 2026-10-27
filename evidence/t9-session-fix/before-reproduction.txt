@@ -1,0 +1,36 @@
+TAP version 13
+# (node:30364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: restored backups never reactivate revoked or previously active browser cookies
+not ok 1 - restored backups never reactivate revoked or previously active browser cookies
+  ---
+  duration_ms: 289.269708
+  type: 'test'
+  location: '/Users/kjh/Momentory/momentory-ai-workspace-t9-session-fix/tests/session-restore.test.mjs:56:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Revoked cookie was reactivated by restoring a pre-logout backup
+
+    200 !== 401
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 401
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjh/Momentory/momentory-ai-workspace-t9-session-fix/tests/session-restore.test.mjs:67:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"phase":"after-restore","expected":{"revoked":401,"active":401},"actual":{"revoked":200,"active":200}}
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 329.833875

@@ -1,0 +1,62 @@
+TAP version 13
+# (node:34100) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: restored backups never reactivate revoked or previously active browser cookies
+ok 1 - restored backups never reactivate revoked or previously active browser cookies
+  ---
+  duration_ms: 361.066875
+  type: 'test'
+  ...
+# {"phase":"after-restore","expected":{"revoked":401,"active":401},"actual":{"revoked":401,"active":401}}
+# PASS: logout, graceful/SIGKILL restart, all-session invalidation, two restores, fresh login, expiry, credentials and history
+# Subtest: session invalidation is complete in the staged database before live installation
+ok 2 - session invalidation is complete in the staged database before live installation
+  ---
+  duration_ms: 71.992375
+  type: 'test'
+  ...
+# Subtest: corruption, staging and replacement failures preserve the current DB and authentication
+ok 3 - corruption, staging and replacement failures preserve the current DB and authentication
+  ---
+  duration_ms: 387.916042
+  type: 'test'
+  ...
+# Subtest: explicit credential restoration also requires fresh browser logins
+ok 4 - explicit credential restoration also requires fresh browser logins
+  ---
+  duration_ms: 133.123542
+  type: 'test'
+  ...
+# Subtest: live servers exclude restore while concurrent requests retain the current state
+ok 5 - live servers exclude restore while concurrent requests retain the current state
+  ---
+  duration_ms: 191.288792
+  type: 'test'
+  ...
+# Subtest: restore excludes server startup and a second restore before any staging file exists
+ok 6 - restore excludes server startup and a second restore before any staging file exists
+  ---
+  duration_ms: 332.089584
+  type: 'test'
+  ...
+# Subtest: legacy uncompressed backups without a session table migrate to empty sessions
+ok 7 - legacy uncompressed backups without a session table migrate to empty sessions
+  ---
+  duration_ms: 72.953292
+  type: 'test'
+  ...
+# Subtest: killing a partially completed restore releases its lock but keeps startup fail closed
+ok 8 - killing a partially completed restore releases its lock but keeps startup fail closed
+  ---
+  duration_ms: 174.877584
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1757.924625

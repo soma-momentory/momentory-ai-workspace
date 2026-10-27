@@ -1,0 +1,72 @@
+{
+  "checkedAt": "2026-10-27T15:46:24.664286+00:00",
+  "baseCommit": "ee1d498beb65cf71a0a3d2c6246e49fb69dea571",
+  "productCommit": "30f8c5044df1bd76e6a4ac0571bfec1e94cb566b",
+  "macRetestCommit": "d0c9b00d2068b6435352362a0376ffa372a12a91",
+  "branch": "workspace/t9-session-restore-fix",
+  "host": {
+    "os": "26.6.2",
+    "arch": "arm64",
+    "node": "v22.23.2"
+  },
+  "result": {
+    "macSessionE2E": {
+      "PASS": 8,
+      "FAIL": 0
+    },
+    "macFullSuite": {
+      "PASS": 46,
+      "FAIL": 0,
+      "NOT_RUN": 5
+    },
+    "Windows": "NOT_RUN",
+    "T9-B-Mac": "FAIL retained pending independent cross-validation",
+    "WorkspaceRelease": "NOT READY"
+  },
+  "testEnvironment": {
+    "WORKSPACE_TEST_PLAYWRIGHT_PACKAGE_JSON": "/Users/kjh/Momentory/momentory-fe-t9-mac-validation/package.json",
+    "PLAYWRIGHT_BROWSERS_PATH": "/Users/kjh/.local/share/momentory-t9-mac/browsers",
+    "WORKSPACE_REPO_MOMENTORY_FE": "/Users/kjh/Momentory/momentory-fe-t9-mac-validation",
+    "WORKSPACE_REPO_SAMPLE_APP": "/Users/kjh/Momentory/momentory-ai-workspace-t9-session-fix/data/t9-session-fix/sample",
+    "RUN_PROVIDER_INTEGRATION": "UNSET"
+  },
+  "files": {
+    "src/backup.mjs": {
+      "sha256": "7e473dbe2f90c3ab59190956c484c87aecdd2c0cdbf13e5e538e9f3dd299f98c",
+      "sameAsCandidateCommit": true,
+      "baseSha256": "d5796b70b81c5a603c7a788392592f321db9ce2cf2ab7d39518d2848a7b92ec2"
+    },
+    "src/server.mjs": {
+      "sha256": "7a0f1f411d1c434459e71ea3de0fd9436d5a3fc00a36e5d7ea62d6724c351fff",
+      "sameAsCandidateCommit": true,
+      "baseSha256": "99e585a06b9af6ec59d0ce16ac5ccd13be821abdf6468a2ff0ae0168f303de26"
+    },
+    "src/databaseLock.mjs": {
+      "sha256": "40c3c6d76860cc3f797ea39a7a5c289b158f286d0fb8deec79df882b2b0ee99e",
+      "sameAsCandidateCommit": true,
+      "baseSha256": null
+    },
+    "src/store.mjs": {
+      "sha256": "89ba4ae0abbc5849c528feacbad4d6ac917955aac23766a6b727b4966ce6705a",
+      "sameAsCandidateCommit": true,
+      "baseSha256": "89ba4ae0abbc5849c528feacbad4d6ac917955aac23766a6b727b4966ce6705a"
+    },
+    "tests/session-restore.test.mjs": {
+      "sha256": "66392e1153ad0f78004dbd50f2596f10e7590827d9f1cd533ec01d36aa3dfa08",
+      "sameAsCandidateCommit": true,
+      "baseSha256": null
+    },
+    "tests/windows-release.integration.mjs": {
+      "sha256": "6bb498fc64f7442f3cad5e0bfff9794f865699ac1a93d31f1d325ec062385ef1",
+      "sameAsCandidateCommit": true,
+      "baseSha256": "f02b809910713bd3ca2546cf9cf03fdfff3e95120ae0d49186c26a2923bb6d05"
+    },
+    "OPERATIONS.md": {
+      "sha256": "0a9e075ceb84fc14019f1496b2697fdab58ed2faca1df9f147e3c06f54135d53",
+      "sameAsCandidateCommit": true,
+      "baseSha256": "4a93cfd4d9c72a72f1bce4530d2113bbd2463e6f26b5a170f8958924f1a6495e"
+    }
+  },
+  "realUserAccountsUsed": false,
+  "archivedPrivateFilesIncluded": false
+}

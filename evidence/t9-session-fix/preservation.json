@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-10-27T15:43:40.669493+00:00",
+  "preservedCheckouts": {
+    "workspaceMain": {
+      "path": "/Users/kjh/Momentory/momentory-ai-workspace",
+      "head": "10d835a744734a0a9ed83c2956fde863887bc473",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "t9MacValidation": {
+      "path": "/Users/kjh/Momentory/momentory-ai-workspace-t9-mac",
+      "head": "74a6b91c66b8fa4f058dc80d091c62004c0cdb61",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "t7": {
+      "path": "/Users/kjh/Momentory/momentory-ai-workspace-t7-followup",
+      "head": "b039c9deff18934c211182a7c23d7ac2bf9d4e5b",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "feOriginal": {
+      "path": "/Users/kjh/Momentory/momentory-fe",
+      "head": "4c80a947d42bf0ae90756c40801d21dfff67cc3c",
+      "statusSha256": "4a31f86bce7314710021e7254e87c6f068321cb558e0c5b05898b9d61293cc0d"
+    },
+    "feReadOnlyTestPackage": {
+      "path": "/Users/kjh/Momentory/momentory-fe-t9-mac-validation",
+      "head": "711f4e31f023320b469cffc7513b13e0aaa6badc",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "beOriginal": {
+      "path": "/Users/kjh/Momentory/momentory-be",
+      "head": "ca3bc87f9d679ea6edd37fffa5e5390e307952b8",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "beCandidate": {
+      "path": "/Users/kjh/Momentory/momentory-be-security-update",
+      "head": "d160c65f1142d3ec5c17ef82de5f97d44e8b992b",
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "macProtectedPorts": {
+    "ports": [
+      4178,
+      4195
+    ],
+    "initialListenerProbeExitCode": 1,
+    "finalListenerProbeExitCode": 1,
+    "finalListeners": []
+  },
+  "windowsProtectedPorts": "NOT_RUN: no Windows execution environment",
+  "pendingInventorySha256": "6f9c701cab947ad243c444c27b7a976cd998c0c861815557c384ca52515e56d0",
+  "pendingInventoryUnchanged": true
+}

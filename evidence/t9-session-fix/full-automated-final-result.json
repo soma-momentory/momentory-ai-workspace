@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Users/kjh/.local/share/fnm/node-versions/v22.23.2/installation/bin/node",
+    "--test",
+    "tests/backup.test.mjs",
+    "tests/core.test.mjs",
+    "tests/http.test.mjs",
+    "tests/mac-dependency.test.mjs",
+    "tests/mobile.test.mjs",
+    "tests/providers.integration.test.mjs",
+    "tests/security.test.mjs",
+    "tests/session-restore.test.mjs",
+    "tests/storage-failure.test.mjs",
+    "tests/t8b.test.mjs",
+    "tests/t8c.test.mjs"
+  ],
+  "baseCommit": "ee1d498beb65cf71a0a3d2c6246e49fb69dea571",
+  "platform": "darwin arm64",
+  "startedAt": "2026-10-27T15:36:52.600617+00:00",
+  "endedAt": "2026-10-27T15:36:57.925200+00:00",
+  "exitCode": 0,
+  "realProviderAccountsUsed": false,
+  "sampleFixture": "/Users/kjh/Momentory/momentory-ai-workspace-t9-session-fix/data/t9-session-fix/sample"
+}

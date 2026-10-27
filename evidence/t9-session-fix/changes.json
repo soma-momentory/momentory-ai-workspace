@@ -1,0 +1,25 @@
+{
+  "baseCommit": "ee1d498beb65cf71a0a3d2c6246e49fb69dea571",
+  "productCommit": "30f8c5044df1bd76e6a4ac0571bfec1e94cb566b",
+  "macRetestCommit": "d0c9b00d2068b6435352362a0376ffa372a12a91",
+  "files": [
+    "OPERATIONS.md",
+    "src/backup.mjs",
+    "src/databaseLock.mjs",
+    "src/server.mjs",
+    "tests/session-restore.test.mjs",
+    "tests/windows-release.integration.mjs"
+  ],
+  "sourceFilesUnchangedFromBase": [
+    "src/store.mjs",
+    "src/provider.mjs",
+    "src/macTrust.mjs",
+    "src/macGradle.mjs",
+    "profiles/",
+    "projects.json"
+  ],
+  "additionalEvidence": [
+    "T9_SESSION_RESTORE_FIX_REPORT.md",
+    "evidence/t9-session-fix/"
+  ]
+}

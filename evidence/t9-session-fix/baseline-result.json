@@ -1,0 +1,22 @@
+{
+  "productCommit": "ee1d498beb65cf71a0a3d2c6246e49fb69dea571",
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=restored backups never",
+    "tests/session-restore.test.mjs"
+  ],
+  "observedTAP": {
+    "PASS": 0,
+    "FAIL": 1
+  },
+  "afterRestoreObserved": {
+    "revoked": 200,
+    "active": 200
+  },
+  "expected": {
+    "revoked": 401,
+    "active": 401
+  },
+  "productCodeChangedAtReproduction": false
+}
