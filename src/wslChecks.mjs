@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
+import {gradleLockfiles,verifyGradleLocks,gradleLockPreflight} from './gradleLocks.mjs';
 import {spawn,spawnSync} from 'node:child_process';
 import {root} from './config.mjs';
 import {codexProfileName,verifyCodexProfile} from './codexProfile.mjs';
@@ -170,12 +171,19 @@ function cachedGradleExecutable(cwd,config){
   if(!fs.statSync(file).isFile()||fs.realpathSync(file)!==path.resolve(file))throw new Error('Invalid cached Gradle executable');
   return `${config.worktree}/.gradle/workspace-home/wrapper/dists/${files[0].replaceAll('\\','/')}`;
 }
-async function prepareWslGradle(cwd,step,signal){
-  if(step.ifMissing!=='.gradle/workspace-home'||JSON.stringify(step.command)!==JSON.stringify(['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']))throw new Error('Only the reviewed Gradle dependency setup is allowed');
-  const files=['build.gradle.kts','build.gradle','settings.gradle.kts','settings.gradle','gradle.properties','gradlew','gradle','buildSrc','build-logic'];
+const wslGradleFiles=['build.gradle.kts','build.gradle','settings.gradle.kts','settings.gradle','gradle.properties','gradlew','gradle','buildSrc','build-logic',...gradleLockfiles];
+export function reviewWslGradleLocks(cwd){
+  const files=wslGradleFiles;
   const status=spawnSync('git',['status','--porcelain','--untracked-files=all','--',...files],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
   const ignoredBuildInputs=spawnSync('git',['ls-files','--others','--ignored','--exclude-standard','--','gradle','buildSrc','build-logic'],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
   if(status.status!==0||ignoredBuildInputs.status!==0||status.stdout.trim()||ignoredBuildInputs.stdout.trim())throw new Error('Gradle build inputs or wrapper changed in the task worktree');
+  const tracked=spawnSync('git',['ls-files','-z','--',...gradleLockfiles],{cwd,encoding:'utf8',timeout:10000,windowsHide:true});
+  if(tracked.status!==0||JSON.stringify(tracked.stdout.split('\0').filter(Boolean).sort())!==JSON.stringify([...gradleLockfiles].sort()))throw new Error('Required Gradle lockfiles are not tracked at their root paths');
+  return verifyGradleLocks(cwd);
+}
+async function prepareWslGradle(cwd,step,signal){
+  if(step.ifMissing!=='.gradle/workspace-home'||JSON.stringify(step.command)!==JSON.stringify(['./gradlew','dependencies','--configuration','testRuntimeClasspath','--no-daemon']))throw new Error('Only the reviewed Gradle dependency setup is allowed');
+  const files=wslGradleFiles,lockHashes=reviewWslGradleLocks(cwd);
   const userHome=path.join(cwd,'.gradle','workspace-home');
   const initDir=path.join(userHome,'init.d');
   if(fs.existsSync(path.join(userHome,'init.gradle'))||fs.existsSync(path.join(userHome,'gradle.properties'))||fs.existsSync(initDir)&&fs.readdirSync(initDir).length)throw new Error('Unreviewed Gradle user-home script or properties');
@@ -188,7 +196,7 @@ async function prepareWslGradle(cwd,step,signal){
   const initScript=`gradle.projectsEvaluated {\n  gradle.rootProject.tasks.register('workspaceResolveDependencies') {\n    doLast {\n      gradle.rootProject.allprojects.each { project ->\n        ${JSON.stringify(configurations)}.each { name ->\n          def configuration = project.configurations.findByName(name)\n          if (configuration != null && configuration.canBeResolved) {\n            configuration.files.each { artifact -> if (!artifact.isFile()) throw new GradleException("Missing artifact: " + artifact) }\n          }\n        }\n      }\n    }\n  }\n}\n`;
   digest.update(wrapper).update(JSON.stringify(step.command)).update(initScript);const expected=digest.digest('hex');
   if(fs.existsSync(marker)&&fs.existsSync(path.join(cwd,step.ifMissing))){
-    try{if(JSON.parse(fs.readFileSync(marker,'utf8')).digest===expected)return {ok:true,output:'Previously prepared Gradle dependencies match the reviewed build files'};}catch{}
+    try{const record=JSON.parse(fs.readFileSync(marker,'utf8'));if(record.digest===expected&&gradleLockfiles.every(name=>record.lockSha256?.[name]===lockHashes[name]))return {ok:true,output:'Previously prepared Gradle dependencies match the reviewed build files'};}catch{}
     throw new Error('Existing Gradle cache cannot enter a network-enabled setup after build inputs changed; use a fresh isolated worktree');
   }
   if(fs.existsSync(userHome))throw new Error('Unreviewed Gradle cache exists before network-enabled setup');
@@ -201,10 +209,11 @@ async function prepareWslGradle(cwd,step,signal){
   await verifyWslSetupBoundary(cwd);
   const initPath=path.join(cwd,'.gradle','workspace-setup.init.gradle');
   fs.writeFileSync(initPath,initScript,{mode:0o600});
-  const sandbox=[config.binary,'sandbox','-p',codexProfileName('wsl-setup'),'-P','workspace-setup','-C',config.worktree,'--',...gradleEnvironment(config),'/bin/sh','-c',gradleShell,'gradlew','--init-script',`${config.worktree}/.gradle/workspace-setup.init.gradle`,'workspaceResolveDependencies','--no-daemon','--max-workers=2'];
+  const sandbox=[config.binary,'sandbox','-p',codexProfileName('wsl-setup'),'-P','workspace-setup','-C',config.worktree,'--',...gradleEnvironment(config),'/bin/sh','-c',`${gradleLockPreflight(lockHashes)}; ${gradleShell}`,'gradlew','--init-script',`${config.worktree}/.gradle/workspace-setup.init.gradle`,'workspaceResolveDependencies','--no-daemon','--max-workers=2'];
   const result=await run(wslTrustedCommandLaunch(cwd,sandbox),cwd,900000,signal);
   if(!result.ok)return result;
-  fs.writeFileSync(marker,JSON.stringify({digest:expected,step:step.ifMissing,preparedAt:new Date().toISOString()}));
+  verifyGradleLocks(cwd,lockHashes);
+  fs.writeFileSync(marker,JSON.stringify({digest:expected,lockSha256:lockHashes,step:step.ifMissing,preparedAt:new Date().toISOString()}));
   return result;
 }
 export function validateReviewedNpmSetup(cwd,step){
@@ -257,11 +266,16 @@ export async function prepareWslDependency(cwd,step,signal){
 export async function runWslCheck(cwd,command,args,timeoutMs,signal){
   const config=nodeEnvironment(cwd);
   if(command==='gradlew.bat'||command==='./gradlew'){
+    const marker=path.join(root,'data','check-deps',`${createHash('sha256').update(path.resolve(cwd)+'|gradle').digest('hex')}.json`);
+    let lockHashes,preflight;
+    try{lockHashes=JSON.parse(fs.readFileSync(marker,'utf8')).lockSha256;preflight=gradleLockPreflight(lockHashes);reviewWslGradleLocks(cwd);verifyGradleLocks(cwd,lockHashes);}catch{throw new Error('Reviewed Gradle lockfile marker is missing or changed');}
     await verifyWslSetupBoundary(cwd,'wsl-check-generic');
     fs.mkdirSync(path.join(cwd,'.gradle','workspace-tmp'),{recursive:true});
     const commandArgs=[...args,'--offline','--no-daemon','--rerun-tasks','--max-workers=2'];
-    const sandbox=['/usr/bin/unshare','-Urn','/bin/sh','-c','/usr/sbin/ip link set lo up && exec "$@"','outer','/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,'sandbox','-p',codexProfileName('wsl-check-generic'),'-P','workspace-check-locked','-C',config.worktree,'--',...gradleEnvironment(config,cachedByteBuddyAgent(cwd,config)),'/bin/sh',cachedGradleExecutable(cwd,config),...commandArgs];
-    return run(wslTrustedCommandLaunch(cwd,sandbox),cwd,timeoutMs,signal);
+    const sandbox=['/usr/bin/unshare','-Urn','/bin/sh','-c','/usr/sbin/ip link set lo up && exec "$@"','outer','/usr/bin/env',`CODEX_HOME=${config.codexHome}`,config.binary,'sandbox','-p',codexProfileName('wsl-check-generic'),'-P','workspace-check-locked','-C',config.worktree,'--',...gradleEnvironment(config,cachedByteBuddyAgent(cwd,config)),'/bin/sh','-c',`${preflight}; exec "$@"`,'gradle-check',cachedGradleExecutable(cwd,config),...commandArgs];
+    const result=await run(wslTrustedCommandLaunch(cwd,sandbox),cwd,timeoutMs,signal);
+    verifyGradleLocks(cwd,lockHashes);
+    return result;
   }
   const executable=command==='npm'||command==='npm.cmd'?'/usr/bin/npm':command==='node'||command==='node.exe'?`${config.bin}/node`:null;
   if(!executable)throw new Error(`Unsupported isolated WSL check command: ${command}`);

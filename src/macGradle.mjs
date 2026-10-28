@@ -7,10 +7,11 @@ import {trustedMacFile,trustedMacRuntime,validateMacWorktree} from './macTrust.m
 import {macChildEnv,registerMacGradleContainer,activeMacProcessesForWorktree} from './provider.mjs';
 import {sandboxRun} from './macDependency.mjs';
 import {macGradleContainer} from './macGradleContainer.mjs';
+import {gradleLockfiles,verifyGradleLocks} from './gradleLocks.mjs';
 
 const sha=file=>createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const inside=(file,base)=>file===base||file.startsWith(base+path.sep);
-const buildPaths=['gradlew','gradlew.bat','build.gradle','build.gradle.kts','settings.gradle','settings.gradle.kts','gradle.properties','gradle','buildSrc','build-logic'];
+const buildPaths=['gradlew','gradlew.bat','build.gradle','build.gradle.kts','settings.gradle','settings.gradle.kts','gradle.properties','gradle','buildSrc','build-logic',...gradleLockfiles];
 export function macGradleVerificationMetadata(artifacts){
   const components=new Map();
   for(const item of artifacts){
@@ -57,6 +58,8 @@ function reviewedGradle(cwd,{reviewOnly=false}={}){
   if(git(['status','--porcelain','--untracked-files=all','--',...buildPaths]).trim()||git(['ls-files','--others','--ignored','--exclude-standard','--',...buildPaths]).trim())throw new Error('Gradle build inputs changed or contain unreviewed scripts');
   const inputs=git(['ls-files','-z','--',...buildPaths]).split('\0').filter(Boolean).sort();
   if(JSON.stringify(inputs)!==JSON.stringify(Object.keys(policy.inputs).sort()))throw new Error('Gradle build input inventory differs from reviewed policy');
+  if(gradleLockfiles.some(file=>!inputs.includes(file)))throw new Error('Required Gradle lockfile is absent from reviewed inputs');
+  verifyGradleLocks(cwd,policy.inputs);
   for(const file of inputs){const location=path.join(cwd,file);if(fs.realpathSync(location)!==location||sha(location)!==policy.inputs[file])throw new Error('Gradle build input checksum changed');}
   if(policy.version===2&&!reviewOnly){
     const verification='gradle/verification-metadata.xml';

@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {root} from './config.mjs';
 import {trustedMacFile} from './macTrust.mjs';
+import {verifyGradleLocks,gradleLockPreflight} from './gradleLocks.mjs';
 
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const environment={PATH:'/usr/bin:/bin',LANG:'en_US.UTF-8'};
@@ -68,6 +69,9 @@ export function macGradleContainer(cwd,policy,temporary,init,args,timeoutMs,{rev
     if(stat.isFile()&&(stat.size>64*1024*1024||(bytes+=stat.size)>256*1024*1024))throw new Error('Gradle source snapshot byte limit exceeded');
     return true;
   }});
+  // The approved worktree can change while it is copied. Validate the private
+  // snapshot itself before it becomes the container's read-only source.
+  verifyGradleLocks(source,policy.inputs);
   for(const name of ['',...fs.readdirSync(source,{recursive:true})]){
     const file=path.join(source,name),stat=fs.lstatSync(file);
     fs.chmodSync(file,stat.isDirectory()||stat.mode&0o111?0o755:0o644);
@@ -78,7 +82,8 @@ export function macGradleContainer(cwd,policy,temporary,init,args,timeoutMs,{rev
   for(const [key,label] of Object.entries(labels(cwd,value)))create.push('--label',`${key}=${label}`);
   for(const [source,target] of mounts)create.push('--mount',`type=bind,source=${source},target=${target},readonly,bind-propagation=rprivate,bind-recursive=disabled`);
   for(const value of ['HOME=/tmp/home','JAVA_HOME=/trusted/jdk','PATH=/trusted/jdk/bin:/usr/bin:/bin','GRADLE_USER_HOME=/tmp/gradle-user','LANG=C.UTF-8'])create.push('--env',value);
-  const shell=reviewOnly?'cp -R /source/. /work/ && /usr/bin/timeout --signal=KILL "$@"; status=$?; if [ -f /work/gradle/verification-metadata.xml ]; then printf "\\nWORKSPACE_REVIEW_METADATA_BEGIN\\n"; head -c 1500000 /work/gradle/verification-metadata.xml; printf "\\nWORKSPACE_REVIEW_METADATA_END\\n"; fi; printf "\\nWORKSPACE_REVIEW_TESTS_BEGIN\\n"; find /tmp/gradle-builds -type f -name "TEST-*.xml" -exec grep -h -m 1 "<testsuite " {} \\; 2>/dev/null | head -c 200000; printf "\\nWORKSPACE_REVIEW_TESTS_END\\n"; exit "$status"':'cp -R /source/. /work/ && exec /usr/bin/timeout --signal=KILL "$@"';
+  const preflight=gradleLockPreflight(policy.inputs);
+  const shell=reviewOnly?`cp -R /source/. /work/ && ${preflight} && /usr/bin/timeout --signal=KILL "$@"; status=$?; if [ -f /work/gradle/verification-metadata.xml ]; then printf "\\nWORKSPACE_REVIEW_METADATA_BEGIN\\n"; head -c 1500000 /work/gradle/verification-metadata.xml; printf "\\nWORKSPACE_REVIEW_METADATA_END\\n"; fi; printf "\\nWORKSPACE_REVIEW_TESTS_BEGIN\\n"; find /tmp/gradle-builds -type f -name "TEST-*.xml" -exec grep -h -m 1 "<testsuite " {} \\; 2>/dev/null | head -c 200000; printf "\\nWORKSPACE_REVIEW_TESTS_END\\n"; exit "$status"`:`cp -R /source/. /work/ && ${preflight} && exec /usr/bin/timeout --signal=KILL "$@"`;
   create.push(execution.image,'-c',shell,'gradle',String(Math.ceil(timeoutMs/1000)+5),'/trusted/gradle/bin/gradle',...args,'--offline','--no-daemon','--no-configuration-cache','--no-build-cache','--no-watch-fs','--max-workers=2','-Dorg.gradle.jvmargs=','--dependency-verification=strict','--project-cache-dir','/tmp/gradle-project','--init-script','/trusted/init.gradle');
   return {value,runtime,create:()=>{
     command(value,cwd,create);const item=owned(value,cwd),host=item?.HostConfig;
